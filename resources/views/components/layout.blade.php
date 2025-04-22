@@ -19,7 +19,7 @@
             <div class="space-x-6 font-bold">
                 <x-navs>Features</x-navs>
                 <x-navs>About</x-navs>
-                <x-navs>Pricing</x-navs>
+                <x-navs>Premium</x-navs>
                 @auth
                 <x-navs>My Journals</x-navs>
                 @endauth

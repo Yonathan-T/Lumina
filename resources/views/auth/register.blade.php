@@ -8,17 +8,17 @@
 
                     <x-form-wrapper>
                         <x-form-label for="firstName">First Name</x-form-label>    
-                        <x-form-input type="text" id="firstName" name="name"/>
+                        <x-form-input type="text" id="firstName" name="name" :value="old('name')"/>
                         <x-form-error name="name"/>
                       </x-form-wrapper>
                       <x-form-wrapper>
                         <x-form-label for="email">Email</x-form-label>    
-                        <x-form-input id="email" name="email" type="email"/>
+                        <x-form-input id="email" name="email" type="email" :value="old('email')" />
                         <x-form-error name="email"/>
                       </x-form-wrapper>
                       <x-form-wrapper>
                         <x-form-label for="password">Password</x-form-label>    
-                        <x-form-input id="password" name="password" type="password"/>
+                        <x-form-input id="password" name="password" type="password" />
                         <x-form-error name="password"/>
                       </x-form-wrapper>
                       <x-form-wrapper>
