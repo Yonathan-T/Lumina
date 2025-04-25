@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('landing-page');
 });
+Route::get('/dashboard', function () {
+    return view('entries.index');
+});
 Route::get('/register',[RegisteredUserController::class ,'create']);
 Route::post('/register',[RegisteredUserController::class ,'store']);
 

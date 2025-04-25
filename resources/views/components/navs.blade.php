@@ -1,4 +1,3 @@
-<a {{ $attributes->merge(['class' => 'relative group pb-1']) }}>
-    {{ $slot }}
-    <span class="absolute bottom-0 left-1/2 w-0 h-px bg-[#7c6a54] group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
-</a>
+<nav {{ $attributes->merge(['class'=>" px-4 py-4 mt-5 flex justify-between items-center  border rounded-4xl border-white/10 backdrop-blur-2xl sticky top-5 z-10  "])}}>
+{{ $slot }}
+</nav>

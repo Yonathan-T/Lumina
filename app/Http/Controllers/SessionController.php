@@ -23,7 +23,7 @@ class SessionController extends Controller
             );
         }
            request()->session()->regenerate();
-            return redirect(dd('user logged in successfully'));
+            return redirect('/dashboard');
             //redirect to a user dashboard
     }
 }

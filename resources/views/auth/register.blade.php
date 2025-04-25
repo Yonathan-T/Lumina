@@ -2,7 +2,7 @@
    <x-form-parent>
    <h2 class="text-2xl font-bold text-white">Register</h2>
    <p class="text-sm text-gray-500">Fill in the form below to create your account.</p>
-     <form method="POST" action="#">
+     <form method="POST" action="/register">
        @csrf
        <div class="flex flex-col gap-6">
 

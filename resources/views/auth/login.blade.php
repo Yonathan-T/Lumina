@@ -2,7 +2,7 @@
    <x-form-parent>
    <h2 class="text-2xl font-bold text-white">Login</h2>
    <p class="text-sm text-gray-500">Enter your email and password below to login to your account.</p>
-     <form method="POST" action="#">
+     <form method="POST" action="/login">
        @csrf
        <div class="flex flex-col gap-6">
                     <x-form-wrapper>

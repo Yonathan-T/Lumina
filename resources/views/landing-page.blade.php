@@ -1,5 +1,6 @@
 <!--HERO PART -->
 <x-layout>
+  
 <section class="py-8">
     <div class="flex justify-between items-stretch bg-white/5 rounded-xl"> 
 
@@ -131,7 +132,7 @@
 
     </div>
     <div>
-      <h3 class="font-medium mb-4 text-[#7c6a54]">Contact us</h3>
+      <h3 class="font-medium mb-4 text-[#7c6a54]">Follow us</h3>
       <a href="https://t.me/+lEIft9tfqhwxNjU8">
         <x-icons type="telegram" :logo="true"/>
       </a>

@@ -1,6 +1,5 @@
 @props(['type' => 'heart','logo'=>false])
 @php
-
 $class="fa-solid text-[#c6b78e] text-2xl align-center ";
 @$classLogo = "";
 if($type === "heart" ){
@@ -24,6 +23,9 @@ $class .="text-sm fa-quote-right";
 }
 else if($type === "telegram" && $logo===true ){
 $classLogo ="text-[#c6b78e] text-2xl align-center fa-brands fa-telegram";
+}
+else if($type === "chat"){
+$classLogo ="fa-brands fa-rocketchat";
 }
 @endphp
 
