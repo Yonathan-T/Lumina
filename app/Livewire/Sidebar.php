@@ -8,11 +8,16 @@ use Livewire\Component;
 class Sidebar extends Component
 {
     public $selectedEntryId; // Property to store the selected entry ID
+    public $showNewMemoForm= false;
 
     public function selectEntry($id)
     {
         // Update the selected entry ID when a button is clicked
         $this->selectedEntryId = $id;
+    }
+    public function openNewMemoForm(){
+        $this->showNewMemoForm = true; 
+
     }
 
     public function render()
@@ -23,6 +28,7 @@ class Sidebar extends Component
         return view('livewire.sidebar', [
             'entries' => auth()->user()->entries,
             'selectedEntry' => $selectedEntry, // Pass the selected entry to the view
+            'showNewMemoForm' => $this->showNewMemoForm
         ]);
     }
 }
