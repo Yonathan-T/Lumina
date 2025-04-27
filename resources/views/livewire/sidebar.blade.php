@@ -20,7 +20,7 @@
         </div>
     </aside>
 @if (!$selectedEntry  ||  $showNewMemoForm)
-    <x-entries.authed-user/>
+    <x-entries.entriesForm/>
 @else
 <div class="mt-6 p-6 max-w-3xl mx-auto bg-white/5 rounded-lg shadow-xl flex flex-col min-h-[300px]">
     <div class="flex-grow"> <!-- This pushes the footer down -->
@@ -32,13 +32,15 @@
     </div>
 
     <div class="mt-auto pt-4 flex justify-between items-center border-t border-white/10">
-        <div class="flex flex-start">
+        <div class="">
             <p class="text-sm text-gray-500">Created on: {{ $selectedEntry->created_at->format('M d, Y') }}</p>
-
         </div>
-        <div class="justify-end space-x-4">
+        <div>
+
             <x-buttons href="/entry/edit/{{ $selectedEntry->id }}" class="!py-2 !px-4">Edit Entry</x-buttons>
-<x-form-button :buttonsDelete="true">Delete</x-form-button>
+        </div>
+<!-- cant a user delete anything bro? -->
+
         </div>
     </div>
 </div>

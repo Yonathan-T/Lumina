@@ -9,7 +9,7 @@ class Sidebar extends Component
 {
     public $selectedEntryId; // Property to store the selected entry ID
     public $showNewMemoForm= false;
-
+  
     public function selectEntry($id)
     {
         // Update the selected entry ID when a button is clicked
@@ -26,7 +26,7 @@ class Sidebar extends Component
         $selectedEntry = $this->selectedEntryId ? Entry::find($this->selectedEntryId) : null;
 
         return view('livewire.sidebar', [
-            'entries' => auth()->user()->entries,
+            'entries' => auth()->user()->entries()->latest()->get(),
             'selectedEntry' => $selectedEntry, // Pass the selected entry to the view
             'showNewMemoForm' => $this->showNewMemoForm
         ]);
