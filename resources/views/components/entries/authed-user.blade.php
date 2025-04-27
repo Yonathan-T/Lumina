@@ -11,8 +11,9 @@
         </div>
             
 <x-form-parent >
-<form method="POST" >
-       @csrf
+<form method="POST" action="/entries">
+
+@csrf
        <div class="flex flex-col gap-6">
                     <x-form-wrapper>
                         <x-form-label for="title">Title</x-form-label>    
@@ -21,7 +22,9 @@
                       </x-form-wrapper>
                       <x-form-wrapper>
                         <x-form-label for="content">Content</x-form-label>    
-                        <x-form-input id="content" name="content" type="text" placeholder="What’s one thing you’re grateful for today?" />
+                       <textarea id="content" name="content" type="text" placeholder="What’s one thing you’re grateful for today?" class="w-full px-4 py-2 rounded-md focus:ring-[#c2b68e] bg-white/5 focus:border-[#c2b68e]">
+
+                       </textarea> 
                         <x-form-error name="content"/>
                       </x-form-wrapper>
                       
@@ -30,8 +33,9 @@
                   <a href="/" class="text-sm font-semibold text-gray-300 ">Cancel</a>
                   <x-form-button>Save</x-form-button>
                 </div>
-              </form>
+</form>
               
+
 </x-form-parent>
     
  

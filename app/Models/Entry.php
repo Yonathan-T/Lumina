@@ -9,6 +9,11 @@ class Entry extends Model
 {
     /** @use HasFactory<\Database\Factories\EntryFactory> */
     use HasFactory;
+    protected $fillable = [
+        "title",
+        "content",
+        'user_id',
+    ];
     public function tags()
     {
         return $this->belongsToMany(Tag::class);

@@ -21,3 +21,4 @@ toggleBtn.addEventListener('click', () => {
     mainContent.classList.add('pl-0');
   }
 });
+

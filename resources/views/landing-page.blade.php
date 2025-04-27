@@ -2,8 +2,8 @@
 <x-layout>
   
 <section class="py-8">
-    <div class="flex justify-between items-stretch bg-white/5 rounded-xl"> 
-    <div class="flex justify-between items-stretch bg-white/5 rounded-xl"> 
+    <div class="flex justify-between  bg-white/5 rounded-xl"> 
+
         <!-- Text Content Column -->
         <div class="flex-1 py-12 px-12 flex flex-col"> 
             <div class="mb-7">  

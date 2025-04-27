@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Entry;
 use App\Http\Requests\StoreEntryRequest;
 use App\Http\Requests\UpdateEntryRequest;
+use Illuminate\Validation\Rules\Can;
 
 class EntryController extends Controller
 {
@@ -21,15 +22,24 @@ class EntryController extends Controller
      */
     public function create()
     {
-        //
+        return view("entries.index");
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreEntryRequest $request)
+    public function store()
     {
-        //
+    request()->validate([  
+            "title"=> ["required","string"],
+            "content"=> ["required"],
+            ]);
+        Entry::create([
+            "title"=> request()->title,
+            "content"=> request()->content,
+            "user_id" => auth()->id(), 
+            ]);
+        return redirect('/entries');
     }
 
     /**

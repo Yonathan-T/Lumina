@@ -24,39 +24,20 @@
 
   <!-- Right: Profile Icon -->
   <div class="flex items-center gap-3">
-    <span class="text-sm">Yonathan</span>
+    <span class="text-sm">{{auth()->user()->name}}</span>
     <img class="w-8 h-8 rounded-full" src="{{ Vite::asset('resources/images/diary.png') }}" alt="Profile" />
   </div>
 </header>
 
 
 <!-- Sidebar -->
-<aside id="sidebar" class="fixed top-12 left-0 bottom-0 w-[270px] bg-white/5 rounded-r-lg border-[#c2b68e] flex flex-col z-40 transition-transform duration-300">
-  <!-- Sidebar content -->
-  <div class="p-4 overflow-y-auto">
-    <!-- Same links and sections you had -->
-    <x-buttons class="mb-4" href="/entries"><x-icons type="chat"/> New Memo</x-buttons>
-    <div class="flex-1 overflow-y-auto p-2">
-    <div class="mb-3">
-      <p class="text-xs font-medium text-gray-500 uppercase tracking-wider px-0 py-1">Today</p>
-      <a href="#" class="block px-3 py-2 text-sm rounded hover:bg-[#c2b68e]/15 text-white">Meeting Notes</a>
-      <a href="#" class="block px-3 py-2 text-sm rounded hover:bg-[#c2b68e]/15 text-white">Daily Reflection</a>
-    </div>
-    
-    <div class="mb-3">
-      <p class="text-xs font-medium text-gray-500 uppercase tracking-wider px-0 py-1">Yesterday</p>
-      <a href="#" class="block px-3 py-2 text-sm rounded hover:bg-[#c2b68e]/15 text-white">Weekly Goals</a>
-      <a href="#" class="block px-3 py-2 text-sm rounded hover:bg-[#c2b68e]/15 text-white">Book Highlights</a>
-    </div>
-    <!-- ... -->
-  </div>
-</aside>
 
 <section class=" pt-16 pl-[270px] transition-all duration-300" id="mainContent">
   <!-- NEW user-->
-   @if(auth()->user()->entries)  
-   <x-entries.authed-user/>
-   @endif
+  @livewire('sidebar')
+
+
+
 </section>
 
 
