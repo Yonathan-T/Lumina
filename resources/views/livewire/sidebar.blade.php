@@ -22,24 +22,38 @@
 @if (!$selectedEntry  ||  $showNewMemoForm)
     <x-entries.entriesForm/>
 @else
-<div class="mt-6 p-6 max-w-3xl mx-auto bg-white/5 rounded-lg shadow-xl flex flex-col min-h-[300px]">
-    <div class="flex-grow"> <!-- This pushes the footer down -->
+<div class="mt-6 p-6 max-w-3xl mx-auto bg-white/5 rounded-lg shadow-xl flex flex-col min-h-[450px]">
+    <div class="flex-grow">
                 <span class="relative inline-block ml-2">
                     <span class="absolute inset-0 bg-gradient-to-r from-[#7c6a54] to-transparent rounded-sm"></span>
                     <h2 class=" text-3xl font-semibold text-white relative  px-2">{{ $selectedEntry->title }}</h2>
                 </span>
         <p class="mt-4  text-sm text-white ">{{ $selectedEntry->content }}</p>
     </div>
+    <!-- Tags Section -->
+    <div class="mb-2">
+    @if($selectedEntry && $selectedEntry->tags->isNotEmpty())
+        <ul class="flex flex-wrap  gap-2">
+            @foreach($selectedEntry->tags as $tag)
+                <li class=" bg-white/5 border hover:border-[#c2b68e] rounded-full py-1 px-3 text-gray-500 hover:text-[#c2b68e] text-sm flex items-center">
+                    <span class="mr-1 font-semibold text-grey">#</span>{{ $tag->name }}
+                </li>
+            @endforeach
+        </ul>
+    @else
+        <p class="flex justify-end text-sm text-gray-500">No tags for this entry.</p>
+    @endif
+</div>
+<!-- Footer Baby -->
+        <div class="mt-auto pt-4 flex justify-between items-center border-t border-white/10">
+                <div class="">
+                    <p class="text-sm text-gray-500">Created on: {{ $selectedEntry->created_at->format('M d, Y') }}</p>
+                </div>
+                <div>
 
-    <div class="mt-auto pt-4 flex justify-between items-center border-t border-white/10">
-        <div class="">
-            <p class="text-sm text-gray-500">Created on: {{ $selectedEntry->created_at->format('M d, Y') }}</p>
-        </div>
-        <div>
-
-            <x-buttons href="/entry/edit/{{ $selectedEntry->id }}" class="!py-2 !px-4">Edit Entry</x-buttons>
-        </div>
-<!-- cant a user delete anything bro? -->
+                    <x-buttons href="/entry/edit/{{ $selectedEntry->id }}" class="!py-2 !px-4">Edit Entry</x-buttons>
+                </div>
+        <!-- cant a user delete anything bro? -->
 
         </div>
     </div>

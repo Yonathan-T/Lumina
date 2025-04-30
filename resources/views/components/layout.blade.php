@@ -10,7 +10,7 @@
 </head>
 <body class="bg-[#1b1b1b] text-white">
     <div class="px-18 relative "> 
-        <!-- fixed and glassyy top-0 inset-x-0 -->
+        
         @if ($showNav ?? true)
         <x-navs>
             
@@ -24,7 +24,7 @@
                 <x-links>About</x-links>
                 <x-links>Premium</x-links>
                 @auth
-                <x-links>My Journals</x-links>
+                <x-links href="/dashboard">My Journals</x-links>
                 @endauth
                 <x-links>Contact</x-links>
             </div>

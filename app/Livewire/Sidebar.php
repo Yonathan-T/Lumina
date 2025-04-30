@@ -27,6 +27,7 @@ class Sidebar extends Component
 
         return view('livewire.sidebar', [
             'entries' => auth()->user()->entries()->latest()->get(),
+            'tags' => auth()->user()->entries()->with('tags')->get()->flatMap->tags, // Get all the tags of the entries
             'selectedEntry' => $selectedEntry, // Pass the selected entry to the view
             'showNewMemoForm' => $this->showNewMemoForm
         ]);

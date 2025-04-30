@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Entry;
+use App\Models\Tag;
 use App\Http\Requests\StoreEntryRequest;
 use App\Http\Requests\UpdateEntryRequest;
 use Illuminate\Validation\Rules\Can;
@@ -34,11 +35,19 @@ class EntryController extends Controller
             "title"=> ["required","string"],
             "content"=> ["required"],
             ]);
-        Entry::create([
+       $entry = Entry::create([
             "title"=> request()->title,
             "content"=> request()->content,
             "user_id" => auth()->id(), 
             ]);
+        preg_match_all('/#(\w+)/', request()->content, $matches);
+            $tags = array_unique(array_map('strtolower', $matches[1]));
+        
+            // --- Attach tags to entry ---
+            foreach ($tags as $tagName) {
+                $tag = Tag::firstOrCreate(['name' => $tagName]);
+                $entry->tags()->attach($tag);
+            }
         return redirect('/entries');
     }
 

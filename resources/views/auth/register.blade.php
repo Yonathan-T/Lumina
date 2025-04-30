@@ -34,6 +34,10 @@
                   <a href="/" class="text-sm font-semibold text-gray-300 ">Cancel</a>
                   <x-form-button>Save</x-form-button> 
                 </div>
+                <p class="mt-3 text-center text-sm text-gray-400 space-x-2">
+                  Already have an account?
+                  <a href="/login" class="text-white underline hover:text-[#c6b78e]">Sign in</a>
+                </p>
               </form>
         
         </x-form-parent>
