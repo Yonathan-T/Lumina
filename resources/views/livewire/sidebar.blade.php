@@ -24,34 +24,52 @@
 @else
 <div class="mt-6 p-6 max-w-3xl mx-auto bg-white/5 rounded-lg shadow-xl flex flex-col min-h-[450px]">
     <div class="flex-grow">
-                <span class="relative inline-block ml-2">
-                    <span class="absolute inset-0 bg-gradient-to-r from-[#7c6a54] to-transparent rounded-sm"></span>
-                    <h2 class=" text-3xl font-semibold text-white relative  px-2">{{ $selectedEntry->title }}</h2>
-                </span>
-        <p class="mt-4  text-sm text-white ">{{ $selectedEntry->content }}</p>
+              
+        @if ($isEditing)
+        <input type="text" class="w-full bg-transparent border-b border-[#c2b68e] text-white text-2xl font-semibold px-2 mb-4" wire:model.defer="editedTitle" />
+        <textarea class="w-full h-60 bg-transparent border border-[#c2b68e] text-white p-2 text-sm" wire:model.defer="editedContent"></textarea>
+        @else
+        <span class="relative inline-block ml-2">
+            <span class="absolute inset-0 bg-gradient-to-r from-[#7c6a54] to-transparent rounded-sm"></span>
+            <h2 class=" text-3xl font-semibold text-white relative  px-2">{{ $selectedEntry->title }}</h2>
+        </span>
+        <p class="mt-4 text-sm text-white">{{ $selectedEntry->content }}</p>
+        @endif
     </div>
+
     <!-- Tags Section -->
     <div class="mb-2">
-    @if($selectedEntry && $selectedEntry->tags->isNotEmpty())
-        <ul class="flex flex-wrap  gap-2">
-            @foreach($selectedEntry->tags as $tag)
-                <li class=" bg-white/5 border hover:border-[#c2b68e] rounded-full py-1 px-3 text-gray-500 hover:text-[#c2b68e] text-sm flex items-center">
+    @if ($isEditing)
+    <label class="block text-white mt-4 mb-2 text-sm"> Edit Tags (comma-separated)</label>
+    <input type="text" wire:model.defer="editedTags" class="w-full bg-transparent border-b border-[#c2b68e] text-white text-sm px-2 mb-2" />
+@else
+    <div class="mt-2 flex flex-wrap gap-1">
+    @foreach($selectedEntry->tags as $tag)
+                <li class=" bg-white/5 border hover:border-[#c2b68e] rounded-full py-1 px-2 text-gray-500 hover:text-[#c2b68e] text-xs flex items-center">
                     <span class="mr-1 font-semibold text-grey">#</span>{{ $tag->name }}
                 </li>
             @endforeach
-        </ul>
-    @else
-        <p class="flex justify-end text-sm text-gray-500">No tags for this entry.</p>
-    @endif
+    </div>
+@endif
 </div>
+
+
+
+
+
 <!-- Footer Baby -->
         <div class="mt-auto pt-4 flex justify-between items-center border-t border-white/10">
                 <div class="">
-                    <p class="text-sm text-gray-500">Created on: {{ $selectedEntry->created_at->format('M d, Y') }}</p>
+                    <p class="text-sm text-[#c2b68e]/30">Created on: {{ $selectedEntry->created_at->format('M d, Y') }}</p>
                 </div>
                 <div>
 
-                    <x-buttons href="/entry/edit/{{ $selectedEntry->id }}" class="!py-2 !px-4">Edit Entry</x-buttons>
+                @if ($isEditing)
+    <x-buttons wire:click="saveEntry" class="!py-2 !px-4">Save</x-buttons>
+@else
+    <x-buttons wire:click="editEntry" class="!py-2 !px-4">Edit Entry</x-buttons>
+@endif
+
                 </div>
         <!-- cant a user delete anything bro? -->
 
