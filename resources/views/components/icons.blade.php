@@ -18,6 +18,9 @@ $class .="fa-hashtag";
 else if($type === "leftQ"){
 $class .="text-sm fa-quote-left";
 }
+else if($type === "search"){
+$class .="text-lg fa-magnifying-glass";
+}
 else if($type === "rightQ"){
 $class .="text-sm fa-quote-right";
 }

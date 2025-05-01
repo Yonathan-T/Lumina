@@ -21,3 +21,5 @@ Route::post('/login',[SessionController::class ,'store']);
 Route::get('/entries',[EntryController::class ,'create']);
 Route::post('/entries',[EntryController::class ,'store'])->middleware('auth');
 
+Route::get('/entry/edit',[EntryController::class , 'edit'])->middleware('auth');
+

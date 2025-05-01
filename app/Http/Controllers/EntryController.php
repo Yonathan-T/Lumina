@@ -64,7 +64,11 @@ class EntryController extends Controller
      */
     public function edit(Entry $entry)
     {
-        //
+        request()->validate([
+            'title'=> ['required','string'],    
+            'content'=> ['required','string'],
+            ]);
+           
     }
 
     /**
