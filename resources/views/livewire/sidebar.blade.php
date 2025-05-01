@@ -40,7 +40,7 @@
     <!-- Tags Section -->
     <div class="mb-2">
     @if ($isEditing)
-    <label class="block text-white mt-4 mb-2 text-sm"> Edit Tags (comma-separated)</label>
+    <label class="block text-white mt-4 mb-2 text-sm">Add or Edit Tags (comma-separated)</label>
     <input type="text" wire:model.defer="editedTags" class="w-full bg-transparent border-b border-[#c2b68e] text-white text-sm px-2 mb-2" />
 @else
     <div class="mt-2 flex flex-wrap gap-1">

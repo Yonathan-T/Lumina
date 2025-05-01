@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Entry;
+use App\Models\Tag;
 use Livewire\Component;
 
 class Sidebar extends Component
@@ -53,15 +54,14 @@ class Sidebar extends Component
     
             // Sync tags
             $tagNames = collect(explode(',', $this->editedTags))
-                            ->map(fn($tag) => trim($tag))
+                             ->map(fn($tag) => strtolower(trim($tag)))
                             ->filter(); // remove empty values
     
             $tagIds = [];
             foreach ($tagNames as $name) {
-                $tag = \App\Models\Tag::firstOrCreate(['name' => $name]);
+                $tag = Tag::firstOrCreate(['name' => $name]);
                 $tagIds[] = $tag->id;
             }
-    
             $entry->tags()->sync($tagIds);
     
             $this->isEditing = false;
