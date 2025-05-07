@@ -1,4 +1,4 @@
-<div class="bg-white/5 p-6 rounded-xl border border-white/10 hover:border-[#c6b78e] group transition-colors duration-300">
+<div class="bg-[#030711] p-6 rounded-xl border border-white/10  group transition-colors duration-300 card-highlight">
     <h3 class="text-xl font-semibold mb-2 group-hover:text-[#c6b78e] transition-colors duration-300">
         <x-icons type="check" /> {{ $title }}
     </h3>
