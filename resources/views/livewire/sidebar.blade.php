@@ -47,7 +47,8 @@
                             <span class="absolute inset-0 bg-gradient-to-r from-white/15 to-transparent rounded-sm"></span>
                             <h2 class=" text-3xl font-semibold text-white relative  px-2">{{ $selectedEntry->title }}</h2>
                         </span>
-                        <p class="mt-4 text-sm text-white">{{ $selectedEntry->content }}</p>
+                        <p class="mt-4 text-sm text-white">{!! nl2br(e($selectedEntry->content)) !!}</p>
+
                     @endif
                 </div>
 

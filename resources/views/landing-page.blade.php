@@ -1,53 +1,135 @@
 <!--HERO PART -->
 <x-layout>
 
-  <section class="py-8">
-    <div class="flex justify-between  bg-white/5 rounded-xl ">
+  <section class="py-5 ">
+    <div class="mx-auto flex flex-col lg:flex-row justify-between rounded-xl  max-w-7xl px-4">
 
       <!-- Text Content Column -->
-      <div class="flex-1 py-12 px-12 flex flex-col">
+      <div class="flex-1 py-12 px-8 flex flex-col">
         <div class="mb-7">
-          <h1 class="font-bold text-4xl mb-5">Journal Smarter, Reflect Deeper</h1>
-          <h3 class="text-lg max-w-md mt-2">
-            Unlock personal growth, mental clarity, and emotional wellness with our intuitive journaling platform.
-          </h3>
+          <h1 class="font-playfair text-4xl md:text-5xl lg:text-6xl font-bold leading-none">
+            Your story deserves to be written.
+          </h1>
+
+          <h2 class="mt-[24px] text-lg md:text-xl text-paper/80">
+            <span class="font-playfair italic">Reflect.</span>
+            <span class="mx-2">|</span>
+            <span class="font-playfair italic">Grow.</span>
+            <span class="mx-2">|</span>
+            <span class="font-playfair italic">Heal.</span>
+
+          </h2>
+
+          <p class="mt-[24px] text-paper/70 max-w-md">
+            A beautiful, private space for your thoughts, dreams, and reflections.
+            Memo Mate helps you cultivate mindfulness and emotional clarity through journaling.
+          </p>
+
         </div>
 
 
         <div class="mt-auto">
-          <div class="space-y-5 space-x-2 mb-6">
-            <x-buttons href="/login">Get Started</x-buttons>
-            <x-buttons href="/guide">Send me a guide</x-buttons>
+          <div class="flex space-x-3 mb-6">
+            <x-buttons href="/login" class="flex items-center card-highlight">
+              Start Writing Today
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                class="w-4 h-4 ml-2">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </x-buttons>
+
+            <!-- <x-buttons href="/guide">Send me a guide</x-buttons> -->
           </div>
-          <p class="text-sm text-gray-400">We'll Never Share Your Info With Anyone.</p>
+
+          <p class="text-sm text-gray-300">We'll never share your Info. Your thoughts stay yours.</p>
         </div>
       </div>
 
 
       <div class="flex-1 flex items-center justify-end">
-        <img src="{{ Vite::asset('resources/images/hero-img.png') }}" class="max-h-96 w-auto object-contain"
-          alt="Journaling illustration">
+        <div class="relative animate-float w-full h-96">
+          <!-- Main journal card -->
+          <div
+            class="w-full h-full bg-paper/10 backdrop-blur-sm rounded-xl shadow-2xl border border-paper/20 p-5 transform rotate-4">
+            <div class="h-full rounded-lg bg-paper/10 p-6 flex flex-col">
+              <div class="flex justify-between mb-6">
+                <div class="text-sm text-paper/70">{{ now()->format('F j')}}</div>
+                <div class="text-accent-peach text-sm">Personal</div>
+              </div>
+              <h3 class="font-playfair text-lg mb-4">Today's Reflection</h3>
+              <div class="space-y-2 animate-pulse">
+                <div class="h-3 bg-white/15 rounded-full w-full"></div>
+                <div class="h-3 bg-white/15 rounded-full w-5/6"></div>
+                <div class="h-3 bg-white/15 rounded-full w-full"></div>
+                <div class="h-3 bg-white/15 rounded-full w-4/6"></div>
+              </div>
+
+              <div class="mt-auto pt-4">
+                <div class="flex items-center space-x-2">
+                  <div class="w-8 h-8 rounded-full bg-muted-green flex items-center justify-center text-twilight">
+                    {{-- Optional: Replace with Smile icon or image --}}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M14 10h4v4h-4v4h-4v-4H6v-4h4V6h4v4z" />
+                    </svg>
+                  </div>
+                  <span class="text-sm text-paper/70">Feeling calm today</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Floating journal card -->
+          <div
+            class="absolute -bottom-10 -right-10 w-64 h-40 bg-paper/10 backdrop-blur-sm rounded-lg shadow-xl border border-paper/20 p-3 transform -rotate-6">
+            <div class="h-full rounded bg-paper/10 p-3">
+              <div class="flex justify-between mb-3">
+                <div class="text-xs text-paper/70">Jan 6</div>
+              </div>
+              <div class="space-y-1 animate-pulse">
+                <div class="h-2 bg-white/20 rounded-full w-full"></div>
+                <div class="h-2 bg-white/20 rounded-full w-3/4"></div>
+                <div class="h-2 bg-white/20 rounded-full w-5/6"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+
     </div>
   </section>
   <!--BENEFITS -->
-  <section class="max-w-4xl mx-auto py-12 px-4"> <!-- Main container -->
-    <h2 class="text-3xl font-bold text-center mb-10">Why You’ll <x-icons /> Memo Mate</h2>
+  <section class="mt-5  py-12 "> <!-- Main container -->
+    <div class="text-center max-w-2xl mx-auto mb-6">
+      <h2 class="font-playfair text-3xl md:text-4xl font-bold mb-6 tracking-wide">
+        Why Memo Mate?
+      </h2>
+      <p class="text-white/70">
+        Our thoughtfully crafted features make journaling a delightful part of your daily routine.
+      </p>
+    </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-      <x-benefit-card title="Effortless Daily Journaling" description="Quick entries with minimal friction." />
-      <x-benefit-card title="Smart AI Reflections" description="Discover hidden patterns in your thoughts." />
-      <x-benefit-card title="Mood Tracking" description="Visualize your emotional journey over time." />
-      <x-benefit-card title="Private & Secure" description="Your thoughts stay yours alone." />
-      <x-benefit-card title="Minimalist Design" description="Focus on writing, not distractions." />
-      <x-benefit-card title="Daily Reminders" description="Build a consistent habit." />
-      <x-benefit-card title="Community Wisdom" description="Optional sharing of anonymized insights." />
-      <x-benefit-card title="Always Improving" description="We evolve based on your needs." />
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-4">
+      <!-- card items go here -->
+      <x-benefit-card svg="svg/lock.svg" title="Private & Secure"
+        description="Your journal is for your eyes only. Entries are encrypted and your privacy is our priority." />
+      <x-benefit-card svg="svg/calendar-days.svg" title="Daily Prompts"
+        description="Get inspired with thoughtful prompts tailored to foster self-discovery and reflection." />
+      <x-benefit-card svg="svg/smile.svg" title="Mood Tracker"
+        description="Visualize your emotional journey and identify patterns for greater self-awareness." />
+
     </div>
 
   </section>
-
+  <div class="mt-12 text-center max-w-2xl mx-auto mb-10">
+    <h2 class="font-playfair text-3xl md:text-4xl font-bold mb-8 tracking-wide">
+      From Our Community
+    </h2>
+    <p class="text-white/70">
+      Hear from people who have transformed their journaling practice with MemoMate. </p>
+  </div>
   <x-testimonials />
 
 
