@@ -1,31 +1,96 @@
 <div>
     <aside id="sidebar"
-        class="bg-gradient-dark  fixed top-12 left-0 bottom-0 w-[270px] bg-white/5 rounded-r-lg border-[#c2b68e] flex flex-col z-40 transition-transform duration-300">
-        <div class="mt-4 p-4 overflow-y-auto">
-            <div class="mb-4 flex justify-between">
-                <x-buttons wire:click="openNewMemoForm">
-                    <x-icons type="chat" /> New Memo
-                </x-buttons>
-                <button wire:click="openSearch">
-                    <x-icons type="search" /> Search
-                </button>
+        class="fixed inset-y-0 left-0 z-40 w-64 flex flex-col sidebar-gradient border-r border-[#c2b68e] bg-white/5 transition-transform duration-300">
 
-            </div>
-
-            <div class="flex-1 overflow-y-auto p-2">
-                <div class="mb-3">
-                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider px-0 py-1">Today</p>
-                    <!-- day tracking logic above -->
-                    @foreach ($entries as $entry)
-                        <button wire:click="selectEntry({{ $entry->id }})"
-                            class="block w-full  text-left px-3 py-2 text-sm rounded-lg hover:bg-[#c2b68e]/10 text-white {{ $selectedEntryId === $entry->id ? 'bg-[#c2b68e]/20' : '' }}">
-                            {{ $entry->title }}
-                        </button>
-                    @endforeach
-                </div>
+        {{-- Brand / Logo --}}
+        <div class="flex items-center justify-between h-14 border-white/10 border-b px-4">
+            <div class="flex items-center gap-2 font-semibold text-white">
+                <x-custom-icon />
+                <span class="text-lg font-bold">Memo Mate</span>
             </div>
         </div>
+
+        {{-- Navigation --}}
+        <nav class="flex-1 overflow-auto p-4 space-y-2 text-sm text-gray-400">
+            <a href="{{ route('dashboard') }}"
+                class="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('dashboard') ? 'bg-blue-300/15 text-white' : '' }}">
+                <x-ri-dashboard-line class="w-4 h-4" />
+                Dashboard
+            </a>
+
+            <a href="{{ route('entries.create') }}"
+                class="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('entries.create') ? 'bg-blue-300/15 text-white' : '' }}">
+
+                <x-iconpark-writingfluently-o class="w-4 h-4" />
+                New Entry
+            </a>
+
+            <a href="{{ route('entries.index') }}"
+                class="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('entries.index') ? 'bg-blue-300/15 text-white' : '' }}">
+
+                <x-heroicon-o-calendar-days class="w-4 h-4" />
+                History
+            </a>
+
+            <a href="{{ route('tags.index') }}"
+                class="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('tags.index') ? 'bg-blue-300/15 text-white' : '' }}">
+
+                <x-heroicon-o-tag class="w-4 h-4" />
+                Tags
+            </a>
+
+            <a href="{{ route('insights.index') }}"
+                class="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('insights.index') ? 'bg-blue-300/15 text-white' : '' }}">
+
+                <x-sui-graph-bar class="w-4 h-4" />
+                Insights
+            </a>
+
+            <a href="{{ route('settings.index') }}"
+                class="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('settings.index') ? 'bg-blue-300/15 text-white' : 'text-gray-400' }}">
+
+                <x-elemplus-setting class="w-4 h-4" />
+                Settings
+            </a>
+        </nav>
+
+        {{-- Upgrade Button --}}
+        <div class=" p-4">
+            <a href="#" type="button"
+                class="z-222 h-10 px-4 py-2 w-full border border-white/10 hover:bg-blue-300/15 flex items-center rounded-md justify-center gap-2">
+                <x-iconsax-lin-verify class="w-5 h-5" />
+                Upgrade to Pro
+            </a>
+        </div>
+        {{-- User Profile --}}
+        @php
+            use Illuminate\Support\Str;
+
+            $userName = auth()->user()->name ?? 'Guest';
+            $firstLetter = Str::ucfirst(Str::substr($userName, 0, 1));
+        @endphp
+
+        <div class="flex items-center gap-2 px-4 py-4 border-white/10 border-t text-white">
+            @if(auth()->user() && auth()->user()->profile_photo_url)
+                <img src="{{ auth()->user()->profile_photo_url }}" alt="{{ $userName }}"
+                    class="w-8 h-8 rounded-full border border-white object-cover" />
+            @else
+                <div class="w-8 h-8 rounded-full border border-white bg-gray-700 flex items-center justify-center text-sm font-semibold uppercase"
+                    title="{{ $userName }}">
+                    {{ $firstLetter }}
+                </div>
+            @endif
+
+            <div class="flex flex-col">
+                <span class="text-sm font-medium">{{ $userName }}</span>
+                <span class="text-xs text-muted-foreground">Free Plan</span>
+            </div>
+        </div>
+
+
     </aside>
+
+
     <div>
         @if (!$selectedEntry || $showNewMemoForm)
             <x-entries.entriesForm />
@@ -38,16 +103,16 @@
                 <div class="flex-grow">
                     @if ($isEditing)
                         <input type="text"
-                            class="w-full bg-transparent border-b border-[#c2b68e] text-white text-2xl font-semibold px-2 mb-4"
+                            class="w-full bg-transparent border-b border-[#c2b68e] text-2xl font-semibold px-2 mb-4"
                             wire:model.defer="editedTitle" />
-                        <textarea class="w-full h-60 bg-transparent border border-[#c2b68e] text-white p-2 text-sm"
+                        <textarea class="w-full h-60 bg-transparent border border-[#c2b68e] p-2 text-sm"
                             wire:model.defer="editedContent"></textarea>
                     @else
                         <span class="relative inline-block ml-2">
                             <span class="absolute inset-0 bg-gradient-to-r from-white/15 to-transparent rounded-sm"></span>
-                            <h2 class=" text-3xl font-semibold text-white relative  px-2">{{ $selectedEntry->title }}</h2>
+                            <h2 class=" text-3xl font-semibold relative font-playfair px-2">{{ $selectedEntry->title }}</h2>
                         </span>
-                        <p class="mt-4 text-sm text-white">{!! nl2br(e($selectedEntry->content)) !!}</p>
+                        <p class="mt-4 text-sm">{!! nl2br(e($selectedEntry->content)) !!}</p>
 
                     @endif
                 </div>
@@ -55,9 +120,9 @@
                 <!-- Tags Section -->
                 <div class="mb-2">
                     @if ($isEditing)
-                        <label class="block text-white mt-4 mb-2 text-sm">Add or Edit Tags (comma-separated)</label>
+                        <label class="block mt-4 mb-2 text-sm">Add or Edit Tags (comma-separated)</label>
                         <input type="text" wire:model.defer="editedTags"
-                            class="w-full bg-transparent border-b border-[#c2b68e] text-white text-sm px-2 mb-2" />
+                            class="w-full bg-transparent border-b border-[#c2b68e] text-sm px-2 mb-2" />
                     @else
                         <div class="mt-2 flex flex-wrap gap-1">
                             @foreach($selectedEntry->tags as $tag)

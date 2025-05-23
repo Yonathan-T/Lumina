@@ -1,3 +1,4 @@
+y
 <?php
 
 use Illuminate\Foundation\Inspiring;
