@@ -9,6 +9,6 @@ class DashboardController extends Controller
     //
     public function create()
     {
-        return view('entries.index');
+        return view('SecViews.dashboard');
     }
 }

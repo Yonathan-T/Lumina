@@ -1,5 +1,5 @@
 <!--HERO PART -->
-<x-layout>
+<x-layout :showSidebar="false">
 
   <section class="py-5 ">
     <div class="mx-auto flex flex-col lg:flex-row justify-between rounded-xl  max-w-7xl px-4">
@@ -132,9 +132,9 @@
   </div>
   <x-testimonials />
 
-
-
-  <footer class="ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] bg-white/5 border-t border-white/10 mt-20 py-12 px-16">
+  <!-- 
+ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
+  <footer class=" bg-white/5 border-t border-white/10 mt-20 py-12 px-16">
     <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
 
       <!-- Brand Column -->

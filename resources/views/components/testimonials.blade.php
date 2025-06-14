@@ -1,5 +1,5 @@
-<section class="ml-[calc(-4.5rem)] mr-[calc(-4.5rem)]  py-12 px-4 overflow-hidden bg-ink">
-
+<section class="  py-12 px-4 overflow-hidden bg-ink">
+  <!-- ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
   <!-- Testimonials Carousel -->
   <div class="relative">
     <!-- Gradient Fades (Optional) -->
