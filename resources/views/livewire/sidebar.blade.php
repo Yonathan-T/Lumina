@@ -9,10 +9,9 @@
                 <span class="text-lg font-bold">Memo Mate</span>
             </div>
         </div>
-
         {{-- Navigation --}}
         <nav class="flex-1 overflow-auto p-4 space-y-2 text-sm text-gray-400">
-            <a href="{{ route('dashboard') }}"
+            <a href="{{ route('dashboard') }}" wire:navigate
                 class="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('dashboard') ? 'bg-blue-300/15 text-white' : '' }}">
                 <x-ri-dashboard-line class="w-4 h-4" />
                 Dashboard

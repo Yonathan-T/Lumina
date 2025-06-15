@@ -21,7 +21,7 @@ class DashboardStats extends Component
         $this->totalEntries = Entry::where('user_id', auth()->id())->count();
         $this->recentEntries = Entry::where('user_id', auth()->id())
             ->latest()
-            ->take(5)
+            ->take(3)
             ->get();
         $this->loading = false;
     }
