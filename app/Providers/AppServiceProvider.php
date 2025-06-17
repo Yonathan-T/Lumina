@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Providers;
-
+use BladeUI\Icons\Factory;
 use Illuminate\Support\ServiceProvider;
 
 

@@ -12,6 +12,7 @@
         "php": "^8.2",
         "andreiio/blade-remix-icon": "^3.6",
         "blade-ui-kit/blade-heroicons": "^2.6",
+        "blade-ui-kit/blade-icons": "^1.8",
         "codeat3/blade-element-plus-icons": "^1.1",
         "codeat3/blade-iconpark": "^1.7",
         "codeat3/blade-system-uicons": "^1.8",
