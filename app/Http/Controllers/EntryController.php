@@ -15,7 +15,7 @@ class EntryController extends Controller
      */
     public function index()
     {
-        return view('entries.index');
+        return view('SecViews.newentry');
         //
     }
 
@@ -24,7 +24,7 @@ class EntryController extends Controller
      */
     public function create()
     {
-        return view("entries.index");
+        return view('entries.create');
     }
 
     /**
