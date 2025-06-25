@@ -123,21 +123,45 @@
     z-index: 2;
   }
 
-  .tag-error-card {
-    background: #fee2e2;
-    color: #b91c1c;
-    border: 1px solid #fca5a5;
-    border-radius: 0.5rem;
-    padding: 0.75rem 1rem;
-    margin-top: 0.5rem;
-    font-size: 0.95rem;
-    box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
+#tag-error-toast {
+    position: absolute;
+    top: 100%;      /* Just below the tag input */
+    left: 0;        /* Align to the left edge of the parent */
+    margin-top: 0.25rem;
+    z-index: 50;
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    animation: fadeIn 0.2s;
+    justify-content: flex-start;
+    align-items: flex-start;
+    pointer-events: none; /* So it doesn't block form interaction */
+    width: auto;
 }
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px);}
+
+.tag-error-toast-card {
+  margin-top: 3px;
+    background: linear-gradient(to bottom right, hsl(224, 71%, 4%), hsl(224, 65%, 5%));
+    color: #ffffff;
+    border: white/10;
+    border-radius: 0.75rem;
+    padding: 0.5rem 1rem 0.75rem 1rem;
+    min-width: 180px;
+    max-width: 260px;
+    min-height: 60px;
+    box-shadow: 0 4px 24px 0 rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    animation: fadeInDown 0.3s;
+    pointer-events: auto; /* Allow interaction if needed */
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-10px);}
     to { opacity: 1; transform: translateY(0);}
+}
+
+.tag-error-toast-card svg {
+    margin-bottom: 0.25rem;
 }

@@ -39,20 +39,16 @@ import.meta.glob([
      
         function addTag(tagText) {
             const trimmedTag = tagText.trim();
-            const errorMessageDiv = document.getElementById('tag-error-message');
-            if (
-                trimmedTag === '' ||
-                currentTags.includes(trimmedTag) ||
-                /\s/.test(trimmedTag) // Prevent tags with spaces
-            ) {
-                if (/\s/.test(trimmedTag)) {
-                    showTagError("Tags cannot contain spaces.");
-                    return;
-                }
-                if (currentTags.includes(trimmedTag)) {
-            showTagError("You already added this tag.");
-            return;
-        }
+            if (trimmedTag === '') {
+                // Do nothing for empty input
+                return;
+            }
+            if (/\s/.test(trimmedTag)) {
+                showTagError("Tags cannot contain spaces.");
+                return;
+            }
+            if (currentTags.includes(trimmedTag)) {
+                showTagError("You already added this tag.");
                 return;
             }
 
@@ -111,20 +107,20 @@ import.meta.glob([
     });
 
 function showTagError(message) {
-    const errorMessageDiv = document.getElementById('tag-error-message');
-    errorMessageDiv.innerHTML = `
-        <div class="tag-error-card">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-1.414-1.414A9 9 0 105.636 18.364l1.414 1.414A9 9 0 1018.364 5.636z" />
+    const toast = document.getElementById('tag-error-toast');
+    toast.innerHTML = `
+        <div class="tag-error-toast-card">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 flex-shrink-0 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="#e0e7ff"/>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01" />
             </svg>
-            <span>${message}</span>
+            <span class="text-center">${message}</span>
         </div>
     `;
-    errorMessageDiv.classList.remove('hidden');
+    toast.classList.remove('hidden');
     setTimeout(() => {
-        errorMessageDiv.classList.add('hidden');
-        errorMessageDiv.innerHTML = '';
+        toast.classList.add('hidden');
+        toast.innerHTML = '';
     }, 2000);
 }
 

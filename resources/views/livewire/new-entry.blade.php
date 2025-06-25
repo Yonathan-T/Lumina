@@ -19,14 +19,16 @@
 
             <div class="space-y-2">
                 <label class="block text-sm font-medium">Tags</label>
-                <div id="tag-input-wrapper" class="flex flex-wrap gap-2">
-                    <input id="tag-input-field"
-                        class="flex h-10 rounded-md border border-input px-3 py-2 text-sm w-48 border-none bg-background placeholder:text-muted/5 focus:outline-none focus:ring-0"
-                        placeholder="Add a tag and press Enter" type="text">
+                <div style="position: relative;">
+                    <div id="tag-input-wrapper" class="flex flex-wrap gap-2">
+                        <input id="tag-input-field"
+                            class="flex h-10 rounded-md border border-input px-3 py-2 text-sm w-48 border-none bg-background placeholder:text-muted/5 focus:outline-none focus:ring-0"
+                            placeholder="Add a tag and press Enter" type="text">
+                    </div>
+                    <div id="tag-error-toast" class="hidden"></div>
                 </div>
                 <input type="hidden" name="tags" id="hidden-tags-input">
             </div>
-            <div id="tag-error-message" class="hidden"></div>
 
             <div class="flex justify-end gap-2">
                 <button
