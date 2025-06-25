@@ -29,7 +29,10 @@
             <div id="tag-error-message" class="hidden"></div>
 
             <div class="flex justify-end gap-2">
-                <x-buttons>Save Entry</x-buttons>
+                <button
+                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors  border border-white/10 bg-background backdrop-blur-sm hover:bg-white/5 transition duration-200 hover:text-accent h-10 px-4 py-2">Discard
+                    Draft</button>
+                <x-form-button>Save Entry</x-form-button>
             </div>
 
         </div>
