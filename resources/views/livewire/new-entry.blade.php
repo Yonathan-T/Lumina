@@ -1,44 +1,39 @@
-<div class="max-w-4xl mx-auto">
-    <div class="rounded-lg border border-white/15 text-card-foreground shadow-sm card-highlight bg-gradient-dark p-6">
-        <h2 class="text-2xl font-semibold mb-6">Create New Entry</h2>
+<div class="container mx-auto">
+    <div class="space-y-6 relative">
 
-        <form wire:submit="save" class="space-y-6">
-            <div>
-                <label for="title" class="block text-sm font-medium mb-2">Title</label>
-                <input type="text" wire:model="title" id="title"
-                    class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="Give your entry a title">
-                @error('title') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+        <div class="mt-4 flex items-center justify-between">
+            <h1 class="text-3xl font-bold tracking-tight">New Entry</h1>
+            <div class="text-sm text-muted">
+                {{ \Carbon\Carbon::now('Africa/Addis_Ababa')->format('l, F j, Y • H:i A') }}
             </div>
-
+        </div>
+        <div class="space-y-4">
             <div>
-                <label for="content" class="block text-sm font-medium mb-2">Content</label>
-                <textarea wire:model="content" id="content" rows="10"
-                    class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="Write your thoughts here..."></textarea>
-                @error('content') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                <input type="text"
+                    class="flex h-10 w-full rounded-md px-3 py-2 bg-background text-2xl font-semibold placeholder:text-muted/5 border-none focus:outline-none focus:ring-0"
+                    placeholder="Title your entry" />
             </div>
+            <textarea
+                class="flex w-full rounded-md border bg-background px-3 py-2 text-sm sm:min-h-[200px] md:min-h-[300px] lg:min-h-[400px] resize-none border-none  placeholder:text-muted/5 focus:outline-none focus:ring-0"
+                placeholder="What's on your mind today!"></textarea>
 
-            <div>
-                <label class="block text-sm font-medium mb-2">Tags</label>
-                <div class="flex flex-wrap gap-2">
-                    @foreach($availableTags as $tag)
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" wire:model="selectedTags" value="{{ $tag->id }}"
-                                class="form-checkbox h-4 w-4 text-primary">
-                            <span class="ml-2 text-sm">#{{ $tag->name }}</span>
-                        </label>
-                    @endforeach
+            <div class="space-y-2">
+                <label class="block text-sm font-medium">Tags</label>
+                <div id="tag-input-wrapper" class="flex flex-wrap gap-2">
+                    <input id="tag-input-field"
+                        class="flex h-10 rounded-md border border-input px-3 py-2 text-sm w-48 border-none bg-background placeholder:text-muted/5 focus:outline-none focus:ring-0"
+                        placeholder="Add a tag and press Enter" type="text">
                 </div>
-                @error('selectedTags') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                <input type="hidden" name="tags" id="hidden-tags-input">
+            </div>
+            <div id="tag-error-message" class="hidden"></div>
+
+            <div class="flex justify-end gap-2">
+                <x-buttons>Save Entry</x-buttons>
             </div>
 
-            <div class="flex justify-end">
-                <button type="submit"
-                    class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
-                    Save Entry
-                </button>
-            </div>
-        </form>
+        </div>
+
+
     </div>
 </div>
