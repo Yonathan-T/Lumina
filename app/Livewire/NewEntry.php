@@ -37,9 +37,16 @@ class NewEntry extends Component
         if (!empty($this->selectedTags)) {
             $entry->tags()->attach($this->selectedTags);
         }
+        preg_match_all('/#(\w+)/', request()->content, $matches);
+        $tags = array_unique(array_map('strtolower', $matches[1]));
 
+        // --- Attach tags to entry ---
+        foreach ($tags as $tagName) {
+            $tag = Tag::firstOrCreate(['name' => $tagName]);
+            $entry->tags()->attach($tag);
+        }
         $this->reset(['title', 'content', 'selectedTags']);
-        
+
         session()->flash('message', 'Entry created successfully!');
         return redirect()->route('dashboard');
     }
@@ -48,4 +55,4 @@ class NewEntry extends Component
     {
         return view('livewire.new-entry');
     }
-} 
+}

@@ -73,7 +73,7 @@
   }
 }
 .bg-gradient-dark {
- background: linear-gradient(to bottom right, hsl(224, 71%, 4%), hsl(224, 65%, 5%));
+  background: linear-gradient(to bottom right, hsl(224, 71%, 4%), hsl(224, 65%, 5%));
 }
 .bg-dot-pattern {
   background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);

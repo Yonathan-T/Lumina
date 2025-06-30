@@ -32,24 +32,24 @@ class EntryController extends Controller
      */
     public function store()
     {
-        request()->validate([
-            "title" => ["required", "string"],
-            "content" => ["required"],
-        ]);
-        $entry = Entry::create([
-            "title" => request()->title,
-            "content" => request()->content,
-            "user_id" => auth()->id(),
-        ]);
-        preg_match_all('/#(\w+)/', request()->content, $matches);
-        $tags = array_unique(array_map('strtolower', $matches[1]));
+        // request()->validate([
+        //     "title" => ["required", "string"],
+        //     "content" => ["required"],
+        // ]);
+        // $entry = Entry::create([
+        //     "title" => request()->title,
+        //     "content" => request()->content,
+        //     "user_id" => auth()->id(),
+        // ]);
+        // preg_match_all('/#(\w+)/', request()->content, $matches);
+        // $tags = array_unique(array_map('strtolower', $matches[1]));
 
-        // --- Attach tags to entry ---
-        foreach ($tags as $tagName) {
-            $tag = Tag::firstOrCreate(['name' => $tagName]);
-            $entry->tags()->attach($tag);
-        }
-        return redirect('/entries');
+        // // --- Attach tags to entry ---
+        // foreach ($tags as $tagName) {
+        //     $tag = Tag::firstOrCreate(['name' => $tagName]);
+        //     $entry->tags()->attach($tag);
+        // }
+        // return redirect('/entries');
     }
 
     /**
