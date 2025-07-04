@@ -15,12 +15,11 @@ Route::middleware('auth')->group(function () {
     // Dashboard
 //    Route::get('/dashboard', [DashboardController::class, 'create'])->name('dashboard');
     Route::view('/dashboard', 'SecViews.dashboard')->name('dashboard');
-    Route::view('/entries/create', 'SecViews.newentry')->name('entries.create'); // Show form
     // Entries
+    Route::view('/entries/create', 'SecViews.newentry')->name('entries.create'); // Show form
     Route::view('/entries', 'SecViews.history')->name('archive.entries');       // Show all entries (like history)
-    // Route::get('/entries/create', [EntryController::class, 'create'])->name('entries.create'); // Show form
+    Route::get('/entries/{entry}', [EntryController::class, 'show'])->name('entries.show');    // Route::get('/entries/create', [EntryController::class, 'create'])->name('entries.create'); // Show form
     Route::post('/entries', [EntryController::class, 'store'])->name('entries.store');        // Save entry
-    Route::get('/entries/{entry}', [EntryController::class, 'show'])->name('entries.show');    // View a single entry
     Route::get('/entry/edit', [EntryController::class, 'edit']);
 
     // Tags

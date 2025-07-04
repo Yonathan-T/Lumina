@@ -57,7 +57,7 @@ class EntryController extends Controller
      */
     public function show(Entry $entry)
     {
-        //
+        return view('entries.showEntry', compact('entry'));
     }
 
     /**
