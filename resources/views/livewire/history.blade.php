@@ -33,11 +33,11 @@
                 class="flex items-stretch rounded-lg bg-card shadow-md card-highlight bg-gradient-dark border border-white/10 overflow-hidden mb-4">
                 <!-- Date Square -->
                 <div class="flex flex-col justify-center items-center 
-                                                    bg-gradient-dark border border-white/15 
-                                                    w-20 min-w-30 h-30 
-                                                    rounded-xl shadow-lg 
-                                                    m-4
-                                                    self-center">
+                                bg-gradient-dark border border-white/15 
+                                w-20 min-w-30 h-30 
+                                rounded-xl shadow-lg 
+                                m-4
+                                self-center">
                     <span class="text-lg font-bold">
                         {{ strtoupper($entry->created_at->format('M')) }}
                     </span>
@@ -51,7 +51,7 @@
                         <h3 class="text-2xl font-semibold leading-none tracking-tight">{{ $entry->title }}</h3>
                         <div class="text-sm text-muted-foreground">{{ $entry->created_at->diffForHumans() }}</div>
                     </div>
-                    <p class="line-clamp-3 mb-2">{{ $entry->content }}</p>
+                    <p class="line-clamp-3 mb-2"> {!! nl2br(e($entry->content)) !!}</p>
                     <div class="mt-2 flex flex-wrap gap-2">
                         @foreach($entry->tags as $tag)
                             <div

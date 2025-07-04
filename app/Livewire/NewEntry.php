@@ -37,27 +37,19 @@ class NewEntry extends Component
             'selectedTags' => 'array'
         ]);
 
-        // 1. Extract hashtags from content
         preg_match_all('/(?<=\s|^)#([A-Za-z][\w]{1,30})/', $this->content, $matches);
         $tagsFromContent = array_map('strtolower', $matches[1]);
 
-        // 2. Get tags from input field
         $tagsFromInput = array_map('strtolower', $this->selectedTags);
 
-        // 3. Merge and deduplicate
         $allTags = array_unique(array_merge($tagsFromContent, $tagsFromInput));
 
-        // 4. Remove hashtags from content
-        $cleanedContent = preg_replace('/(?<=\s|^)#([A-Za-z][\w]{1,30})/', '', $this->content);
-
-        // 5. Save entry with cleaned content
         $entry = Entry::create([
             'title' => $this->title,
-            'content' => trim($cleanedContent),
+            'content' => trim($this->content),
             'user_id' => auth()->id(),
         ]);
 
-        // 6. Attach tags to entry
         foreach ($allTags as $tagName) {
             if (empty($tagName))
                 continue;
@@ -94,7 +86,7 @@ class NewEntry extends Component
 
         $this->selectedTags[] = $tag;
         $this->newTag = '';
-        $this->tagError = null; // Clear error on success
+        $this->tagError = null;
     }
 
     public function removeTag($tag)
@@ -102,7 +94,7 @@ class NewEntry extends Component
         $this->selectedTags = array_filter($this->selectedTags, function ($t) use ($tag) {
             return strtolower($t) !== strtolower($tag);
         });
-        $this->selectedTags = array_values($this->selectedTags); // reindex
+        $this->selectedTags = array_values($this->selectedTags);
     }
     public function messages()
     {
