@@ -30,15 +30,14 @@
         <h2 class="text-xl font-semibold mb-4">Recent Entry</h2>
         @foreach($recentEntries as $entry)
             <div
-                class="flex items-stretch rounded-lg bg-card text-card-foreground shadow-md card-highlight bg-gradient-dark border border-white/10 overflow-hidden mb-4">
-                <!-- Date Square -->
+                class="flex items-stretch rounded-lg bg-card shadow-md card-highlight bg-gradient-dark border border-white/10 overflow-hidden mb-4">
                 <!-- Date Square -->
                 <div class="flex flex-col justify-center items-center 
-                                            bg-gradient-dark border border-white/15 text-secondary-foreground 
-                                            w-20 min-w-30 h-30 
-                                            rounded-xl shadow-lg 
-                                            m-4
-                                            self-center">
+                                                    bg-gradient-dark border border-white/15 
+                                                    w-20 min-w-30 h-30 
+                                                    rounded-xl shadow-lg 
+                                                    m-4
+                                                    self-center">
                     <span class="text-lg font-bold">
                         {{ strtoupper($entry->created_at->format('M')) }}
                     </span>
