@@ -1,7 +1,7 @@
-<x-layout :showNav="false" :showSidebar="true">
-    <section class="flex justify-center items-center w-full bg-gradient-dark" style="margin:5px;">
+<x-layout :showNav="false" :showSidebar="true" class="flex ">
+    <div class="flex items-center justify-center min-h-screen bg-gradient-dark">
         <div
-            class="rounded-lg border border-white/15 text-card-foreground shadow-sm card-highlight bg-gradient-dark w-full max-w-3xl mx-auto">
+            class="flex-center rounded-lg border border-white/15 text-card-foreground shadow-sm card-highlight bg-gradient-dark w-full max-w-3xl mx-auto">
             <div class="p-10 flex flex-col gap-6 min-h-[70vh]">
                 <div class="flex items-start justify-between mb-2">
                     <h1 class="text-3xl font-bold">{{ $entry->title }}</h1>
@@ -29,5 +29,5 @@
                 </div>
             </div>
         </div>
-    </section>
+    </div>
 </x-layout>
