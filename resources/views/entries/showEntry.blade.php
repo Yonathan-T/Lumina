@@ -1,5 +1,5 @@
 <x-layout :showNav="false" :showSidebar="true">
-    <div class="min-h-screen flex flex-col">
+    <div class="m-3 flex flex-col">
         <div class="w-full max-w-3xl mx-auto pt-8">
             <a href="{{ route('archive.entries') }}"
                 class="inline-flex items-center text-sm text-muted hover:text-white hover:bg-[rgb(29,40,58)] transition-colors px-4 py-2 rounded">
@@ -9,7 +9,7 @@
                 Back to History
             </a>
         </div>
-        <div class="flex flex-1 items-center justify-center">
+        <div class="mt-3 flex flex-1 items-center justify-center">
             <div id="entry-card"
                 class="rounded-lg border border-[rgb(29,40,58)]/10 shadow-lg card-highlight bg-gradient-dark w-full max-w-3xl mx-auto min-h-[400px] flex flex-col">
                 <div class="p-10 flex flex-col flex-1 gap-6">
