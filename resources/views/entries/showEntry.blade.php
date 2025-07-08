@@ -11,21 +11,25 @@
         </div>
         <div class="flex flex-1 items-center justify-center">
             <div id="entry-card"
-                class="rounded-lg border border-white/15 text-card-foreground shadow-sm card-highlight bg-gradient-dark w-full max-w-3xl mx-auto min-h-[400px] flex flex-col">
+                class="rounded-lg border border-white/15  shadow-sm card-highlight bg-gradient-dark w-full max-w-3xl mx-auto min-h-[400px] flex flex-col">
                 <div class="p-10 flex flex-col flex-1 gap-6">
                     <div class="flex items-start justify-between mb-2">
-                        <h1 class="text-3xl font-bold">{{ $entry->title }}</h1>
-                        <div class="text-muted-foreground text-sm ml-4 whitespace-nowrap mt-1">
+                        <span class="relative inline-block ml-2">
+                            <span
+                                class="absolute inset-0 bg-gradient-to-r from-white/10 via-blue-200/10 to-transparent rounded-sm"></span>
+                            <span class="text-3xl font-bold px-2">{{ $entry->title }}</span>
+                        </span>
+                        <div class="text-muted text-sm ml-4 whitespace-nowrap mt-1">
                             {{ $entry->created_at->format('M d, Y') }}
                         </div>
                     </div>
-                    <div class="text-lg leading-relaxed flex-1">
+                    <div class="ml-5 font-inter text-md leading-relaxed flex-1 ">
                         {{ $entry->content }}
                     </div>
                     <div>
                         @foreach($entry->tags as $tag)
                             <span
-                                class="inline-block bg-[rgb(15,23,42)] text-white text-xs px-3 py-1 rounded-full mr-2 mb-2">#{{ $tag->name }}</span>
+                                class="inline-block bg-[rgb(15,23,42)] text-white text-xs px-3 py-1 rounded-full ml-5  mr-2 mb-2">#{{ $tag->name }}</span>
                         @endforeach
                     </div>
                     <div class="flex justify-between items-center mt-8 border-t border-white/10 pt-6">
