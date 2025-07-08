@@ -7,6 +7,7 @@ use App\Http\Controllers\InsightController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\RegisteredUserController;
 use App\Http\Controllers\SessionController;
+use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Route;
 
 // Protected Routes
@@ -22,6 +23,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/entries', [EntryController::class, 'store'])->name('entries.store');        // Save entry
     Route::get('/entry/edit', [EntryController::class, 'edit']);
 
+    // routes/web.php
+    Route::get('/search', [SearchController::class, 'search'])->name('search');
     // Tags
     Route::get('/tags', [TagController::class, 'index'])->name('tags.index');
 

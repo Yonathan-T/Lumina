@@ -17,35 +17,35 @@
                 Dashboard
             </a>
 
-            <a href="{{ route('entries.create') }}"
+            <a href="{{ route('entries.create') }}" wire:navigate
                 class="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('entries.create') ? 'bg-blue-300/15 text-white' : '' }}">
 
                 <x-iconpark-writingfluently-o class="w-4 h-4" />
                 New Entry
             </a>
 
-            <a href="{{ route('archive.entries') }}"
+            <a href="{{ route('archive.entries') }}" wire:navigate
                 class="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('entries.index') ? 'bg-blue-300/15 text-white' : '' }}">
 
                 <x-heroicon-o-calendar-days class="w-4 h-4" />
                 History
             </a>
 
-            <a href="{{ route('tags.index') }}"
+            <a href="{{ route('tags.index') }}" wire:navigate
                 class="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('tags.index') ? 'bg-blue-300/15 text-white' : '' }}">
 
                 <x-heroicon-o-tag class="w-4 h-4" />
                 Tags
             </a>
 
-            <a href="{{ route('insights.index') }}"
+            <a href="{{ route('insights.index') }}" wire:navigate
                 class="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('insights.index') ? 'bg-blue-300/15 text-white' : '' }}">
 
                 <x-sui-graph-bar class="w-4 h-4" />
                 Insights
             </a>
 
-            <a href="{{ route('settings.index') }}"
+            <a href="{{ route('settings.index') }}" wire:navigate
                 class="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('settings.index') ? 'bg-blue-300/15 text-white' : 'text-gray-400' }}">
 
                 <x-elemplus-setting class="w-4 h-4" />

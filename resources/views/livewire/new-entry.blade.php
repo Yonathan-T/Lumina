@@ -7,7 +7,7 @@
                 {{ \Carbon\Carbon::now('Africa/Addis_Ababa')->format('l, F j, Y • H:i A') }}
             </div>
         </div>
-        <!-- <form method="POST" action="/entries"> Should i use livewire r controller -->
+        <!-- <form method="POST" action="/entries"> Should i use livewire or controller -->
         <form wire:submit.prevent="save">
             @csrf
             <div class="space-y-4">

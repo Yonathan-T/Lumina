@@ -67,6 +67,8 @@
         </main>
     @endif
     @livewireScripts
+    <x-search-trigger />
+    <x-search-modal />
 </body>
 
 
