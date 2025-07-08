@@ -11,14 +11,17 @@
         </div>
         <div class="flex flex-1 items-center justify-center">
             <div id="entry-card"
-                class="rounded-lg border border-white/15  shadow-sm card-highlight bg-gradient-dark w-full max-w-3xl mx-auto min-h-[400px] flex flex-col">
+                class="rounded-lg border border-[rgb(29,40,58)]/10 shadow-lg card-highlight bg-gradient-dark w-full max-w-3xl mx-auto min-h-[400px] flex flex-col">
                 <div class="p-10 flex flex-col flex-1 gap-6">
                     <div class="flex items-start justify-between mb-2">
                         <span class="relative inline-block ml-2">
                             <span
+                                class="absolute inset-0 bg-gradient-to-r from-cyan-500/30 via-blue-400/10 to-transparent rounded-sm"></span>
+                            <span
                                 class="absolute inset-0 bg-gradient-to-r from-white/10 via-blue-200/10 to-transparent rounded-sm"></span>
                             <span class="text-3xl font-bold px-2">{{ $entry->title }}</span>
                         </span>
+
                         <div class="text-muted text-sm ml-4 whitespace-nowrap mt-1">
                             {{ $entry->created_at->format('M d, Y') }}
                         </div>

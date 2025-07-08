@@ -11,21 +11,16 @@
                 class="flex h-10 w-full rounded-md border border-white/15 shadow-sm bg-background px-3 py-2 pl-8 text-sm  placeholder:text-muted focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="Search entries..." type="search">
         </div>
-
-        <button type="button" role="combobox" aria-controls="radix-«r9»" aria-expanded="false" aria-autocomplete="none"
-            dir="ltr" data-state="closed" class="flex h-10 items-center justify-between rounded-md border border-white/15 shadow-sm bg-background px-3 py-2 text-sm placeholder:text-muted focus-visible:ring-0 focus-visible:ring-offset-0
- disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-full sm:w-[180px]">
-            <span style="pointer-events: none;">All Tags</span>
-            <x-icon name="chevron-down" class="w-5 h-5 text-muted" />
-        </button>
-        <button type="button" role="combobox" aria-controls="radix-«r9»" aria-expanded="false" aria-autocomplete="none"
-            dir="ltr" data-state="closed" class="flex h-10 items-center justify-between rounded-md border border-white/15 shadow-sm bg-background px-3 py-2 text-sm placeholder:text-muted focus-visible:ring-0 focus-visible:ring-offset-0
- disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-full sm:w-[180px]">
-            <span style="pointer-events: none;">All Tags</span>
-            <x-icon name="chevron-down" class="w-5 h-5 text-muted" />
-        </button>
+        <div class="relative w-44 ml-auto">
+            <select wire:change="$set('sort', $event.target.value)" class="flex h-10 w-full rounded-md border border-white/15 shadow-sm bg-background px-3 py-2 text-sm
+                text-white">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="longest">Longest First</option>
+                <option value="shortest">Shortest First</option>
+            </select>
+        </div>
     </div>
-
     <div class="mt-8">
         <h2 class="text-xl font-semibold mb-4">All entries</h2>
         @foreach($recentEntries as $entry)
@@ -34,11 +29,11 @@
                     class="flex items-stretch rounded-lg bg-card shadow-md card-highlight bg-gradient-dark border border-white/10 overflow-hidden mb-4">
                     <!-- Date Square -->
                     <div class="flex flex-col justify-center items-center 
-                                                                bg-gradient-dark border border-white/15 
-                                                                w-20 min-w-30 h-30 
-                                                                rounded-xl shadow-lg 
-                                                                m-4
-                                                                self-center">
+                                                                            bg-gradient-dark border border-white/15 
+                                                                            w-20 min-w-30 h-30 
+                                                                            rounded-xl shadow-lg 
+                                                                            m-4
+                                                                            self-center">
                         <span class="text-lg font-bold">
                             {{ strtoupper($entry->created_at->format('M')) }}
                         </span>
