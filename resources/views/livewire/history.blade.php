@@ -10,13 +10,14 @@
             <x-search-modal />
         </div>
         <div class="relative w-44 ml-auto">
-            <select wire:change="$set('sort', $event.target.value)" class="flex h-10 w-full rounded-md border border-white/15 shadow-sm bg-background px-3 py-2 text-sm
+            <select wire:model.live="sort" class="flex h-10 w-full rounded-md border border-white/15 shadow-sm bg-background px-3 py-2 text-sm
                 text-white">
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
                 <option value="longest">Longest First</option>
                 <option value="shortest">Shortest First</option>
             </select>
+
             <!--HERE, I NEED TO MAKE A BETTER UI FOR THE SELECT ITEM!!!
          
          SO HERE GOES A BIG COMMENT SECTION!!!
@@ -31,11 +32,11 @@
                     class="flex items-stretch rounded-lg card-highlight  shadow-md  bg-gradient-dark border border-white/10 overflow-hidden mb-4">
                     <!-- Date Square -->
                     <div class="flex flex-col justify-center items-center 
-                                                        bg-gradient-dark  border border-white/10 
-                                                        w-20 min-w-30 h-30 
-                                                        rounded-xl shadow-lg 
-                                                        m-4 card-highlight
-                                                        self-center">
+                                                                            bg-gradient-dark  border border-white/10 
+                                                                            w-20 min-w-30 h-30 
+                                                                            rounded-xl shadow-lg 
+                                                                            m-4 card-highlight
+                                                                            self-center">
                         <span class="text-lg font-bold">
                             {{ strtoupper($entry->created_at->format('M')) }}
                         </span>
@@ -66,7 +67,7 @@
     </div>
     <div class="mt-6">
 
-        {{ $recentEntries->links('vendor.pagination.tailwind') }}
+        {{ $recentEntries->links() }}
 
     </div>
 

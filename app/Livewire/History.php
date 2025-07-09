@@ -1,14 +1,26 @@
 <?php
 
 namespace App\Livewire;
-use App\Models\Entry;
+
 use Livewire\Component;
 use Livewire\WithPagination;
+use App\Models\Entry;
+
 class History extends Component
 {
     use WithPagination;
-    public $sort = 'newest';
-    public function updatingSort()
+
+    public string $sort = 'newest';
+
+    protected function queryString()
+    {
+        return [
+            'sort' => ['except' => 'newest'],
+            'page' => ['except' => 1],
+        ];
+    }
+
+    public function updatedSort()
     {
         $this->resetPage();
     }
@@ -32,10 +44,8 @@ class History extends Component
                 $query->orderBy('created_at', 'desc');
         }
 
-        $recentEntries = $query->paginate(5);
-
         return view('livewire.history', [
-            'recentEntries' => $recentEntries
+            'recentEntries' => $query->paginate(5)->withQueryString()
         ]);
     }
 }
