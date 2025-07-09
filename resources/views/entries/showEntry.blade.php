@@ -27,7 +27,7 @@
                         </div>
                     </div>
                     <div class="ml-5 font-inter text-md leading-relaxed flex-1 ">
-                        {{ $entry->content }}
+                        {!! nl2br(e($entry->content)) !!}
                     </div>
                     <div>
                         @foreach($entry->tags as $tag)
