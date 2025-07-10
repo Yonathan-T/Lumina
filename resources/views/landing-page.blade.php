@@ -19,7 +19,7 @@
             <span class="font-playfair italic">Heal.</span>
 
           </h2>
-
+          <!--ANIMATion would be nice around here -->
           <p class="mt-[24px] text-paper/70 max-w-md">
             A beautiful, private space for your thoughts, dreams, and reflections.
             Memo Mate helps you cultivate mindfulness and emotional clarity through journaling.

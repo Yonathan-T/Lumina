@@ -13,15 +13,16 @@ class Tag extends Model
     protected $fillable = [
         "name",
     ];
-    public function entry(){
+    public function entries()
+    {
         return $this->belongsToMany(Entry::class);
     }
 
-protected static function booted()
-{
-    static::creating(function ($tag) {
-        $tag->slug = Str::slug($tag->name);
-    });
-}
+    protected static function booted()
+    {
+        static::creating(function ($tag) {
+            $tag->slug = Str::slug($tag->name);
+        });
+    }
 
 }

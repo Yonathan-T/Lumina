@@ -26,7 +26,8 @@ Route::middleware('auth')->group(function () {
     // routes/web.php
     Route::get('/search', [SearchController::class, 'search'])->name('search');
     // Tags
-    Route::get('/tags', [TagController::class, 'index'])->name('tags.index');
+    // Route::get('/tags', [TagController::class, 'index'])->name('tags.index');
+    Route::view('/tags', 'SecViews.taglist')->name('tags.index');
 
     // Insights
     Route::get('/insights', [InsightController::class, 'index'])->name('insights.index');
