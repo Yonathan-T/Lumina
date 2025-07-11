@@ -40,7 +40,8 @@ class NewEntry extends Component
         preg_match_all('/(?<=\s|^)#([A-Za-z][\w]{1,30})/', $this->content, $matches);
         $tagsFromContent = array_map('strtolower', $matches[1]);
 
-        $tagsFromInput = array_map('strtolower', $this->selectedTags);
+        $tagsFromInput = array_map(fn($tag) => ltrim(strtolower($tag), '#'), $this->selectedTags);
+
 
         $allTags = array_unique(array_merge($tagsFromContent, $tagsFromInput));
 
