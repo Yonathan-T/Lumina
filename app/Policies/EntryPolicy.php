@@ -21,7 +21,7 @@ class EntryPolicy
      */
     public function view(User $user, Entry $entry): bool
     {
-        return false;
+        return $user->id === $entry->user_id;
     }
 
     /**
@@ -29,7 +29,7 @@ class EntryPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -37,7 +37,7 @@ class EntryPolicy
      */
     public function update(User $user, Entry $entry): bool
     {
-        return false;
+        return $user->id === $entry->user_id;
     }
 
     /**
@@ -45,7 +45,7 @@ class EntryPolicy
      */
     public function delete(User $user, Entry $entry): bool
     {
-        return false;
+        return $user->id === $entry->user_id;
     }
 
     /**

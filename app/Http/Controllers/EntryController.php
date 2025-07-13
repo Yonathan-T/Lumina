@@ -57,6 +57,7 @@ class EntryController extends Controller
      */
     public function show(Entry $entry)
     {
+        $this->authorize('view', $entry);
         return view('entries.showEntry', compact('entry'));
     }
 
@@ -65,11 +66,8 @@ class EntryController extends Controller
      */
     public function edit(Entry $entry)
     {
-        request()->validate([
-            'title' => ['required', 'string'],
-            'content' => ['required', 'string'],
-        ]);
-
+        $this->authorize('update', $entry);
+        return view('entries.edit', compact('entry'));
     }
 
     /**
@@ -77,7 +75,14 @@ class EntryController extends Controller
      */
     public function update(UpdateEntryRequest $request, Entry $entry)
     {
-        //
+        $this->authorize('update', $entry);
+        
+        $entry->update([
+            'title' => $request->title,
+            'content' => $request->content,
+        ]);
+
+        return redirect()->route('entries.show', $entry)->with('success', 'Entry updated successfully!');
     }
 
     /**
@@ -85,6 +90,10 @@ class EntryController extends Controller
      */
     public function destroy(Entry $entry)
     {
-        //
+        $this->authorize('delete', $entry);
+        
+        $entry->delete();
+        
+        return redirect()->route('archive.entries')->with('success', 'Entry deleted successfully!');
     }
 }
