@@ -23,7 +23,7 @@
                                     <input type="text" wire:model="title"
                                         class="flex h-12 w-full rounded-md px-3 py-2 bg-background text-3xl font-bold placeholder:text-[rgb(65,74,90)] border-none focus:outline-none focus:ring-0"
                                         placeholder="Title your entry" />
-                                    @error('title') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    <x-form-error name="title" />
                                 </div>
                                 <div class="text-muted text-sm ml-4 whitespace-nowrap mt-1">
                                     {{ $entry->created_at->format('M d, Y') }}
@@ -34,7 +34,6 @@
                                 <textarea wire:model="content"
                                     class="flex w-full rounded-md border bg-background px-3 py-2 text-md leading-relaxed font-inter resize-none border-none placeholder:text-[rgb(65,74,90)] focus:outline-none focus:ring-0 min-h-[300px]"
                                     placeholder="What's on your mind today!"></textarea>
-                                <!-- @error('content') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror -->
                                 <x-form-error name="content" />
                             </div>
 

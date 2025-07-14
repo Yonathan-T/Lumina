@@ -21,14 +21,15 @@ Route::middleware('auth')->group(function () {
     Route::view('/entries', 'SecViews.history')->name('archive.entries');       // Show all entries (like history)
     Route::get('/entries/{entry}', [EntryController::class, 'show'])->name('entries.show');    // Route::get('/entries/create', [EntryController::class, 'create'])->name('entries.create'); // Show form
     Route::post('/entries', [EntryController::class, 'store'])->name('entries.store');        // Save entry
-    Route::get('/entry/edit', [EntryController::class, 'edit']);
+    //Route::get('/entry/edit', [EntryController::class, 'edit']);
     Route::get('/entries/{entry}/edit', [EntryController::class, 'edit'])->name('entries.edit');    // Show edit form
     Route::put('/entries/{entry}', [EntryController::class, 'update'])->name('entries.update');    // Update entry
     Route::delete('/entries/{entry}', [EntryController::class, 'destroy'])->name('entries.destroy');    // Delete entry
 
-    // routes/web.php
+    // search endpoint
     Route::get('/search', [SearchController::class, 'search'])->name('search');
     // Tags
+
     // Route::get('/tags', [TagController::class, 'index'])->name('tags.index');
     Route::view('/tags', 'SecViews.taglist')->name('tags.index');
 
