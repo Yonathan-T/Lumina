@@ -26,6 +26,7 @@ class AccountInformation extends Component
         $user = auth()->user();
         $user->name = $this->name;
         $user->email = $this->email;
+        //email otp logic instead would be nice
         $user->save();
 
         session()->flash('message', 'Account information updated successfully!');

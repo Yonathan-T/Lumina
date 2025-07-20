@@ -4,5 +4,7 @@
         <p class="text-muted">Manage your account settings and preferences</p>
         @livewire('settings.account-information')
         @livewire('settings.appearance')
+        @livewire('settings.notifications')
+        @livewire('settings.data-privacy')
     </section>
 </x-layout>

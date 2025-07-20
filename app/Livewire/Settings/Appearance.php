@@ -12,7 +12,7 @@ class Appearance extends Component
     public function mount()
     {
         // In a real app, load these from user settings in DB
-        $this->darkMode = session('settings.darkMode', false);
+        $this->darkMode = session('settings.darkMode', true);
         $this->fontSize = session('settings.fontSize', 'Large');
     }
 
