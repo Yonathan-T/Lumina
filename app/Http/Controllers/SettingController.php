@@ -9,16 +9,13 @@ class SettingController extends Controller
     //
     public function index()
     {
+
         return view('SecViews.settings');
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function update(UpdateEntryRequest $request, Entry $entry)
-    {
-
-    }
 
 
 }
