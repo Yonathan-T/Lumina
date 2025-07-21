@@ -15,10 +15,18 @@
             @error('email') <span class="text-red-400 text-sm">{{ $message }}</span> @enderror
         </div>
         <button type="submit"
-            class="mt-4 px-6 py-2 bg-white text-gray-900 rounded font-semibold hover:bg-gray-200 transition">Save
-            Changes</button>
-        @if (session()->has('message'))
-            <div class="mt-4 text-green-400">{{ session('message') }}</div>
-        @endif
+            class="mt-4 px-6 py-2 bg-white text-gray-900 rounded font-semibold hover:bg-gray-200 transition"
+            wire:loading.attr="disabled" wire:target="save">
+
+            <span wire:loading.remove wire:target="save">Save Changes</span>
+            <span wire:loading wire:target="save">Saving...</span>
+
+        </button>
+        <div wire:loading.remove wire:target="save">
+            @if (session()->has('message'))
+                <div class="mt-4 text-green-400">{{ session('message') }}</div>
+            @endif
+        </div>
+
     </form>
 </div>

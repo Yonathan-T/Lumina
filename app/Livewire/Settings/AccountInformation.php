@@ -24,6 +24,7 @@ class AccountInformation extends Component
         ]);
 
         $user = auth()->user();
+        abort_unless(auth()->check(), 403);
         $user->name = $this->name;
         $user->email = $this->email;
         $user->save();
