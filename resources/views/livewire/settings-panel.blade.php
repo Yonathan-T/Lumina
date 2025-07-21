@@ -4,16 +4,14 @@
             <h1 class="text-3xl font-bold tracking-tight">Settings</h1>
             <p class="text-muted">Manage your account settings and preferences.</p>
         </div>
-        <!-- Tab Navigation and Content -->
-        <div x-data="{ tab: 'profile' }" class="mx-auto max-w-4xl mt-6 space-y-6">
+        <div x-data="{ tab: 'account' }" class="mx-auto max-w-4xl mt-6 space-y-6">
 
-            <!-- Navigation Tabs -->
             <div class="border border-white/5 bg-white/5 rounded-lg">
                 <nav class="flex justify-evenly space-x-6 p-2">
-                    <button @click="tab = 'profile'"
-                        :class="tab === 'profile' ? 'border-b-2 border-white text-white' : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                    <button @click="tab = 'account'"
+                        :class="tab === 'account' ? 'border-b-2 border-white text-white' : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                         class="whitespace-nowrap py-2 px-4 text-sm font-medium focus:outline-none">
-                        Profile
+                        Account
                     </button>
                     <button @click="tab = 'payment'"
                         :class="tab === 'payment' ? 'border-b-2 border-white text-white' : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
@@ -27,14 +25,11 @@
                     </button>
                 </nav>
             </div>
-
-            <!-- Tab Content -->
             <div>
-                <div x-show="tab === 'profile'" x-transition>
+                <div x-show="tab === 'account'" x-transition>
                     @livewire('settings.account-information')
                 </div>
                 <div x-show="tab === 'payment'" x-transition>
-                    <!-- Payment content here -->
                 </div>
                 <div x-show="tab === 'appearance'" x-transition>
                     @livewire('settings.appearance')

@@ -6,13 +6,13 @@
             <label class="block text-gray-300 mb-1" for="name">Name</label>
             <input id="name" type="text" wire:model.defer="name"
                 class="w-full px-4 py-2 rounded bg-gradient-dark text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-white-500" />
-            @error('name') <span class="text-red-400 text-sm">{{ $message }}</span> @enderror
+            <x-form-error name="name" />
         </div>
         <div>
             <label class="block text-gray-300 mb-1" for="email">Email</label>
             <input id="email" type="email" wire:model.defer="email"
                 class="w-full px-4 py-2 rounded bg-gradient-dark text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-white-500" />
-            @error('email') <span class="text-red-400 text-sm">{{ $message }}</span> @enderror
+            <x-form-error name="email" />
         </div>
         <button type="submit"
             class="mt-4 px-6 py-2 bg-white text-gray-900 rounded font-semibold hover:bg-gray-200 transition"

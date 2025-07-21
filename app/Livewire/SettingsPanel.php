@@ -6,7 +6,7 @@ use Livewire\Component;
 
 class SettingsPanel extends Component
 {
-    public $activeTab = 'profile';
+    public $activeTab = 'account';
 
     public function setTab($tab)
     {
