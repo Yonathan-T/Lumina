@@ -7,6 +7,8 @@ use App\Http\Controllers\InsightController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\RegisteredUserController;
 use App\Http\Controllers\SessionController;
+use App\Http\Controllers\SearchController;
+use App\Livewire\SettingsPanel;
 use Illuminate\Support\Facades\Route;
 
 // Protected Routes
@@ -34,6 +36,7 @@ Route::middleware('auth')->group(function () {
 
     // Settings
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+    //Route::get('/settings', SettingsPanel::class)->name('settings.index');
 });
 
 Route::get('/', function () {

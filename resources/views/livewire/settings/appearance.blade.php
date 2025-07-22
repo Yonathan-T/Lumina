@@ -1,26 +1,51 @@
-<div class="bg-gradient-dark rounded-lg p-8 mb-8 shadow-2xs card-highlight">
+<div class="bg-gradient-dark rounded-lg p-8 mb-8 shadow-2xl card-highlight">
     <h2 class="text-2xl font-bold mb-2 text-white">Appearance</h2>
-    <p class="mb-6 text-gray-400">Customize how Memo Mate looks and feels</p>
-    <div class="flex items-center justify-between mb-6">
+    <p class="mb-6 text-muted">Customize how Memo Mate looks and feels</p>
+
+    <div class="ml-4 flex items-center justify-between mb-8">
         <div>
             <div class="text-lg text-white font-semibold">Dark Mode</div>
-            <div class="text-gray-400 text-sm">Switch between light and dark themes</div>
+            <div class="text-muted text-sm">Switch between light and dark themes</div>
         </div>
-        <label class="inline-flex items-center cursor-pointer">
-            <input type="checkbox" wire:model="darkMode" class="sr-only peer">
-            <div class="w-11 h-6 bg-gray-700 rounded-full peer peer-checked:bg-blue-600 transition"></div>
+        <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" wire:model="darkMode" class="sr-only peer" />
+            <div class="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:bg-white transition-colors duration-300">
+            </div>
             <div
-                class="absolute ml-1 mt-1 w-4 h-4 bg-white rounded-full shadow transform peer-checked:translate-x-5 transition">
+                class="absolute left-1 top-1 w-4 h-4 bg-gradient-dark rounded-full shadow transform peer-checked:translate-x-5 transition-transform duration-300">
             </div>
         </label>
+
     </div>
-    <div class="mb-4">
-        <label class="block text-gray-300 mb-1" for="fontSize">Font Size</label>
-        <select id="fontSize" wire:model="fontSize"
-            class="w-full px-4 py-2 rounded bg-gradient-dark text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-white-500">
-            <option value="Small">Small</option>
-            <option value="Medium">Medium</option>
-            <option value="Large">Large</option>
-        </select>
+    <hr class="ml-4 border border-white/5 mb-4" />
+
+    <div class="ml-4 mb-6">
+        <label for="fontSize" class="block text-sm font-medium text-gray-300 mb-1">Font Size</label>
+        <div class="relative">
+            <select id="fontSize" wire:model="fontSize" class="flex h-10 w-full rounded-md border border-white/15 shadow-sm bg-background px-3 py-2 text-sm
+                text-white">
+                <option value="Small">Small</option>
+                <option value="Medium">Medium</option>
+                <option value="Large">Large</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-muted">
+                <!-- I need better drop downs here. react would  have saved me -->
+            </div>
+        </div>
+    </div>
+
+    <div class="ml-4">
+        <label for="fontFamily" class="block text-sm font-medium text-gray-300 mb-1">Font Family</label>
+        <div class="relative">
+            <select id="fontFamily" wire:model="fontFamily" class="flex h-10 w-full rounded-md border border-white/15 shadow-sm bg-background px-3 py-2 text-sm
+                text-white">
+                <option value="sans-serif">Sans-serif</option>
+                <option value="serif">Serif</option>
+                <option value="monospace">Monospace</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-muted">
+                <!-- and here. -->
+            </div>
+        </div>
     </div>
 </div>
