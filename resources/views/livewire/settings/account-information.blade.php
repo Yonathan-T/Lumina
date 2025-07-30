@@ -12,14 +12,13 @@
             <div>
                 <div class="text-lg text-white font-semibold"> Set Password</div>
 
-                <div class="text-muted text-sm">Click the button below to receive an email to set up a password for
+                <div class="text-muted text-sm">Click the button to receive an email to set up a password for
                     your account
                 </div>
             </div>
             <button wire:click="logoutSession('')"
-                class="bg-transparent border border-white/5 hover:bg-white text-bg-gradient-black px-4 py-2 rounded">
-                Set Password
-            </button>
+                class="transition duration-300 ease-in-out hover:bg-white hover:text-gray-900 px-4 py-2 rounded-md border border-white/5 cursor-pointer">
+                Set Password </button>
         </div>
         <div>
             <label class="block text-gray-300 mb-1" for="email">Email</label>
@@ -32,6 +31,7 @@
             wire:loading.attr="disabled" wire:target="save">
 
             <span wire:loading.remove wire:target="save">Save Changes</span>
+            <!-- animation would be fire here instead of putting it as a text and a dot -->
             <span wire:loading wire:target="save">Saving...</span>
 
         </button>

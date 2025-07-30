@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Models\Entry;
 use App\Models\Tag;
 use DB;
+use App\Services\StreakService;
 
 class DashboardStats extends Component
 {
@@ -24,7 +25,14 @@ class DashboardStats extends Component
     public function mount()
     {
         $this->loadStats();
-        $this->calculateStreak();
+        $this->currentStreak = StreakService::getCurrentStreak(auth()->id());
+        if ($this->currentStreak === 0) {
+            $this->streakMessage = "Start your streak today!";
+        } elseif ($this->currentStreak === 1) {
+            $this->streakMessage = "First day of your streak!";
+        } else {
+            $this->streakMessage = "Keep it going!";
+        }
     }
 
     public function loadStats()
@@ -92,48 +100,6 @@ class DashboardStats extends Component
             ->take(1)
             ->get();
         $this->loading = false;
-    }
-
-    public function calculateStreak()
-    {
-        $today = now()->startOfDay();
-        $streak = 0;
-        $lastEntryDate = null;
-
-        $entries = Entry::where('user_id', auth()->id())
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        foreach ($entries as $entry) {
-            $entryDate = $entry->created_at->startOfDay();
-
-            if ($lastEntryDate === null) {
-                if ($entryDate->isSameDay($today) || $entryDate->isSameDay($today->copy()->subDay())) {
-                    $streak = 1;
-                    $lastEntryDate = $entryDate;
-                } else {
-                    break;
-                }
-            } else {
-                if ($entryDate->isSameDay($lastEntryDate->copy()->subDay())) {
-                    $streak++;
-                    $lastEntryDate = $entryDate;
-                } else {
-                    break;
-                }
-            }
-        }
-
-        $this->currentStreak = $streak;
-
-
-        if ($streak === 0) {
-            $this->streakMessage = "Start your streak today!";
-        } elseif ($streak === 1) {
-            $this->streakMessage = "First day of your streak!";
-        } else {
-            $this->streakMessage = "Keep it going!";
-        }
     }
 
     public function render()

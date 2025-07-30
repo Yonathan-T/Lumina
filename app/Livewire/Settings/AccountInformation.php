@@ -27,8 +27,9 @@ class AccountInformation extends Component
         abort_unless(auth()->check(), 403);
         $user->name = $this->name;
         $user->email = $this->email;
-        //email otp logic instead would be nice
         $user->save();
+        //email otp logic instead would be nice
+        // also for the password
 
         session()->flash('message', 'Account information updated successfully!');
     }

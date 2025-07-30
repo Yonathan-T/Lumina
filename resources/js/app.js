@@ -1,4 +1,9 @@
 import './bootstrap';
+import Chart from 'chart.js/auto';
+
+// Make Chart.js globally available
+window.Chart = Chart;
+
 import.meta.glob([
     '../images/**'
 ]);
@@ -202,3 +207,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+// public/js/app.js (or wherever your main JS is)
+document.addEventListener('livewire:init', () => {
+    Livewire.hook('message.processed', (message, component) => {
+        // This hook runs after every Livewire AJAX request is processed
+        console.log('Livewire message processed. Component:', component.name, 'Message:', message);
+        // You can also look into message.response.serverMemo.data to see component data
+    });
+
+    // Add a listener for the custom console-log event
+    Livewire.on('console-log', (message) => {
+        console.log('LIVEWIRE EVENT:', message);
+    });
+});

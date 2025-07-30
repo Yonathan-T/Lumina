@@ -19,7 +19,7 @@ class Sidebar extends Component
     public $editedTags = '';
     public $searchQuery = '';
     public $searchResults = [];
-    
+
     public function updatedSearchQuery()
     {
         $this->searchResults = Entry::where('title', 'like', "%{$this->searchQuery}%")
@@ -34,11 +34,11 @@ class Sidebar extends Component
             })
             ->toArray();
     }
-    
+
     public function selectEntry($id)
     {
         $this->selectedEntryId = $id;
-        $this->isEditing = false; 
+        $this->isEditing = false;
         $this->showNewMemoForm = false;
         $this->openSearchForm = false;
     }
@@ -46,15 +46,15 @@ class Sidebar extends Component
     public function openNewMemoForm()
     {
         $this->showNewMemoForm = true;
-        $this->selectedEntryId = null;  
-        $this->openSearchForm = false; 
+        $this->selectedEntryId = null;
+        $this->openSearchForm = false;
     }
     public function openSearch()
     {
         $this->openSearchForm = true;
         $this->showNewMemoForm = false;  // Close the new memo form if search is opened
         $this->searchQuery = '';         // Optional: Reset search query when opening search
-        $this->searchResults = []; 
+        $this->searchResults = [];
     }
 
     public function editEntry()
@@ -77,27 +77,27 @@ class Sidebar extends Component
                 'editedTitle' => 'required|string|max:255',
                 'editedContent' => 'required|string',
             ]);
-        //assign and save
+            //assign and save
             $entry->title = $this->editedTitle;
             $entry->content = $this->editedContent;
             $entry->save();
-    
+
             // Sync tags
             $tagNames = collect(explode(',', $this->editedTags))
-                             ->map(fn($tag) => strtolower(trim($tag)))
-                            ->filter(); // remove empty values
-    
+                ->map(fn($tag) => strtolower(trim($tag)))
+                ->filter(); // remove empty values
+
             $tagIds = [];
             foreach ($tagNames as $name) {
                 $tag = Tag::firstOrCreate(['name' => $name]);
                 $tagIds[] = $tag->id;
             }
             $entry->tags()->sync($tagIds);
-    
+
             $this->isEditing = false;
         }
     }
-    
+
 
     public function render()
     {

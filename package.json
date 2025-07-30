@@ -23,12 +23,14 @@
         "test": "tests"
     },
     "dependencies": {
+        "@fontsource/inter": "^5.2.6",
         "@fontsource/playfair-display": "^5.2.5",
         "ansi-regex": "^5.0.1",
         "ansi-styles": "^4.3.0",
         "asynckit": "^0.4.0",
         "call-bind-apply-helpers": "^1.0.2",
         "chalk": "^4.1.2",
+        "chart.js": "^4.5.0",
         "cliui": "^8.0.1",
         "color-convert": "^2.0.1",
         "color-name": "^1.1.4",

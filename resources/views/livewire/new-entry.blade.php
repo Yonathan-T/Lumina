@@ -5,6 +5,7 @@
             <h1 class="text-3xl font-bold tracking-tight">New Entry</h1>
             <div class="text-sm text-muted">
                 {{ \Carbon\Carbon::now('Africa/Addis_Ababa')->format('l, F j, Y • H:i A') }}
+                <!-- this should be based on location instead of hard coding the timezone my self   -->
             </div>
         </div>
         <!-- <form method="POST" action="/entries"> Should i use livewire or controller -->
@@ -42,7 +43,7 @@
                 </div>
 
                 <div class="flex justify-end gap-2">
-                    <button
+                    <button href="/dashboard"
                         class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors  border border-white/10 bg-background backdrop-blur-sm hover:bg-white/5 transition duration-200 hover:text-accent h-10 px-4 py-2">Discard
                         Draft</button>
                     <x-form-button>Save Entry</x-form-button>
