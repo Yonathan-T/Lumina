@@ -128,7 +128,7 @@ class EditEntry extends Component
         });
         $this->selectedTags = array_values($this->selectedTags);
     }
-
+    //copy pasted same messages from the new-entry form error so maybe this needs to be component ?
     public function messages()
     {
         return [

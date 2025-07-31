@@ -18,10 +18,10 @@
     <!-- Debug Info -->
     @if(config('app.debug'))
         <!-- <div class="bg-gray-800 p-4 rounded-lg mb-4">
-                <h3 class="text-white font-semibold mb-2">Debug Info:</h3>
-                <pre class="text-xs text-gray-300">{{ json_encode($this->debugData(), JSON_PRETTY_PRINT) }}</pre>
-            </div>
-            <button wire:click="loadSummaryStats">Refresh Streak Data</button> -->
+                    <h3 class="text-white font-semibold mb-2">Debug Info:</h3>
+                    <pre class="text-xs text-gray-300">{{ json_encode($this->debugData(), JSON_PRETTY_PRINT) }}</pre>
+                </div>
+                <button wire:click="loadSummaryStats">Refresh Streak Data</button> -->
 
     @endif
 
