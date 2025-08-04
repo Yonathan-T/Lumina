@@ -220,3 +220,19 @@ document.addEventListener('livewire:init', () => {
         console.log('LIVEWIRE EVENT:', message);
     });
 });
+
+
+
+self.addEventListener('push', event => {
+    const data = event.data.json();
+    self.registration.showNotification(data.title, {
+        body: data.body,
+        icon: data.icon,
+        data: { url: data.data.url }
+    });
+});
+
+self.addEventListener('notificationclick', event => {
+    event.notification.close();
+    event.waitUntil(clients.openWindow(event.notification.data.url));
+});

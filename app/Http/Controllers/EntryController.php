@@ -76,10 +76,10 @@ class EntryController extends Controller
     public function update(UpdateEntryRequest $request, Entry $entry)
     {
         $this->authorize('update', $entry);
-        
+
         $entry->update([
-            'title' => $request->title,
-            'content' => $request->content,
+            'title' => $request->input('title'),
+            'content' => $request->input('content'),
         ]);
 
         return redirect()->route('entries.show', $entry)->with('success', 'Entry updated successfully!');
@@ -91,9 +91,9 @@ class EntryController extends Controller
     public function destroy(Entry $entry)
     {
         $this->authorize('delete', $entry);
-        
+
         $entry->delete();
-        
+
         return redirect()->route('archive.entries')->with('success', 'Entry deleted successfully!');
     }
 }

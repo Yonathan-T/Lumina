@@ -135,4 +135,17 @@ class StreakService
             'data' => $dailyStreaks
         ];
     }
+    public static function getLastEntryDate($userId)
+    {
+        $lastEntry = Entry::where('user_id', $userId)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if ($lastEntry) {
+            return Carbon::parse($lastEntry->created_at);
+        }
+
+        return null;
+    }
+
 }

@@ -5,11 +5,14 @@ namespace App\Livewire\Dashboard;
 use Livewire\Component;
 use App\Models\Entry;
 use App\Models\Tag;
+use App\Models\User;
 use DB;
 use App\Services\StreakService;
+use Illuminate\Notifications\DatabaseNotification;
 
 class DashboardStats extends Component
 {
+    // Properties from your original component
     public $totalEntries;
     public $entriesFromLastWeek;
     public $recentEntries;
@@ -22,8 +25,27 @@ class DashboardStats extends Component
     public $currentStreak;
     public $streakMessage;
 
+    // Properties for Notifications
+    public $notifications;
+    public $unreadCount;
+    public $isModalOpen = false; // A public property to control the modal visibility
+
+    // Add polling to refresh notifications every 30 seconds
+    public function getPollingIntervalProperty()
+    {
+        return 30000; // 30 seconds
+    }
+
+    // Remove the dynamic event listener that was causing issues
+    // #[On('echo:users.{auth()->id()},.Illuminate\\Notifications\\Events\\NotificationSent')]
+    // public function refreshNotifications()
+    // {
+    //     $this->loadNotifications();
+    // }
+
     public function mount()
     {
+        $this->loadNotifications();
         $this->loadStats();
         $this->currentStreak = StreakService::getCurrentStreak(auth()->id());
         if ($this->currentStreak === 0) {
@@ -100,6 +122,84 @@ class DashboardStats extends Component
             ->take(1)
             ->get();
         $this->loading = false;
+    }
+
+    /**
+     * Toggles the notification modal.
+     */
+    public function toggleNotificationsModal()
+    {
+        $this->isModalOpen = !$this->isModalOpen;
+    }
+
+    /**
+     * Marks a specific notification as read.
+     *
+     * @param  string $notificationId
+     * @return void
+     */
+    public function markAsRead(string $notificationId)
+    {
+        auth()->user()->notifications->where('id', $notificationId)->markAsRead();
+        $this->loadNotifications();
+    }
+
+    /**
+     * Marks all unread notifications as read.
+     *
+     * @return void
+     */
+    public function markAllAsRead()
+    {
+        auth()->user()->unreadNotifications->markAsRead();
+        $this->loadNotifications();
+    }
+
+    /**
+     * Deletes a specific notification.
+     *
+     * @param  string $notificationId
+     * @return void
+     */
+    public function deleteNotification(string $notificationId)
+    {
+        DatabaseNotification::find($notificationId)->delete();
+        $this->loadNotifications();
+    }
+
+    /**
+     * Deletes all notifications.
+     *
+     * @return void
+     */
+    public function deleteAllNotifications()
+    {
+        auth()->user()->notifications()->delete();
+        $this->loadNotifications();
+    }
+
+    /**
+     * Fetches the user's notifications and updates the component properties.
+     *
+     * @return void
+     */
+    protected function loadNotifications()
+    {
+        $user = auth()->user();
+        // Fetch all notifications, but we'll show unread ones first
+        $this->notifications = $user->notifications()->latest()->take(10)->get();
+        $this->unreadCount = $user->unreadNotifications()->count();
+    }
+
+    /**
+     * Refreshes the component data including notifications and stats.
+     *
+     * @return void
+     */
+    public function refresh()
+    {
+        $this->loadNotifications();
+        $this->loadStats();
     }
 
     public function render()
