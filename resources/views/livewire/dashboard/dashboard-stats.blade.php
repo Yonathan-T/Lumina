@@ -193,31 +193,33 @@
         </div>
     </div>
     <!-- Recent section goes here -->
-    <div class="mt-8">
-        <h2 class="text-xl font-semibold mb-4">Recent Entry</h2>
-        @foreach($recentEntries as $entry)
-            <a href="{{ route('entries.show', $entry) }}">
-                <div
-                    class="rounded-lg bg-card text-card-foreground shadow-md card-highlight bg-gradient-dark border border-white/10">
-                    <div class="flex flex-col space-y-1.5 p-6">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-2xl font-semibold leading-none tracking-tight">{{ $entry->title }}</h3>
-                            <div class="text-sm text-muted-foreground">{{ $entry->created_at->diffForHumans() }}</div>
+    @if($recentEntries && $recentEntries->count() > 0)
+        <div class="mt-8">
+            <h2 class="text-xl font-semibold mb-4">Recent Entry</h2>
+            @foreach($recentEntries as $entry)
+                <a href="{{ route('entries.show', $entry) }}">
+                    <div
+                        class="rounded-lg bg-card text-card-foreground shadow-md card-highlight bg-gradient-dark border border-white/10">
+                        <div class="flex flex-col space-y-1.5 p-6">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-2xl font-semibold leading-none tracking-tight">{{ $entry->title }}</h3>
+                                <div class="text-sm text-muted-foreground">{{ $entry->created_at->diffForHumans() }}</div>
+                            </div>
+                        </div>
+                        <div class="p-6 pt-0">
+                            <p class="line-clamp-3">{{ $entry->content }}</p>
+                            <div class="mt-4 flex flex-wrap gap-2">
+                                @foreach($entry->tags as $tag)
+                                    <div
+                                        class="inline-flex items-center rounded-full quick-start-btn border px-2.5 py-0.5 text-xs font-semibold transition-colors  border-transparent bg-secondary text-secondary-foreground hover:/80">
+                                        #{{ $tag->name }}
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
                     </div>
-                    <div class="p-6 pt-0">
-                        <p class="line-clamp-3">{{ $entry->content }}</p>
-                        <div class="mt-4 flex flex-wrap gap-2">
-                            @foreach($entry->tags as $tag)
-                                <div
-                                    class="inline-flex items-center rounded-full quick-start-btn border px-2.5 py-0.5 text-xs font-semibold transition-colors  border-transparent bg-secondary text-secondary-foreground hover:/80">
-                                    #{{ $tag->name }}
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            </a>
-        @endforeach
-    </div>
+                </a>
+            @endforeach
+        </div>
+    @endif
 </div>
