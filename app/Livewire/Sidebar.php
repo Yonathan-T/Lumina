@@ -62,7 +62,7 @@ class Sidebar extends Component
 
     public function editEntry()
     {
-        $entry = Entry::find($this->selectedEntryId);
+        $entry = Entry::where('user_id', auth()->id())->find($this->selectedEntryId);
         if ($entry) {
             $this->editedTitle = $entry->title;
             $this->editedContent = $entry->content;
@@ -73,7 +73,7 @@ class Sidebar extends Component
 
     public function saveEntry()
     {
-        $entry = Entry::find($this->selectedEntryId);
+        $entry = Entry::where('user_id', auth()->id())->find($this->selectedEntryId);
         if ($entry) {
             //validate
             $this->validate([
@@ -104,11 +104,11 @@ class Sidebar extends Component
 
     public function render()
     {
-        $selectedEntry = $this->selectedEntryId ? Entry::find($this->selectedEntryId) : null;
+        $selectedEntry = $this->selectedEntryId ? Entry::where('user_id', auth()->id())->find($this->selectedEntryId) : null;
 
         return view('livewire.sidebar', [
             'entries' => auth()->user()->entries()->latest()->get(),
-            'tags' => auth()->user()->entries()->with('tags')->get()->flatMap->tags,
+            'tags' => auth()->user()->entries()->with('tags')->get()->flatMap->tags->unique('id'),
             'selectedEntry' => $selectedEntry,
             'showNewMemoForm' => $this->showNewMemoForm,
             'openSearchForm' => $this->openSearchForm,

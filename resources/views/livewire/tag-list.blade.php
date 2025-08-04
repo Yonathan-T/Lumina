@@ -24,29 +24,44 @@
         </div>
     </div>
     <div class="w-full max-w-6xl mx-auto pt-8">
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            @foreach ($tagList as $tag)
-                <button wire:click="showTagEntries({{ $tag->id }})" @class([
-                    // Always apply these:
-                    'card-highlight inline-flex items-center gap-2 rounded-md text-sm font-medium transition-colors border-white/5 border h-10 px-4 py-2 justify-between w-full focus-visible:outline-hidden focus-visible:ring-ring ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2',
-                    // Default background:
-                    'bg-gradient-dark text-white hover:bg-gray-800' => $selectedTagId !== $tag->id,
-                    // Selected tag:
-                    'bg-white text-[rgb(15,23,42)]' => $selectedTagId === $tag->id,
-                ])>
-                    <span class="font-medium">#{{ $tag->name }}</span>
-                    <span
-                        class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-rgb(15,23,42)text-white font-semibold">
-                        {{ $tag->entries_count }}
-                    </span>
-                </button>
-            @endforeach
-        </div>
-        <div class="mt-5">
-
-            {{ $tagList->links() }}
-
-        </div>
+        @if($tagList->count() > 0)
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                @foreach ($tagList as $tag)
+                    <button wire:click="showTagEntries({{ $tag->id }})" @class([
+                        // Always apply these:
+                        'card-highlight inline-flex items-center gap-2 rounded-md text-sm font-medium transition-colors border-white/5 border h-10 px-4 py-2 justify-between w-full focus-visible:outline-hidden focus-visible:ring-ring ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2',
+                        // Default background:
+                        'bg-gradient-dark text-white hover:bg-gray-800' => $selectedTagId !== $tag->id,
+                        // Selected tag:
+                        'bg-white text-[rgb(15,23,42)]' => $selectedTagId === $tag->id,
+                    ])>
+                        <span class="font-medium">#{{ $tag->name }}</span>
+                        <span
+                            class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-rgb(15,23,42)text-white font-semibold">
+                            {{ $tag->entries_count }}
+                        </span>
+                    </button>
+                @endforeach
+            </div>
+            <div class="mt-5">
+                {{ $tagList->links() }}
+            </div>
+        @else
+            <div class="text-center py-12">
+                <div
+                    class="mx-auto w-24 h-24 mb-6 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+                    <x-icon name="tag" class="w-12 h-12 text-gray-400" />
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No tags yet</h3>
+                <p class="text-gray-500 dark:text-gray-400 mb-6">Start creating entries with tags to organize your journal
+                </p>
+                <a href="{{ route('entries.create') }}"
+                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors  border border-white/10 bg-background backdrop-blur-sm hover:bg-white/5 transition duration-200 hover:text-accent h-10 px-4 py-2">
+                    <x-icon name="door-open" class="w-4 h-4 mr-2" />
+                    Create your first entry
+                </a>
+            </div>
+        @endif
     </div>
     @if($selectedTagId)
         <div class="mt-8">
@@ -65,11 +80,11 @@
                         <!-- Date Square -->
                         <div
                             class="flex flex-col justify-center items-center 
-                                                                                                                                                                            bg-gradient-dark  border border-white/10 
-                                                                                                                                                                            w-20 min-w-30 h-30 
-                                                                                                                                                                            rounded-xl shadow-lg 
-                                                                                                                                                                            m-4 card-highlight
-                                                                                                                                                                            self-center">
+                                                                                                                                                                                    bg-gradient-dark  border border-white/10 
+                                                                                                                                                                                    w-20 min-w-30 h-30 
+                                                                                                                                                                                    rounded-xl shadow-lg 
+                                                                                                                                                                                    m-4 card-highlight
+                                                                                                                                                                                    self-center">
                             <span class="text-lg font-bold">
                                 {{ strtoupper($entry->created_at->format('M')) }}
                             </span>

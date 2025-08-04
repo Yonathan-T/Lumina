@@ -36,7 +36,9 @@ class TagList extends Component
 
     public function render()
     {
-        $query = Tag::withCount(['entries' => function($query) {
+        $query = Tag::whereHas('entries', function($query) {
+            $query->where('user_id', auth()->id());
+        })->withCount(['entries' => function($query) {
             $query->where('user_id', auth()->id());
         }]);
 
