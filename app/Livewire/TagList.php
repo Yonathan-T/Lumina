@@ -19,12 +19,15 @@ class TagList extends Component
     public function showTagEntries($tagId)
     {
         $this->selectedTagId = $tagId;
-        $tag = Tag::withCount('entries')->find($tagId);
+        $tag = Tag::withCount(['entries' => function($query) {
+            $query->where('user_id', auth()->id());
+        }])->find($tagId);
         $this->selectedTagName = $tag?->name;
         $this->selectedTagCount = $tag?->entries_count;
-        $this->tagEntries = Entry::whereHas('tags', function ($q) use ($tagId) {
-            $q->where('tags.id', $tagId);
-        })->latest()->get();
+        $this->tagEntries = Entry::where('user_id', auth()->id())
+            ->whereHas('tags', function ($q) use ($tagId) {
+                $q->where('tags.id', $tagId);
+            })->latest()->get();
     }
     public function updatingSort()
     {
@@ -33,7 +36,9 @@ class TagList extends Component
 
     public function render()
     {
-        $query = Tag::withCount('entries');
+        $query = Tag::withCount(['entries' => function($query) {
+            $query->where('user_id', auth()->id());
+        }]);
 
         switch ($this->sort) {
             case 'recent':

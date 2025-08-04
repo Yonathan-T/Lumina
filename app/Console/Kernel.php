@@ -29,6 +29,9 @@ class Kernel extends ConsoleKernel
 
         // Run the streak reminder every day at 7:00 PM
         $schedule->command(SendStreakReminders::class)->dailyAt('19:00');
+
+        // $schedule->command('queue:work --once')->everyMinute();
+
     }
 
     /**

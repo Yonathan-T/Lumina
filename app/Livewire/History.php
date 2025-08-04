@@ -18,7 +18,7 @@ class History extends Component
 
     public function render()
     {
-        $query = Entry::with('tags');
+        $query = Entry::with('tags')->where('user_id', auth()->id());
 
         switch ($this->sort) {
             case 'oldest':

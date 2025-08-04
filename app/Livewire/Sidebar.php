@@ -22,8 +22,11 @@ class Sidebar extends Component
 
     public function updatedSearchQuery()
     {
-        $this->searchResults = Entry::where('title', 'like', "%{$this->searchQuery}%")
-            ->orWhere('content', 'like', "%{$this->searchQuery}%")
+        $this->searchResults = Entry::where('user_id', auth()->id())
+            ->where(function($query) {
+                $query->where('title', 'like', "%{$this->searchQuery}%")
+                      ->orWhere('content', 'like', "%{$this->searchQuery}%");
+            })
             ->get()
             ->map(function ($entry) {
                 return [

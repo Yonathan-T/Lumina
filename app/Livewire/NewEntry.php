@@ -19,7 +19,9 @@ class NewEntry extends Component
 
     public function mount()
     {
-        $this->availableTags = Tag::all();
+        $this->availableTags = Tag::whereHas('entries', function($query) {
+            $query->where('user_id', auth()->id());
+        })->get();
     }
     // public function updatedTitle($value)
     // {

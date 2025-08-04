@@ -19,10 +19,13 @@ class SearchController extends Controller
         $results = [];
 
         // Search entries big brrr
-        $entries = Entry::where('title', 'LIKE', "%{$query}%")
-            ->orWhere('content', 'LIKE', "%{$query}%")
-            ->orWhereHas('tags', function ($q) use ($query) {
-                $q->where('name', 'LIKE', "%{$query}%");
+        $entries = Entry::where('user_id', auth()->id())
+            ->where(function($q) use ($query) {
+                $q->where('title', 'LIKE', "%{$query}%")
+                  ->orWhere('content', 'LIKE', "%{$query}%")
+                  ->orWhereHas('tags', function ($tagQuery) use ($query) {
+                      $tagQuery->where('name', 'LIKE', "%{$query}%");
+                  });
             })
             ->with('tags')
             ->limit(10)
@@ -43,7 +46,12 @@ class SearchController extends Controller
         // and Search tags
         if ($request->get('include_tags')) {
             $tags = Tag::where('name', 'LIKE', "%{$query}%")
-                ->withCount('entries')
+                ->whereHas('entries', function($query) {
+                    $query->where('user_id', auth()->id());
+                })
+                ->withCount(['entries' => function($query) {
+                    $query->where('user_id', auth()->id());
+                }])
                 ->limit(5)
                 ->get();
 

@@ -31,7 +31,9 @@ class EditEntry extends Component
         $this->title = $entry->title;
         $this->content = $entry->content;
         $this->selectedTags = $entry->tags->pluck('name')->toArray();
-        $this->availableTags = Tag::all();
+        $this->availableTags = Tag::whereHas('entries', function($query) {
+            $query->where('user_id', auth()->id());
+        })->get();
     }
 
     public function startEditing()
