@@ -53,6 +53,8 @@ Route::post('/login', [SessionController::class, 'store']);
 
 Route::get('/search', [App\Http\Controllers\SearchController::class, 'search'])->name('search');
 
+
+
 // //entries need middleware ofc.
 // Route::get('/entries',[EntryController::class ,'create']);
 // Route::post('/entries',[EntryController::class ,'store'])->middleware('auth');

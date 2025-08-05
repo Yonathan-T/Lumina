@@ -224,7 +224,7 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
 
     <!-- Copyright -->
     <div class="max-w-7xl mx-auto pt-8 mt-8 border-t border-white/10 text-center text-white/40 text-sm">
-      © 2023 Memo Mate. All rights reserved.
+      © 2025 Memo Mate. All rights reserved.
     </div>
   </footer>
 </x-layout>

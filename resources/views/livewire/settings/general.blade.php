@@ -9,9 +9,9 @@
                 <div class="text-muted text-sm">Receive a daily reminder to write in your journal</div>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" wire:model="darkMode" class="sr-only peer" />
+                <input type="checkbox" wire:model.live="dailyReminder" class="sr-only peer" />
                 <div
-                    class="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:bg-white transition-colors duration-300">
+                    class="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:bg-white transition-colors duration-300 cursor-pointer">
                 </div>
                 <div
                     class="absolute left-1 top-1 w-4 h-4 bg-gradient-dark rounded-full shadow transform peer-checked:translate-x-5 transition-transform duration-300">
@@ -26,9 +26,9 @@
             </div>
 
             <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" wire:model="darkMode" class="sr-only peer" />
+                <input type="checkbox" wire:model.live="streakAlerts" class="sr-only peer" />
                 <div
-                    class="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:bg-white transition-colors duration-300">
+                    class="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:bg-white transition-colors duration-300 cursor-pointer">
                 </div>
                 <div
                     class="absolute left-1 top-1 w-4 h-4 bg-gradient-dark rounded-full shadow transform peer-checked:translate-x-5 transition-transform duration-300">
@@ -43,16 +43,15 @@
             </div>
 
             <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" wire:model="darkMode" class="sr-only peer" />
+                <input type="checkbox" wire:model.live="blogUpdates" class="sr-only peer" />
                 <div
-                    class="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:bg-white transition-colors duration-300">
+                    class="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:bg-white transition-colors duration-300 cursor-pointer">
                 </div>
                 <div
                     class="absolute left-1 top-1 w-4 h-4 bg-gradient-dark rounded-full shadow transform peer-checked:translate-x-5 transition-transform duration-300">
                 </div>
             </label>
         </div>
-
     </div>
     <div class="bg-gradient-dark rounded-lg p-8 mb-8 shadow-2xs ">
         <h2 class="text-2xl font-bold mb-2 text-white">Active Sessions</h2>

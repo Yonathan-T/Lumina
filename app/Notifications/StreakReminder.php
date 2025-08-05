@@ -33,10 +33,10 @@ class StreakReminder extends Notification implements ShouldQueue
      */
     public function via($notifiable)
     {
-        $settings = $notifiable->settings;
-        $receivePush = $settings && isset($settings['receive_push']) ? $settings['receive_push'] : false;
+        $settings = $notifiable->settings ?? [];
+        $streakAlerts = $settings['streak_alerts'] ?? false;
 
-        return $receivePush ? [WebPushChannel::class, 'database'] : ['database'];
+        return $streakAlerts ? [WebPushChannel::class, 'database'] : ['database'];
     }
 
     /**

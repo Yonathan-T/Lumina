@@ -23,8 +23,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'receive_push',
-        'reminder_time'
+        'reminder_time',
+        'settings'
     ];
     public function hasEntryToday()
     {
@@ -62,4 +62,6 @@ class User extends Authenticatable
     {
         return $this->hasMany(Entry::class);
     }
+    
+
 }

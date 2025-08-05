@@ -112,6 +112,7 @@
             <div class="p-6 pt-0">
                 <div class="text-2xl font-bold">{{ $totalEntries }}</div>
                 <p class="text-xs text-muted font-inter">
+                    <!--there is a bug here 👀-->
                     @if($entriesFromLastWeek > 0)
                         +{{ $entriesFromLastWeek }} from last week
                     @elseif($entriesFromLastWeek < 0)

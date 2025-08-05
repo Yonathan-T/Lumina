@@ -20,10 +20,10 @@ class DailyJournalReminder extends Notification implements ShouldQueue
      */
     public function via($notifiable)
     {
-        $settings = $notifiable->settings;
-        $receivePush = $settings && isset($settings['receive_push']) ? $settings['receive_push'] : false;
+        $settings = $notifiable->settings ?? [];
+        $dailyReminder = $settings['daily_reminder'] ?? false;
 
-        return $receivePush ? [WebPushChannel::class, 'database'] : ['database'];
+        return $dailyReminder ? [WebPushChannel::class, 'database'] : ['database'];
     }
 
     /**

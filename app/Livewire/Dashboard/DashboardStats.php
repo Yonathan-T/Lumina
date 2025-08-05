@@ -12,7 +12,6 @@ use Illuminate\Notifications\DatabaseNotification;
 
 class DashboardStats extends Component
 {
-    // Properties from your original component
     public $totalEntries;
     public $entriesFromLastWeek;
     public $recentEntries;
@@ -25,12 +24,10 @@ class DashboardStats extends Component
     public $currentStreak;
     public $streakMessage;
 
-    // Properties for Notifications
     public $notifications;
     public $unreadCount;
-    public $isModalOpen = false; // A public property to control the modal visibility
+    public $isModalOpen = false;
 
-    // Add polling to refresh notifications every 30 seconds
     public function getPollingIntervalProperty()
     {
         return 30000; // 30 seconds

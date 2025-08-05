@@ -32,7 +32,7 @@ class SendDailyReminders extends Command
             $query->whereDate('created_at', today());
         })->get();
 
-        //                $user = User::find(1);
+        //  $user = User::find(1);
 
         foreach ($users as $user) {
             $user->notify(new DailyJournalReminder());
