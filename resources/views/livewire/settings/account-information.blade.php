@@ -10,7 +10,7 @@
         </div>
         <div class=" flex items-center justify-between mb-6">
             <div>
-                <div class="text-lg text-white font-semibold"> Set Password</div>
+                <div class="text-lg text-white font-semibold"> Change Password</div>
 
                 <div class="text-muted text-sm">Click the button to receive an email to set up a password for
                     your account

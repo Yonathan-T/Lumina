@@ -1,4 +1,4 @@
-<x-layout :showNav="false">
+<x-layout>
   <x-form-parent>
     <h2 class="text-2xl font-bold text-white">Login</h2>
     <p class="text-sm text-gray-500">Enter your email and password below to login to your account.</p>

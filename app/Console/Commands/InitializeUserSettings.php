@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use App\Models\User;
 
 class InitializeUserSettings extends Command
 {
@@ -25,31 +26,31 @@ class InitializeUserSettings extends Command
      */
     public function handle()
     {
-        $users = \App\Models\User::all();
+        $users = User::all();
         $defaultSettings = [
             'daily_reminder' => false,
             'streak_alerts' => false,
             'blog_updates' => false
         ];
-        
+
         $updated = 0;
-        
+
         foreach ($users as $user) {
             $currentSettings = $user->settings ?? [];
-            
+
             // Normalize existing settings to boolean values
             $normalizedSettings = [
-                'daily_reminder' => (bool)($currentSettings['daily_reminder'] ?? false),
-                'streak_alerts' => (bool)($currentSettings['streak_alerts'] ?? false),
-                'blog_updates' => (bool)($currentSettings['blog_updates'] ?? false)
+                'daily_reminder' => (bool) ($currentSettings['daily_reminder'] ?? false),
+                'streak_alerts' => (bool) ($currentSettings['streak_alerts'] ?? false),
+                'blog_updates' => (bool) ($currentSettings['blog_updates'] ?? false)
             ];
-            
+
             $user->update(['settings' => $normalizedSettings]);
             $updated++;
-            
+
             $this->info("Updated settings for user: {$user->name}");
         }
-        
+
         $this->info("Settings initialization complete! Updated {$updated} users.");
     }
 }
