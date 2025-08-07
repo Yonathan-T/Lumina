@@ -10,6 +10,9 @@ use App\Http\Controllers\SessionController;
 use App\Http\Controllers\SearchController;
 use App\Livewire\SettingsPanel;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\PasswordResetController;
+
+
 
 // Protected Routes
 Route::middleware('auth')->group(function () {
@@ -50,8 +53,17 @@ Route::post('/register', [RegisteredUserController::class, 'store']);
 
 Route::get('/login', [SessionController::class, 'create'])->name('login');
 Route::post('/login', [SessionController::class, 'store']);
+Route::post('/logout', [SessionController::class, 'destroy']);
 
 Route::get('/search', [App\Http\Controllers\SearchController::class, 'search'])->name('search');
+
+Route::get('password/reset', [PasswordResetController::class, 'showLinkRequestForm'])->name('password.request');
+
+Route::post('password/email', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.email');
+
+Route::get('password/reset/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
+
+Route::post('password/reset', [PasswordResetController::class, 'reset'])->name('password.update');
 
 
 

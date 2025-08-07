@@ -16,10 +16,21 @@
                     your account
                 </div>
             </div>
-            <button wire:click="logoutSession('')"
+            <button type="button" wire:click="forgotPassword"
                 class="transition duration-300 ease-in-out hover:bg-white hover:text-gray-900 px-4 py-2 rounded-md border border-white/5 cursor-pointer">
                 Set Password </button>
         </div>
+        @if (session('status'))
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                <span class="block sm:inline">{{ session('status') }}</span>
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                <span class="block sm:inline">{{ session('error') }}</span>
+            </div>
+        @endif
         <div>
             <label class="block text-gray-300 mb-1" for="email">Email</label>
             <input id="email" type="email" wire:model.defer="email"
