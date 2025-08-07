@@ -4,6 +4,20 @@
 <head>
     <meta charset="UTF-8">
     <title>Password Reset</title>
+    <!-- [if mso]>
+    <style type="text/css">
+        .button-hover:hover {
+            background-color: #f8f0f0 !important;
+            color: #000000 !important;
+        }
+    </style>
+    <![endif]-->
+    <style type="text/css">
+        .button-hover:hover {
+            background-color: #f8f0f0 !important;
+
+        }
+    </style>
 </head>
 
 <body
@@ -46,7 +60,7 @@
 
         <!-- Button -->
         <div style="text-align: center; margin: 30px 0;">
-            <a href="{{ $url }}" style="
+            <a href="{{ $url }}" class="button-hover" style="
                 display: inline-block;
                 padding: 14px 32px;
                 background-color: #ffffff;
@@ -55,11 +69,6 @@
                 font-weight: 600;
                 font-size: 15px;
                 border-radius: 8px;
-                &:hover {
-                    background-color: #f8f0f0ff;
-                }
-                box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
-                transition: background 0.3s ease;
             " target="_blank">
                 Reset Password
             </a>

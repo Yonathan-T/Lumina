@@ -37,6 +37,13 @@
                 class="w-full px-4 py-2 rounded bg-gradient-dark text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-white-500" />
             <x-form-error name="email" />
         </div>
+
+
+        @if (session('emailError'))
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                <span class="block sm:inline">{{ session('emailError') }}</span>
+            </div>
+        @endif
         <button type="submit"
             class="mt-4 px-6 py-2 bg-white text-gray-900 rounded font-semibold hover:bg-gray-200 transition"
             wire:loading.attr="disabled" wire:target="save">

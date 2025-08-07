@@ -29,10 +29,20 @@ class AccountInformation extends Component
 
         $user = auth()->user();
         abort_unless(auth()->check(), 403);
+
+        // Check if the new email is already taken by another user
+        $emailExists = \App\Models\User::where('email', $this->email)
+            ->where('id', '!=', $user->id)
+            ->exists();
+
+        if ($emailExists) {
+            session()->flash('emailError', 'The email address is already in use by another account.');
+            return;
+        }
+
         $user->name = $this->name;
         $user->email = $this->email;
         $user->save();
-
 
         session()->flash('message', 'Account information updated successfully!');
     }

@@ -7,29 +7,34 @@ use Illuminate\Http\Request;
 
 class RegisteredUserController extends Controller
 {
-    public function create(){
+    public function create()
+    {
         return view("auth.register");
     }
-    public function store(){
-            //validate
-            request()->validate([
-                "name"=>["required","string"],
-                "email"=> ["required","email","unique:users,email"],
-                "password"=> ['required',Password::min(6),'confirmed'],
+    public function store()
+    {
+
+        request()->validate(
+            [
+                "name" => ["required", "string"],
+                "email" => ["required", "email", "unique:users,email"],
+                "password" => ['required', Password::min(6), 'confirmed'],
             ],
             [
-            "password.confirmed" => "The confirmation password entered does not match the original password",
-            "email.unique" => "There is a user with that email address already.",
-            ]);
-            User::create([
-                "name"=>request("name"),
-                "email"=>request("email"),
-                "password"=>request("password"),
-            ]);
-            return redirect(dd('user created successfully'));
-            //redirect to a use dashboard
+                "password.confirmed" => "The confirmation password entered does not match the original password",
+                "email.unique" => "There is a user with that email address already.",
+            ]
+        );
+        User::create([
+            "name" => request("name"),
+            "email" => request("email"),
+            "password" => request("password"),
+        ]);
+        return redirect('/dashboard');
+
     }
-    public function show(User $user){
-        
+    public function show(User $user)
+    {
+
     }
 }
