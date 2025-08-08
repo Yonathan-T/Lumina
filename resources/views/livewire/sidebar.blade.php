@@ -69,9 +69,15 @@
             $firstLetter = Str::ucfirst(Str::substr($userName, 0, 1));
         @endphp
 
-        <div class="flex items-center gap-2 px-4 py-4 border-white/10 border-t text-white">
-            @if(auth()->user() && auth()->user()->profile_photo_url)
-                <img src="{{ auth()->user()->profile_photo_url }}" alt="{{ $userName }}"
+        @php
+            $profilePhotoUrl = auth()->user()->profile_photo_url ?? null;
+            $userEmail = auth()->user()->email ?? 'guest@example.com';
+        @endphp
+
+        <button id="profileButton"
+            class="flex items-center gap-2 px-4 py-4 border-white/10 border-t text-white cursor-pointer">
+            @if($profilePhotoUrl)
+                <img src="{{ $profilePhotoUrl }}" alt="{{ $userName }}"
                     class="w-8 h-8 rounded-full border border-white object-cover" />
             @else
                 <div class="w-8 h-8 rounded-full border border-white bg-gray-700 flex items-center justify-center text-sm font-semibold uppercase"
@@ -84,6 +90,62 @@
                 <span class="text-sm font-medium">{{ $userName }}</span>
                 <span class="text-xs text-muted-foreground">Free Plan</span>
             </div>
+        </button>
+        <div id="profileMenu"
+            class="hidden absolute left-0 right-0 bottom-16 mx-4 w-auto bg-white/10 border border-white/10 rounded-lg shadow-lg z-50 backdrop-blur-md">
+            <div class="flex items-center gap-3 p-3 border-b border-white/10">
+                @if($profilePhotoUrl)
+                    <img src="{{ $profilePhotoUrl }}" alt="{{ $userName }}"
+                        class="w-10 h-10 rounded-full border border-white object-cover" />
+                @else
+                    <div class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-base font-semibold uppercase"
+                        title="{{ $userName }}">
+                        {{ $firstLetter }}
+                    </div>
+                @endif
+
+                <div class="flex flex-col">
+                    <span class="font-medium text-white truncate">{{ $userName }}</span>
+                    <span class="text-xs text-gray-300 truncate">{{ $userEmail }}</span>
+                </div>
+            </div>
+            <ul class="py-2">
+                <li>
+                    <a href="#"
+                        class="flex items-center gap-2 px-4 py-2 hover:bg-blue-300/15 text-white transition-colors rounded-md">
+                        <x-icon name="sparkles" class="w-4 h-4" />
+                        Upgrade plan
+                    </a>
+                </li>
+                <li class="flex items-center px-4 py-2 hover:bg-blue-300/15 text-white transition-colors rounded-md">
+                    <div class="flex items-center gap-2">
+                        <x-icon name="moon" class="w-4 h-4" />
+                        <span>Dark Mode</span>
+                    </div>
+                    <div class="ml-auto">
+                        <x-toggle :model="'darkMode'" />
+                    </div>
+                </li>
+                <li>
+                    <a href="{{ route('settings.index') }}"
+                        class="flex items-center gap-2 px-4 py-2 hover:bg-blue-300/15 text-white transition-colors rounded-md">
+                        <x-icon name="user-round" class="w-4 h-4" />
+                        Account
+                    </a>
+                </li>
+
+                <li>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+
+                        <button type="submit"
+                            class="cursor-pointer w-full text-left px-4 py-2 hover:bg-blue-300/15 text-white transition-colors rounded-md flex items-center gap-2">
+                            <x-icon name="log-out" class="w-4 h-4" />
+                            <span>sign out</span>
+                        </button>
+                    </form>
+                </li>
+            </ul>
         </div>
 
 

@@ -236,3 +236,17 @@ self.addEventListener('notificationclick', event => {
     event.notification.close();
     event.waitUntil(clients.openWindow(event.notification.data.url));
 });
+
+const profileButton = document.getElementById('profileButton');
+const profileMenu = document.getElementById('profileMenu');
+
+profileButton.addEventListener('click', () => {
+    profileMenu.classList.toggle('hidden');
+});
+
+// Optional: Close when clicking outside
+document.addEventListener('click', (event) => {
+    if (!profileButton.contains(event.target) && !profileMenu.contains(event.target)) {
+        profileMenu.classList.add('hidden');
+    }
+});

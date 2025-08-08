@@ -53,7 +53,7 @@ Route::post('/auth/register', [RegisteredUserController::class, 'store']);
 
 Route::get('/auth/login', [SessionController::class, 'create'])->name('login');
 Route::post('/auth/login', [SessionController::class, 'store']);
-Route::post('/auth/logout', [SessionController::class, 'destroy']);
+Route::post('/auth/logout', [SessionController::class, 'destroy'])->name('logout');
 
 Route::get('/search', [App\Http\Controllers\SearchController::class, 'search'])->name('search');
 
