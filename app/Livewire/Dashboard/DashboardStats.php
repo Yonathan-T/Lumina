@@ -69,7 +69,6 @@ class DashboardStats extends Component
         $lastWeekEntries = Entry::whereBetween('created_at', [$lastWeekStart, $lastWeekEnd])->count();
 
         $this->entriesFromLastWeek = $thisWeekEntries - $lastWeekEntries;
-        $this->totalEntries = $thisWeekEntries; // so your {{ $totalEntries }} is this week's total
 
         //Tag Section
         $this->mostUsedTag = Tag::select('tags.*')
