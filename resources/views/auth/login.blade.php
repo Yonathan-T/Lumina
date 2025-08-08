@@ -2,7 +2,7 @@
   <x-form-parent>
     <h2 class="text-2xl font-bold text-white">Login</h2>
     <p class="text-sm text-gray-500">Enter your email and password below to login to your account.</p>
-    <form method="POST" action="/login">
+    <form method="POST" action="/auth/login">
       @csrf
       <div class="flex flex-col gap-6">
         <x-form-wrapper>
@@ -26,7 +26,7 @@
 
     <p class="mt-6 text-center text-sm text-gray-400 space-x-2">
       Don’t have an account?
-      <a href="/register" class="text-white underline hover:text-[#c6b78e]">Sign up</a>
+      <a href="/auth/register" class="text-white underline hover:text-[#c6b78e]">Sign up</a>
     </p>
   </x-form-parent>
 </x-layout>

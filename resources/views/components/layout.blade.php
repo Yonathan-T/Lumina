@@ -37,16 +37,16 @@
                 <x-links>Contact</x-links>
             </div>
             <div>
-                <a href="/register" class="
-                                        border border-white/25 rounded-lg px-3 py-2
-                                        bg-[#060b16] text-white font-semibold
-                                        shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
-                                        hover:border-white/10 hover:shadow-sm
-                                        active:translate-y-[2px] active:shadow-[1px_1px_rgba(124,106,84,0.5),1px_1px_rgba(124,106,84,0.5)]
-                                        transition-all duration-200 ease-in-out
-                                        select-none
-                                        inline-block
-                                        ">
+                <a href="/auth/register" class="
+                                            border border-white/25 rounded-lg px-3 py-2
+                                            bg-[#060b16] text-white font-semibold
+                                            shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
+                                            hover:border-white/10 hover:shadow-sm
+                                            active:translate-y-[2px] active:shadow-[1px_1px_rgba(124,106,84,0.5),1px_1px_rgba(124,106,84,0.5)]
+                                            transition-all duration-200 ease-in-out
+                                            select-none
+                                            inline-block
+                                            ">
                     Sign Up
                 </a>
             </div>

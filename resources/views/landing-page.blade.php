@@ -30,7 +30,7 @@
 
         <div class="mt-auto">
           <div class="flex space-x-3 mb-6">
-            <x-buttons href="/login" class="flex items-center card-highlight">
+            <x-buttons href="/auth/login" class="flex items-center card-highlight">
               Start Writing Today
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 class="w-4 h-4 ml-2">
@@ -207,7 +207,7 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
       <!-- CTA & Social -->
       <div class="space-y-4">
         <h3 class="font-medium text-[#7c6a54]">Start Journaling</h3>
-        <a href="/register" class="flex items-center space-x-2 hover:text-[#c6b78e] transition">
+        <a href="/auth/register" class="flex items-center space-x-2 hover:text-[#c6b78e] transition">
           <span>Get Started</span>
           <x-icons type="login" />
         </a>

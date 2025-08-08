@@ -48,12 +48,12 @@ Route::get('/', function () {
 // Route::get('/dashboard', function () {
 //     return view('entries.index');
 // });
-Route::get('/register', [RegisteredUserController::class, 'create']);
-Route::post('/register', [RegisteredUserController::class, 'store']);
+Route::get('/auth/register', [RegisteredUserController::class, 'create']);
+Route::post('/auth/register', [RegisteredUserController::class, 'store']);
 
-Route::get('/login', [SessionController::class, 'create'])->name('login');
-Route::post('/login', [SessionController::class, 'store']);
-Route::post('/logout', [SessionController::class, 'destroy']);
+Route::get('/auth/login', [SessionController::class, 'create'])->name('login');
+Route::post('/auth/login', [SessionController::class, 'store']);
+Route::post('/auth/logout', [SessionController::class, 'destroy']);
 
 Route::get('/search', [App\Http\Controllers\SearchController::class, 'search'])->name('search');
 
