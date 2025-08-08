@@ -60,16 +60,17 @@ class DashboardStats extends Component
 
         $this->totalEntries = Entry::where('user_id', auth()->id())->count();
 
+        $thisWeekStart = now()->startOfWeek();
+        $thisWeekEnd = now()->endOfWeek();
+        $thisWeekEntries = Entry::whereBetween('created_at', [$thisWeekStart, $thisWeekEnd])->count();
 
         $lastWeekStart = now()->subWeek()->startOfWeek();
         $lastWeekEnd = now()->subWeek()->endOfWeek();
         $lastWeekEntries = Entry::whereBetween('created_at', [$lastWeekStart, $lastWeekEnd])->count();
 
-        $twoWeeksAgoStart = now()->subWeeks(2)->startOfWeek();
-        $twoWeeksAgoEnd = now()->subWeeks(2)->endOfWeek();
-        $twoWeeksAgoEntries = Entry::whereBetween('created_at', [$twoWeeksAgoStart, $twoWeeksAgoEnd])->count();
+        $this->entriesFromLastWeek = $thisWeekEntries - $lastWeekEntries;
+        $this->totalEntries = $thisWeekEntries; // so your {{ $totalEntries }} is this week's total
 
-        $this->entriesFromLastWeek = $lastWeekEntries - $twoWeeksAgoEntries;
         //Tag Section
         $this->mostUsedTag = Tag::select('tags.*')
             ->join('entry_tag', 'tags.id', '=', 'entry_tag.tag_id')

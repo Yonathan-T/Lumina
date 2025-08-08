@@ -116,10 +116,11 @@
                     @if($entriesFromLastWeek > 0)
                         +{{ $entriesFromLastWeek }} from last week
                     @elseif($entriesFromLastWeek < 0)
-                        {{ $entriesFromLastWeek }} from last week
+                        {{ abs($entriesFromLastWeek) }} less than last week
                     @else
                         Same as last week
                     @endif
+
                 </p>
             </div>
         </div>
