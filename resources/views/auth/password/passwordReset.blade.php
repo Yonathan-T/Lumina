@@ -1,45 +1,16 @@
-<x-layout>
-    <x-form-parent>
-        <h2 class="text-2xl font-bold text-white">Set New Password</h2>
-        <p class="text-sm text-gray-500">Please enter and confirm your new password.</p>
-
-        @if (session('status'))
-            <div class="mb-4 font-medium text-sm text-green-600">
-                {{ session('status') }}
-            </div>
-        @endif
-
-        <form method="POST" action="{{ route('password.update') }}">
-            @csrf
-
-            <input type="hidden" name="token" value="{{ $token }}">
-
-            <div class="flex flex-col gap-6">
-                <x-form-wrapper>
-                    <x-form-label for="email">Email</x-form-label>
-                    <x-form-input id="email" name="email" type="email" value="{{ old('email', $email) }}" required
-                        autofocus />
-                    <x-form-error name="email" />
-                </x-form-wrapper>
-
-                <x-form-wrapper>
-                    <x-form-label for="password">New Password</x-form-label>
-                    <x-form-input id="password" name="password" type="password" required />
-                    <x-form-error name="password" />
-                </x-form-wrapper>
-
-                <x-form-wrapper>
-                    <x-form-label for="password_confirmation">Confirm New Password</x-form-label>
-                    <x-form-input id="password_confirmation" name="password_confirmation" type="password" required />
-                    <x-form-error name="password_confirmation" />
-                </x-form-wrapper>
-            </div>
-
-            <div class="mt-10 flex justify-end gap-x-4 items-center">
-                <a href="{{ route('login') }}" class="text-sm font-semibold text-gray-300">Cancel</a>
-                <x-form-button>Reset Password</x-form-button>
-            </div>
-
-        </form>
-    </x-form-parent>
-</x-layout>
+@if (session('status'))
+    <div class="mb-4 font-medium text-sm text-green-600">
+        {{ session('status') }}
+    </div>
+@endif
+<x-auth-layout title="Reset Password" subtitle="Enter your new password below."
+    footer='Remembered your password? <a href="/auth/login" class="text-white underline hover:text-[#c6b78e]">Sign in</a>'>
+    <x-auth-form action="/auth/reset-password" button="Reset Password">
+        {{-- Usually Laravel’s password reset form needs a hidden token --}}
+        <input type="hidden" name="token" value="{{ request()->route('token') }}">
+        <x-auth-field name="email" type="email" label="Email" value="{{ old('email') }}" />
+        <x-auth-field name="password" type="password" label="New Password" placeholder="********" />
+        <x-auth-field name="password_confirmation" type="password" label="Confirm New Password"
+            placeholder="********" />
+    </x-auth-form>
+</x-auth-layout>

@@ -25,11 +25,12 @@ class RegisteredUserController extends Controller
                 "email.unique" => "There is a user with that email address already.",
             ]
         );
-        User::create([
+        $user = User::create([
             "name" => request("name"),
             "email" => request("email"),
             "password" => request("password"),
         ]);
+        auth()->login($user);
         return redirect('/dashboard');
 
     }
