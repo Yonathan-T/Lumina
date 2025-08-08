@@ -92,7 +92,7 @@
             </div>
         </button>
         <div id="profileMenu"
-            class="hidden absolute left-0 right-0 bottom-16 mx-4 w-auto bg-white/10 border border-white/10 rounded-lg shadow-lg z-50 backdrop-blur-md">
+            class="hidden sidebar-gradient absolute left-0 right-0 bottom-16 mx-4 w-auto bg-white/10 border border-white/10 rounded-lg shadow-lg z-50 backdrop-blur-md">
             <div class="flex items-center gap-3 p-3 border-b border-white/10">
                 @if($profilePhotoUrl)
                     <img src="{{ $profilePhotoUrl }}" alt="{{ $userName }}"
@@ -127,7 +127,7 @@
                     </div>
                 </li>
                 <li>
-                    <a href="{{ route('settings.index') }}"
+                    <a href="{{ route('settings.index', ['tab' => 'account']) }}"
                         class="flex items-center gap-2 px-4 py-2 hover:bg-blue-300/15 text-white transition-colors rounded-md">
                         <x-icon name="user-round" class="w-4 h-4" />
                         Account

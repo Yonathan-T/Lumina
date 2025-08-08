@@ -38,7 +38,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/insights', [InsightController::class, 'index'])->name('insights.index');
 
     // Settings
-    Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+    //Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+    Route::get('/settings/{tab?}', [SettingController::class, 'index'])->name('settings.index');
     //Route::get('/settings', SettingsPanel::class)->name('settings.index');
 });
 

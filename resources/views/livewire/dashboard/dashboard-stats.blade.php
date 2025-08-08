@@ -52,10 +52,10 @@
                 </div>
 
                 <!-- Notifications List -->
-                <div class="max-h-60 overflow-y-auto">
+                <div class="bg-gradient-dark max-h-60 overflow-y-auto">
                     @forelse($notifications as $notification)
                         <div
-                            class="px-4 py-3 hover:bg-gray-50/80 dark:hover:bg-gray-800/50 cursor-pointer transition-colors border-b border-gray-100/30 dark:border-gray-800/30 last:border-b-0 @if(!$notification->read_at) bg-blue-50/80 dark:bg-blue-900/20 @endif">
+                            class="px-4 py-3 hover:bg-blue-300/15 cursor-pointer transition-colors border-b border-gray-100/30 dark:border-gray-800/30 last:border-b-0 @if(!$notification->read_at) bg-blue-50/80 dark:bg-blue-900/20 @endif">
                             <div class="flex justify-between items-start gap-3">
                                 <a href="{{ $notification->data['url'] ?? '#' }}"
                                     wire:click="markAsRead('{{ $notification->id }}')" class="flex-1 min-w-0">

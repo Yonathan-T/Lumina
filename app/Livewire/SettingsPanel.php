@@ -8,6 +8,8 @@ class SettingsPanel extends Component
 {
     public $activeTab = 'settings';
 
+
+
     public function setTab($tab)
     {
         $this->activeTab = $tab;
