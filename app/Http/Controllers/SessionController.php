@@ -19,14 +19,16 @@ class SessionController extends Controller
             "email" => ["required", "email"],
             "password" => ["required"],
         ]);
-        if (!Auth::attempt($attributes)) {
+
+        $remember = request()->filled('remember');
+
+        if (!Auth::attempt($attributes, $remember)) {
             throw ValidationException::withMessages(
                 ["email" => "Sorry, those credentials do not match"]
             );
         }
         request()->session()->regenerate();
         return redirect('/dashboard');
-        //redirect to a user dashboard
     }
     public function destroy()
     {

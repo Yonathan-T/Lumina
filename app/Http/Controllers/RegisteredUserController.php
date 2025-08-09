@@ -34,8 +34,5 @@ class RegisteredUserController extends Controller
         return redirect('/dashboard');
 
     }
-    public function show(User $user)
-    {
 
-    }
 }

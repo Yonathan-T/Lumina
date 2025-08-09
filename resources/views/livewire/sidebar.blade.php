@@ -88,7 +88,7 @@
 
             <div class="flex flex-col">
                 <span class="text-sm font-medium">{{ $userName }}</span>
-                <span class="text-xs text-muted-foreground">Free Plan</span>
+                <span class="text-xs text-muted">Free Plan</span>
             </div>
         </button>
         <div id="profileMenu"
@@ -110,13 +110,7 @@
                 </div>
             </div>
             <ul class="py-2">
-                <li>
-                    <a href="#"
-                        class="flex items-center gap-2 px-4 py-2 hover:bg-blue-300/15 text-white transition-colors rounded-md">
-                        <x-icon name="sparkles" class="w-4 h-4" />
-                        Upgrade plan
-                    </a>
-                </li>
+
                 <li class="flex items-center px-4 py-2 hover:bg-blue-300/15 text-white transition-colors rounded-md">
                     <div class="flex items-center gap-2">
                         <x-icon name="moon" class="w-4 h-4" />
@@ -125,6 +119,13 @@
                     <div class="ml-auto">
                         <x-toggle :model="'darkMode'" />
                     </div>
+                </li>
+                <li>
+                    <a href="#"
+                        class="flex items-center gap-2 px-4 py-2 hover:bg-blue-300/15 text-white transition-colors rounded-md">
+                        <x-icon name="sparkles" class="w-4 h-4" />
+                        Upgrade plan
+                    </a>
                 </li>
                 <li>
                     <a href="{{ route('settings.index', ['tab' => 'account']) }}"

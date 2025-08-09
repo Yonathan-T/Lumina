@@ -58,7 +58,7 @@ class PasswordResetController extends Controller
         );
 
         if ($response == Password::PASSWORD_RESET) {
-            return redirect('/dashboard')->with('status', __($response));
+            return redirect('/auth/login')->with('status', __($response));
         }
 
         return back()->withInput($request->only('email'))
