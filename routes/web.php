@@ -8,6 +8,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\RegisteredUserController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\SocialLoginController;
 use App\Livewire\SettingsPanel;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\PasswordResetController;
@@ -54,6 +55,10 @@ Route::post('/auth/register', [RegisteredUserController::class, 'store']);
 Route::get('/auth/login', [SessionController::class, 'create'])->name('login');
 Route::post('/auth/login', [SessionController::class, 'store']);
 Route::post('/auth/logout', [SessionController::class, 'destroy'])->name('logout');
+
+
+Route::get('/auth/{provider}/redirect', [SocialLoginController::class, 'redirectToProvider']);
+Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'handleProviderCallback']);
 
 Route::get('/search', [App\Http\Controllers\SearchController::class, 'search'])->name('search');
 

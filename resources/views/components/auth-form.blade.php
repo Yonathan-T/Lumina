@@ -10,10 +10,12 @@
     @isset($social)
         <div class="text-center">
             <p class="text-sm text-gray-400">Or continue with</p>
-            <button type="button"
-                class="mt-2 w-full py-2 px-4 bg-white/5 border border-gray-600 rounded-md text-white hover:bg-gray-600 transition flex items-center justify-center">
-                <span class="text-xl">G</span>
-            </button>
+            <a href="{{ url('auth/google/redirect') }}"
+                class="cursor-pointer mt-2 w-full py-2 px-4 bg-white/5 border border-gray-600 rounded-md text-white hover:bg-gray-600 transition flex items-center justify-center">
+                <span class="text-xl">
+                    <x-icon name="google1" class="w-8 h-8" />
+                </span>
+            </a>
         </div>
     @endisset
 </form>
