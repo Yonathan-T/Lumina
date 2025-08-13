@@ -1,6 +1,6 @@
 @props(['model'])
 <label class="relative inline-flex items-center cursor-pointer">
-    <input type="checkbox" wire:model="{{ $model }}" class="sr-only peer" />
+    <input type="checkbox" wire:model.live="{{ $model }}" class="sr-only peer" />
     <div class="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:bg-white transition-colors duration-300">
     </div>
     <div

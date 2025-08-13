@@ -30,7 +30,8 @@ class InitializeUserSettings extends Command
         $defaultSettings = [
             'daily_reminder' => false,
             'streak_alerts' => false,
-            'blog_updates' => false
+            'blog_updates' => false,
+            'dark_mode' => false
         ];
 
         $updated = 0;
@@ -42,7 +43,8 @@ class InitializeUserSettings extends Command
             $normalizedSettings = [
                 'daily_reminder' => (bool) ($currentSettings['daily_reminder'] ?? false),
                 'streak_alerts' => (bool) ($currentSettings['streak_alerts'] ?? false),
-                'blog_updates' => (bool) ($currentSettings['blog_updates'] ?? false)
+                'blog_updates' => (bool) ($currentSettings['blog_updates'] ?? false),
+                'dark_mode' => (bool) ($currentSettings['dark_mode'] ?? false),
             ];
 
             $user->update(['settings' => $normalizedSettings]);
