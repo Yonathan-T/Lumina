@@ -104,10 +104,11 @@
 
 
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mt-5">
-        <div class="rounded-lg border border-white/15 text-card-foreground shadow-sm card-highlight bg-gradient-dark ">
+        <div
+            class="rounded-lg text-card-foreground shadow-2xs card-highlight border bg-gradient-to-br from-blue-500/5 to-blue-600/5 border-blue-500/20">
             <div class="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
                 <h3 class="tracking-tight text-sm font-medium">Total Memos</h3>
-                <x-icon name="book-outline" class="w-4 h-4" />
+                <x-icon name="book-outline" class="w-4 h-4 text-blue-500" />
             </div>
             <div class="p-6 pt-0">
                 <div class="text-2xl font-bold">{{ $totalEntries }}</div>
@@ -124,20 +125,25 @@
                 </p>
             </div>
         </div>
-        <div class="rounded-lg border border-white/15 text-card-foreground shadow-sm card-highlight bg-gradient-dark ">
+        <div
+            class="rounded-lg border border-white/15 text-card-foreground shadow-sm card-highlight bg-gradient-to-br from-green-500/10 to-green-600/10 ">
             <div class="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
                 <h3 class="tracking-tight text-sm font-medium">Most Used Tag</h3>
-                <x-icon name="tag" class="w-4 h-4" />
+                <x-icon name="tag" class="w-4 h-4 text-green-500" />
             </div>
             <div class="p-6 pt-0">
                 <div class="text-2xl font-bold">{{ $mostUsedTag ? " # " . $mostUsedTag->name : 'No tags' }}</div>
                 <p class="text-xs text-muted font-inter">Used in {{ $mostUsedTagCount }} entries</p>
             </div>
         </div>
-        <div class="rounded-lg border border-white/15 text-card-foreground shadow-sm card-highlight bg-gradient-dark ">
+
+
+
+        <div
+            class="rounded-lg border border-white/15 text-card-foreground shadow-sm card-highlight bg-gradient-to-br from-purple-500/10 to-purple-600/10 ">
             <div class="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
                 <h3 class="tracking-tight text-sm font-medium">Longest Entry</h3>
-                <x-iconpark-writingfluently-o class="h-4 w-4" />
+                <x-iconpark-writingfluently-o class="h-4 w-4 text-purple-500" />
             </div>
             <div class="p-6 pt-0">
                 @if(isset($longestEntryCharCount) && isset($longestEntryDate))
@@ -152,10 +158,11 @@
             </div>
 
         </div>
-        <div class="rounded-lg border border-white/15 text-card-foreground shadow-sm card-highlight bg-gradient-dark ">
+        <div
+            class="rounded-lg border border-white/15 text-card-foreground shadow-sm card-highlight bg-gradient-to-br from-yellow-500/10 to-yellow-600/10 ">
             <div class="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
                 <h3 class="tracking-tight text-sm font-medium">Daily Streak</h3>
-                <x-icon name="flash-outline" class="w-4 h-4" />
+                <x-icon name="flash-outline" class="w-4 h-4 text-yellow-500" />
             </div>
             <div class="p-6 pt-0">
                 <div class="text-2xl font-bold">{{ $currentStreak }}</div>
@@ -164,33 +171,150 @@
         </div>
     </div>
     <!-- Quick Start Section goes here baby -->
-    <div class="mt-8">
-        <h2 class="text-xl font-semibold mb-4">Quick Start</h2>
-        <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-            <button wire:click="startGuidedReflection"
-                class="inline-flex items-center border border-white/5 justify-center rounded-md text-sm font-medium transition-colors quick-start-btn hover:quick-start-btn-hover h-auto flex-col gap-2 p-4 disabled:opacity-50">
-                <x-icon name="chatbubbles-outline" class="w-4 h-4" />
-                <span>Start Guided Reflection</span>
-            </button>
-            <button wire:click="summarizePastWeek"
-                class="inline-flex items-center border border-white/5 justify-center rounded-md text-sm font-medium transition-colors quick-start-btn hover:quick-start-btn-hover h-auto flex-col gap-2 p-4 disabled:opacity-50">
-                <x-icon name="wand-sparkles" class="w-4 h-4" />
-                <span>Summarize My Past Week</span>
-            </button>
-            <button wire:click="convertToPoem"
-                class="inline-flex items-center border border-white/5 justify-center rounded-md text-sm font-medium transition-colors quick-start-btn hover:quick-start-btn-hover h-auto flex-col gap-2 p-4 disabled:opacity-50">
-                <x-icon name="newspaper-outline" class="w-4 h-4" />
-                <span>Convert Entry to Poem</span>
-            </button>
-            <button wire:click="generateAudioSummary"
-                class="inline-flex items-center border border-white/5 justify-center rounded-md text-sm font-medium transition-colors quick-start-btn hover:quick-start-btn-hover h-auto flex-col gap-2 p-4 disabled:opacity-50">
-                <x-icon name="file-audio" class="w-4 h-4" />
-                <span>Generate Audio Summary</span>
-            </button>
-            <button wire:click="reviewPastMemos"
-                class="inline-flex items-center border border-white/5 justify-center rounded-md text-sm font-medium transition-colors quick-start-btn hover:quick-start-btn-hover h-auto flex-col gap-2 p-4 disabled:opacity-50">
-                <x-icon name="sparkles" class="w-4 h-4" />
-                <span>Review Past Memos</span>
+
+    <!-- AI-Powered Quick Actions -->
+    @php
+        $isProcessing = [
+            'guided-reflection',
+            'weekly-summary',
+            'audio-summary',
+            'review-memos'
+        ];  
+     @endphp
+    <div class="mt-12 space-y-4">
+        <div class="text-center space-y-2">
+            <h2 class="text-2xl font-semibold flex items-center justify-center gap-2">
+                <x-icon name="sparkles" class="h-6 w-6 text-blue-500" />
+                AI-Powered Insights
+            </h2>
+            <p class="text-muted">Let AI help you explore your thoughts and patterns</p>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1">
+            <!-- Guided Reflection Card -->
+            <div class="card-highlight border cursor-pointer transition-all duration-200 hover:scale-[1.02] bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/20 rounded-lg"
+                wire:click="startGuidedReflection">
+                <div class="p-4 pb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 rounded-lg bg-gradient-dark">
+                            <x-icon name="chatbubbles-outline" class="h-5 w-5" />
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold">Start Guided Reflection</h3>
+                            <p class="text-sm text-muted-foreground">AI-guided self-reflection session</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-4 pb-4 pt-0">
+                    @if($isProcessing === 'guided-reflection')
+                        <div class="flex items-center gap-2 text-sm text-blue-500">
+                            <div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin">
+                            </div>
+                            Processing...
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Weekly Summary Card -->
+            <div class="card-highlight border cursor-pointer transition-all duration-200 hover:scale-[1.02] bg-green-500/10 hover:bg-green-500/20 border-green-500/20 rounded-lg"
+                wire:click="summarizePastWeek">
+                <div class="p-4 pb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 rounded-lg bg-gradient-dark">
+                            <x-icon name="wand-sparkles" class="h-5 w-5" />
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold">Summarize Past Week</h3>
+                            <p class="text-sm text-muted-foreground">Get insights from your recent entries</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-4 pb-4 pt-0">
+                    @if($isProcessing === 'weekly-summary')
+                        <div class="flex items-center gap-2 text-sm text-green-500">
+                            <div class="w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin">
+                            </div>
+                            Processing...
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Audio Summary Card -->
+            <div class="card-highlight border cursor-pointer transition-all duration-200 hover:scale-[1.02] bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/20 rounded-lg"
+                wire:click="generateAudioSummary">
+                <div class="p-4 pb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 rounded-lg bg-gradient-dark">
+                            <x-icon name="file-audio" class="h-5 w-5" />
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold">Generate Audio Summary</h3>
+                            <p class="text-sm text-muted-foreground">Listen to your journal insights</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-4 pb-4 pt-0">
+                    @if($isProcessing === 'audio-summary')
+                        <div class="flex items-center gap-2 text-sm text-purple-500">
+                            <div class="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin">
+                            </div>
+                            Processing...
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Review Memos Card -->
+            <div class="card-highlight border cursor-pointer transition-all duration-200 hover:scale-[1.02] bg-yellow-500/10 hover:bg-yellow-500/20 border-yellow-500/20 rounded-lg"
+                wire:click="reviewPastMemos">
+                <div class="p-4 pb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 rounded-lg bg-gradient-dark">
+                            <x-icon name="scroll-text" class="h-5 w-5" />
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold">Review Past Memos</h3>
+                            <p class="text-sm text-muted-foreground">Analyze patterns in your writing</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-4 pb-4 pt-0">
+                    @if($isProcessing === 'review-memos')
+                        <div class="flex items-center gap-2 text-sm text-yellow-500">
+                            <div class="w-4 h-4 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin">
+                            </div>
+                            Processing...
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Therapy Chat CTA -->
+    <!-- Therapy Chat CTA with Livewire -->
+    <div class="mt-12 card-highlight border border-blue-500/20 bg-blue-500/15 light-gradient-card rounded-lg">
+        <div class="p-6">
+            <div class="flex items-center gap-3">
+                <div class="p-3 rounded-full bg-blue-500/20">
+                    <x-icon name="brain" class="h-6 w-6 text-blue-500" />
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold">Ready for a deeper conversation?</h3>
+                    <p class="text-sm text-muted">
+                        I've analyzed your recent entries and noticed some interesting patterns. Let's explore them
+                        together.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="px-6 pb-6">
+            <button wire:click="startTherapySession"
+                class="cursor-pointer inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white h-10 px-4 py-2">
+                <x-icon name="chatbubbles-outline" class="mr-2 h-4 w-4" />
+                Start Therapy Session
             </button>
         </div>
     </div>

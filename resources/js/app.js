@@ -212,6 +212,7 @@ document.addEventListener('livewire:init', () => {
     Livewire.hook('message.processed', (message, component) => {
         // This hook runs after every Livewire AJAX request is processed
         console.log('Livewire message processed. Component:', component.name, 'Message:', message);
+        console.log('Livewire message processed. Component Data:', component.name, 'Message:', message.response.serverMemo.data);
         // You can also look into message.response.serverMemo.data to see component data
     });
 

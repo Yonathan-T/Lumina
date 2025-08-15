@@ -15,7 +15,6 @@ class Appearance extends Component
         $user = auth()->user();
         $settings = $user->settings ?? [];
 
-        // Initialize default settings if they don't exist
         if (empty($settings)) {
             $settings = [
                 'dark_mode' => false,
