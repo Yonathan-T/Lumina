@@ -295,7 +295,7 @@
 
     <!-- Therapy Chat CTA -->
     <!-- Therapy Chat CTA with Livewire -->
-    <div class="mt-12 card-highlight border border-blue-500/20 bg-blue-500/15 light-gradient-card rounded-lg">
+    <div class="mt-12 border border-blue-500/20 bg-blue-500/15 light-gradient-card rounded-lg">
         <div class="p-6">
             <div class="flex items-center gap-3">
                 <div class="p-3 rounded-full bg-blue-500/20">

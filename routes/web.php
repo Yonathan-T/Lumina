@@ -7,6 +7,7 @@ use App\Http\Controllers\InsightController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\RegisteredUserController;
 use App\Http\Controllers\SessionController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SocialLoginController;
 use App\Livewire\SettingsPanel;
@@ -70,7 +71,7 @@ Route::get('password/reset/{token}', [PasswordResetController::class, 'showReset
 
 Route::post('password/reset', [PasswordResetController::class, 'reset'])->name('password.update');
 
-
+Route::get('/dashboard/chat', [ChatController::class, 'index'])->name('chat.index');
 
 // //entries need middleware ofc.
 // Route::get('/entries',[EntryController::class ,'create']);
