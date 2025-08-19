@@ -39,7 +39,7 @@
             </a>
 
             <a href="{{ route('chat.index') }}" wire:navigate
-                class="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('insights.index') ? 'bg-blue-300/15 text-white' : '' }}">
+                class="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('chat.index') ? 'bg-blue-300/15 text-white' : '' }}">
 
                 <x-icon name="chatbubbles-outline" class="w-4 h-4" />
                 Chat
