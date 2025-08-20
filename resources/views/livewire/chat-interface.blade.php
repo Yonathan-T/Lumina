@@ -55,11 +55,9 @@
                 @endforelse
             </div>
 
-            <!-- Navigation Items -->
 
         </div>
 
-        <!-- User Profile Section -->
 
     </div>
 

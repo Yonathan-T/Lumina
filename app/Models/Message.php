@@ -21,6 +21,12 @@ class Message extends Model
         'metadata' => 'array',
     ];
 
+    // Add accessor for compatibility with ChatInterface
+    public function getIsAiAttribute()
+    {
+        return $this->is_ai_response;
+    }
+
     public function conversation()
     {
         return $this->belongsTo(Conversation::class);

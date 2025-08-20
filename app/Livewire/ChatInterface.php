@@ -18,39 +18,27 @@ class ChatInterface extends Component
     public function mount()
     {
         $this->loadSessions();
-        if (empty($this->sessions)) {
-            $this->createNewSession();
-        } else {
+        if (!empty($this->sessions)) {
             $this->selectSession($this->sessions[0]['id']);
         }
+        // Don't auto-create sessions - let user create when they want to chat
     }
 
     public function loadSessions()
     {
-        // Hardcoded sessions for now - replace with database later
-        $this->sessions = [
-            [
-                'id' => 'session-1',
-                'title' => 'Guided Reflection Session',
-                'lastActivity' => '2 hours ago',
-                'messageCount' => 8,
-                'type' => 'guided-reflection'
-            ],
-            [
-                'id' => 'session-2',
-                'title' => 'Weekly Summary Discussion',
-                'lastActivity' => '1 day ago',
-                'messageCount' => 12,
-                'type' => 'weekly-summary'
-            ],
-            [
-                'id' => 'session-3',
-                'title' => 'Stress Management Chat',
-                'lastActivity' => '3 days ago',
-                'messageCount' => 15,
-                'type' => 'general'
-            ]
-        ];
+        $this->sessions = Conversation::where('user_id', auth()->id())
+            ->orderBy('last_activity', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($conversation) {
+                return [
+                    'id' => $conversation->id,
+                    'title' => $conversation->title,
+                    'lastActivity' => $conversation->last_activity ? $conversation->last_activity->diffForHumans() : $conversation->created_at->diffForHumans(),
+                    'messageCount' => $conversation->message_count ?? 0,
+                    'type' => $conversation->type ?? 'general',
+                ];
+            })->toArray();
     }
 
     public function selectSession($sessionId)
@@ -61,60 +49,38 @@ class ChatInterface extends Component
 
     public function loadMessages($sessionId)
     {
-        // Hardcoded messages for now - replace with database later
-        $messageData = [
-            'session-1' => [
-                [
-                    'id' => 1,
-                    'content' => "I've been feeling overwhelmed with work lately and struggling to find balance.",
-                    'isAi' => false,
-                    'timestamp' => '2:30 PM'
-                ],
-                [
-                    'id' => 2,
-                    'content' => "I understand that feeling overwhelmed at work can be really challenging. Based on your recent journal entries, I noticed you mentioned similar feelings about work-life balance. Can you tell me more about what specifically is making you feel overwhelmed?",
-                    'isAi' => true,
-                    'timestamp' => '2:31 PM'
-                ]
-            ],
-            'session-2' => [
-                [
-                    'id' => 1,
-                    'content' => "Can you help me understand my mood patterns from this week?",
-                    'isAi' => false,
-                    'timestamp' => '10:15 AM'
-                ],
-                [
-                    'id' => 2,
-                    'content' => "Of course! Looking at your journal entries from this week, I can see some interesting patterns. You tend to feel more positive in the mornings, especially on days when you mention exercise or meditation. Would you like me to dive deeper into any specific patterns?",
-                    'isAi' => true,
-                    'timestamp' => '10:16 AM'
-                ]
-            ],
-            'session-3' => [
-                [
-                    'id' => 1,
-                    'content' => "I need some strategies for managing stress better.",
-                    'isAi' => false,
-                    'timestamp' => '4:45 PM'
-                ]
-            ]
-        ];
-
-        $this->messages = $messageData[$sessionId] ?? [];
+        $this->messages = Message::where('conversation_id', $sessionId)
+            ->orderBy('created_at', 'asc')
+            ->get()
+            ->map(function ($message) {
+                return [
+                    'id' => $message->id,
+                    'content' => $message->content,
+                    'isAi' => $message->is_ai,
+                    'timestamp' => $message->created_at->format('g:i A'),
+                ];
+            })->toArray();
     }
 
     public function createNewSession()
     {
-        $newSession = [
-            'id' => 'session-' . \Str::random(8),
+        $conversation = Conversation::create([
+            'user_id' => auth()->id(),
             'title' => 'New Conversation',
-            'lastActivity' => 'Just now',
-            'messageCount' => 0,
-            'type' => 'general'
+            'type' => 'general',
+            'message_count' => 0,
+            'last_activity' => now(),
+        ]);
+
+        $newSession = [
+            'id' => $conversation->id,
+            'title' => $conversation->title,
+            'lastActivity' => $conversation->last_activity ? $conversation->last_activity->diffForHumans() : $conversation->created_at->diffForHumans(),
+            'messageCount' => $conversation->message_count ?? 0,
+            'type' => $conversation->type ?? 'general',
         ];
 
-        array_unshift($this->sessions, $newSession);
+        $this->sessions = array_merge([$newSession], $this->sessions);
         $this->activeSession = $newSession;
         $this->messages = [];
     }
@@ -125,44 +91,63 @@ class ChatInterface extends Component
             return;
         }
 
+        // Create a new session if none exists
+        if (!$this->activeSession) {
+            $this->createNewSession();
+        }
+
         $this->isLoading = true;
 
-        // Add user message
-        $userMessage = [
-            'id' => count($this->messages) + 1,
+        // Save user message
+        $userMessage = Message::create([
+            'conversation_id' => $this->activeSession['id'],
             'content' => $this->newMessage,
-            'isAi' => false,
-            'timestamp' => now()->format('g:i A')
-        ];
-
-        $this->messages[] = $userMessage;
-
-        // Generate AI response based on message content
-        $aiResponse = $this->generateAiResponse($this->newMessage);
-
-        // Add AI message after a short delay
-        $this->dispatch('add-ai-message', [
-            'id' => count($this->messages) + 1,
-            'content' => $aiResponse,
-            'isAi' => true,
-            'timestamp' => now()->addSeconds(2)->format('g:i A')
+            'is_ai_response' => false,
         ]);
 
-        // Update session title if it's a new conversation
-        if ($this->activeSession['title'] === 'New Conversation') {
-            $this->activeSession['title'] = $this->generateSessionTitle($this->newMessage);
-            // Update in sessions array
+        $this->messages[] = [
+            'id' => $userMessage->id,
+            'content' => $userMessage->content,
+            'isAi' => $userMessage->is_ai,
+            'timestamp' => $userMessage->created_at->format('g:i A'),
+        ];
+
+        // Generate AI response (use AiChatService)
+        $aiResponse = app(AiChatService::class)->generateResponse($this->newMessage, $this->activeSession['id']);
+
+        // Save AI message
+        $aiMessage = Message::create([
+            'conversation_id' => $this->activeSession['id'],
+            'content' => $aiResponse,
+            'is_ai_response' => true,
+        ]);
+
+        $this->dispatch('add-ai-message', [
+            'id' => $aiMessage->id,
+            'content' => $aiMessage->content,
+            'isAi' => $aiMessage->is_ai,
+            'timestamp' => $aiMessage->created_at->format('g:i A'),
+        ]);
+
+        // Update conversation
+        $conversation = Conversation::find($this->activeSession['id']);
+        if ($conversation->title === 'New Conversation') {
+            $conversation->title = $this->generateSessionTitle($this->newMessage);
+            $conversation->save();
+            $this->activeSession['title'] = $conversation->title;
             foreach ($this->sessions as &$session) {
                 if ($session['id'] === $this->activeSession['id']) {
-                    $session['title'] = $this->activeSession['title'];
+                    $session['title'] = $conversation->title;
                     break;
                 }
             }
         }
+        $conversation->message_count = count($this->messages) + 1; // +1 for AI message
+        $conversation->last_activity = now();
+        $conversation->save();
 
         $this->newMessage = '';
         $this->isLoading = false;
-
         $this->dispatch('scroll-to-bottom');
     }
 
@@ -208,13 +193,14 @@ class ChatInterface extends Component
 
     public function deleteSession($sessionId)
     {
+        Conversation::destroy($sessionId);
         $this->sessions = array_filter($this->sessions, fn($session) => $session['id'] !== $sessionId);
-
         if ($this->activeSession && $this->activeSession['id'] === $sessionId) {
             if (!empty($this->sessions)) {
                 $this->selectSession($this->sessions[0]['id']);
             } else {
-                $this->createNewSession();
+                $this->activeSession = null;
+                $this->messages = [];
             }
         }
     }

@@ -11,14 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::dropIfExists('conversations');
         Schema::create('conversations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('title')->nullable();
-            $table->timestamp('last_message_at')->nullable();
+            $table->string('title');
+            $table->string('type')->default('general');
+            $table->integer('message_count')->default(0);
+            $table->timestamp('last_activity')->useCurrent();
             $table->timestamps();
-            
-            $table->index(['user_id', 'last_message_at']);
         });
     }
 

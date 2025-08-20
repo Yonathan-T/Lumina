@@ -12,11 +12,13 @@ class Conversation extends Model
     protected $fillable = [
         'user_id',
         'title',
-        'last_message_at',
+        'type',
+        'message_count',
+        'last_activity',
     ];
 
     protected $casts = [
-        'last_message_at' => 'datetime',
+        'last_activity' => 'datetime',
     ];
 
     public function user()
