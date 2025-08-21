@@ -50,4 +50,13 @@ return [
         'api_key' => env('OPENAI_API_KEY'),
     ],
 
+    'huggingface' => [
+        'api_key' => env('HUGGINGFACE_API_KEY'),
+        'model' => env('HUGGINGFACE_MODEL', 'mistralai/Mixtral-8x7B-Instruct-v0.1'),
+    ],
+
+    'ai' => [
+        'provider' => env('AI_PROVIDER', 'huggingface'),
+    ],
+
 ];

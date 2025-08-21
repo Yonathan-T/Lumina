@@ -9,7 +9,7 @@
                 New Chat
             </button>
             <div>
-                <!-- Theme toggle -->
+                <!-- Hide the sidebar -->
                 <button class="ml-auto p-2 text-gray-400 hover:text-white transition-colors">
                 <x-icon name="panel-right-close" class="w-5 h-5" />
                 </button>
@@ -79,24 +79,21 @@
 
             <!-- Messages Area -->
             <div class="flex-1 overflow-y-auto p-6 space-y-6" id="messages-container">
-                @forelse($messages as $message)
+               @forelse($messages as $message)
                     <div class="flex items-start gap-4 {{ $message['isAi'] ? '' : 'flex-row-reverse' }}">
                         @if($message['isAi'])
-                            <!-- AI Avatar -->
                             <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                                <x-icon name="flash-outline" class=" w-4 h-4" />
+                                <x-icon name="flash-outline" class="w-4 h-4" />
                             </div>
                         @else
-                            <!-- User Avatar -->
                             <div class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
                                 <span class="text-sm font-medium text-white">{{ substr(auth()->user()->name ?? 'U', 0, 1) }}</span>
                             </div>
                         @endif
 
-                        <div class="flex-1 max-w-2xl">
-                            <div
-                                class="rounded-2xl px-4 py-3 {{ $message['isAi'] ? 'bg-gray-800 text-gray-100' : 'bg-blue-600 text-white' }}">
-                                <p class="text-sm leading-relaxed whitespace-pre-wrap">{{ $message['content'] }}</p>
+                        <div class="max-w-[300px] md:max-w-[400px] lg:max-w-[500px]">
+                            <div class="rounded-2xl px-4 py-3 {{ $message['isAi'] ? 'bg-gray-800 text-gray-100' : 'bg-blue-600 text-white' }}">
+                                <p class="text-sm leading-relaxed whitespace-pre-wrap break-words">{{ $message['content'] }}</p>
                             </div>
                             <div class="flex items-center gap-2 mt-2 {{ $message['isAi'] ? '' : 'justify-end' }}">
                                 <p class="text-xs text-gray-500">{{ $message['timestamp'] }}</p>

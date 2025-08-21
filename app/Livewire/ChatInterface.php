@@ -21,7 +21,6 @@ class ChatInterface extends Component
         if (!empty($this->sessions)) {
             $this->selectSession($this->sessions[0]['id']);
         }
-        // Don't auto-create sessions - let user create when they want to chat
     }
 
     public function loadSessions()
@@ -91,14 +90,12 @@ class ChatInterface extends Component
             return;
         }
 
-        // Create a new session if none exists
         if (!$this->activeSession) {
             $this->createNewSession();
         }
 
         $this->isLoading = true;
 
-        // Save user message
         $userMessage = Message::create([
             'conversation_id' => $this->activeSession['id'],
             'content' => $this->newMessage,
@@ -112,10 +109,9 @@ class ChatInterface extends Component
             'timestamp' => $userMessage->created_at->format('g:i A'),
         ];
 
-        // Generate AI response (use AiChatService)
+        // AI response 
         $aiResponse = app(AiChatService::class)->generateResponse($this->newMessage, $this->activeSession['id']);
 
-        // Save AI message
         $aiMessage = Message::create([
             'conversation_id' => $this->activeSession['id'],
             'content' => $aiResponse,
@@ -129,7 +125,6 @@ class ChatInterface extends Component
             'timestamp' => $aiMessage->created_at->format('g:i A'),
         ]);
 
-        // Update conversation
         $conversation = Conversation::find($this->activeSession['id']);
         if ($conversation->title === 'New Conversation') {
             $conversation->title = $this->generateSessionTitle($this->newMessage);
@@ -142,7 +137,7 @@ class ChatInterface extends Component
                 }
             }
         }
-        $conversation->message_count = count($this->messages) + 1; // +1 for AI message
+        $conversation->message_count = count($this->messages) + 1;
         $conversation->last_activity = now();
         $conversation->save();
 
