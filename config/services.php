@@ -54,9 +54,13 @@ return [
         'api_key' => env('HUGGINGFACE_API_KEY'),
         'model' => env('HUGGINGFACE_MODEL', 'mistralai/Mixtral-8x7B-Instruct-v0.1'),
     ],
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+    ],
 
     'ai' => [
-        'provider' => env('AI_PROVIDER', 'huggingface'),
+        'provider' => env('AI_PROVIDER', 'gemini'),
     ],
+
 
 ];

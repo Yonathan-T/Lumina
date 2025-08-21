@@ -11,7 +11,7 @@
             <div>
                 <!-- Hide the sidebar -->
                 <button class="ml-auto p-2 text-gray-400 hover:text-white transition-colors">
-                <x-icon name="panel-right-close" class="w-5 h-5" />
+                <x-icon name="panel-right-open" class="w-5 h-5" />
                 </button>
             </div>
         </div>

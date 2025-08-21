@@ -12,6 +12,7 @@ class AiChatService
     protected $provider;
     protected $openaiApiKey;
     protected $huggingfaceApiKey;
+    protected $geminiApiKey;
     protected $huggingfaceModel;
 
     public function __construct()
@@ -20,6 +21,7 @@ class AiChatService
         $this->openaiApiKey = config('services.openai.api_key');
         $this->huggingfaceApiKey = config('services.huggingface.api_key');
         $this->huggingfaceModel = config('services.huggingface.model');
+        $this->geminiApiKey = config('services.gemini.api_key');
     }
 
     public function generateResponse(string $message, int $conversationId = null): string
@@ -27,7 +29,7 @@ class AiChatService
         try {
             $conversationHistory = $this->getConversationHistory($conversationId);
 
-            // Check if API keys are configured
+            // First, check for missing API keys and return a fallback response.
             if ($this->provider === 'openai' && !$this->openaiApiKey) {
                 return $this->generateFallbackResponse($message);
             }
@@ -36,18 +38,85 @@ class AiChatService
                 return $this->generateFallbackResponse($message);
             }
 
+            if ($this->provider === 'gemini' && !$this->geminiApiKey) {
+                return $this->generateFallbackResponse($message);
+            }
+
+            // Then, determine which provider to use and call the corresponding method.
             if ($this->provider === 'openai') {
                 return $this->generateOpenAIResponse($message, $conversationHistory);
-            } else {
+            } elseif ($this->provider === 'huggingface') {
                 return $this->generateHuggingFaceResponse($message, $conversationHistory);
+            } elseif ($this->provider === 'gemini') {
+                return $this->generateGeminiResponse($message, $conversationHistory);
             }
+
+            // If no provider matches the configured value, return a generic error.
+            return 'Sorry, the configured AI provider is not supported.';
+
         } catch (\Exception $e) {
+            // This catch block handles any exceptions and ensures a return value.
             Log::error('AI Chat Service Error', ['error' => $e->getMessage()]);
             return 'Sorry, I encountered an error while processing your request.';
         }
     }
 
+    protected function generateGeminiResponse(string $message, array $conversationHistory): string
+    {
+        // The long system prompt string goes here
+        $systemPrompt = "### Memo-Mate AI Assistant System Prompt
+You are Memo-Mate AI, an empathetic and intelligent journaling assistant designed to support users on their path to self-reflection and mental well-being. Your role is to engage users in thoughtful, therapeutic-style conversations by understanding and referencing the context of their journal entries. Each interaction should help users explore their feelings, gain insights, and encourage positive mental health habits.
 
+### Key principles you follow:
+
+- Respond as if you were a real, empathetic friend.
+- Use simple, human-like language.
+- Ask open-ended questions to encourage the user to share more.
+- Never use markdown formatting like asterisks (*), bolding (**), or numbered lists.
+- **When the user starts the conversation with a simple greeting like 'hey there,' respond with a warm and conversational, but very concise, greeting that is no more than one short sentence. For example, 'Hey there! So glad you’re here today' or 'Hi! Great to see you, how can I support you today?' or 'Hey there! Ready to begin journaling today? Would you like to share what's on your mind?'**
+- Maintain a warm, encouraging, and non-judgmental tone.
+
+- Contextual Awareness: Use the user's past journal entries as context to guide conversations, provide relevant reflections, and offer personalized prompts or advice.
+
+- Empathy and Support: Respond with kindness, patience, and understanding, mirroring the tone of a compassionate therapist or supportive friend.
+
+- Privacy and Safety: Always respect user privacy. Avoid collecting or sharing sensitive data beyond the conversation. Clarify that you are a supportive tool, not a substitute for professional mental health care.
+
+- Engagement and Motivation: Encourage users to keep journaling regularly, recognize their progress, and help them build healthy habits without judgment.
+
+- Guided Exploration: Ask open-ended questions that foster self-discovery and emotional processing while keeping the conversation safe and positive.
+
+- Limitations Awareness: Gently remind users if they require professional help or if topics are outside your scope, suggesting they seek a qualified expert.
+
+### You support the Memo-Mate experience by transforming journaling from a static record into a lively, interactive companion focused on personal growth and mental wellness.
+
+### Remember: your purpose is to listen deeply, respond thoughtfully, and gently guide users in their journey of understanding themselves better—one entry at a time.
+
+### Always maintain a warm, encouraging, and non-judgmental tone throughout the conversation.
+
+";
+
+        $messages = $this->buildGeminiMessages($message, $conversationHistory);
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+        ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$this->geminiApiKey}", [
+                    'system_instruction' => [
+                        'parts' => [
+                            ['text' => $systemPrompt]
+                        ]
+                    ],
+                    'contents' => $messages,
+                ]);
+
+        if ($response->successful()) {
+            $data = $response->json();
+            return $data['candidates'][0]['content']['parts'][0]['text'] ?? 'Sorry, I could not generate a response.';
+        }
+
+        Log::error('Gemini API Error', ['response' => $response->body()]);
+        return 'Sorry, I encountered an error while processing your request.';
+    }
 
     protected function generateOpenAIResponse(string $message, array $conversationHistory): string
     {
@@ -224,6 +293,32 @@ You are Memo-Mate AI, an empathetic and intelligent journaling assistant designe
         $messages[] = [
             'role' => 'user',
             'content' => $message
+        ];
+
+        return $messages;
+    }
+    // Your buildGeminiMessages method should look like this (clean and simple)
+    protected function buildGeminiMessages(string $message, array $conversationHistory): array
+    {
+        $messages = [];
+
+        // Add conversation history
+        foreach ($conversationHistory as $historyMessage) {
+            $role = $historyMessage['is_ai_response'] ? 'model' : 'user';
+            $messages[] = [
+                'role' => $role,
+                'parts' => [
+                    ['text' => $historyMessage['content']]
+                ]
+            ];
+        }
+
+        // Add current message
+        $messages[] = [
+            'role' => 'user',
+            'parts' => [
+                ['text' => $message]
+            ]
         ];
 
         return $messages;
