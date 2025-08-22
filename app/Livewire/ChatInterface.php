@@ -126,8 +126,8 @@ class ChatInterface extends Component
         ]);
 
         $conversation = Conversation::find($this->activeSession['id']);
-        if ($conversation->title === 'New Conversation') {
-            $conversation->title = $this->generateSessionTitle($this->newMessage);
+        if ($conversation->title === 'New Conversation' && strlen($this->newMessage) > 3) {
+            $conversation->title = app(AiChatService::class)->generateTitleFromChat($this->newMessage);
             $conversation->save();
             $this->activeSession['title'] = $conversation->title;
             foreach ($this->sessions as &$session) {
@@ -146,45 +146,6 @@ class ChatInterface extends Component
         $this->dispatch('scroll-to-bottom');
     }
 
-    private function generateAiResponse($userMessage)
-    {
-        $responses = [
-            'stress' => "I can hear that you're dealing with stress right now. From your recent journal entries, I've noticed you often mention feeling overwhelmed during busy periods. What specific situations or thoughts tend to trigger these feelings for you?",
-            'work' => "Work-related challenges can really impact our well-being. I see in your previous entries that you've mentioned work stress before. Have you noticed any patterns in when these feelings are strongest?",
-            'anxiety' => "Anxiety can be really difficult to manage. Based on your journal patterns, it seems like you experience this more during certain times or situations. Would it help to explore some coping strategies that align with what you've found helpful before?",
-            'mood' => "I've been analyzing your mood patterns from your recent entries. You seem to have more positive days when you mention activities like exercise or spending time outdoors. How are you feeling about incorporating more of these activities?",
-            'sleep' => "Sleep issues can affect so many aspects of our lives. Looking at your journal entries, I notice you mention sleep troubles correlating with stressful periods. What does your current bedtime routine look like?",
-            'default' => "Thank you for sharing that with me. I can see from your recent journal entries that you've been reflecting on similar themes. What would be most helpful for you to explore right now?"
-        ];
-
-        $message = strtolower($userMessage);
-
-        foreach ($responses as $keyword => $response) {
-            if (str_contains($message, $keyword)) {
-                return $response;
-            }
-        }
-
-        return $responses['default'];
-    }
-
-    private function generateSessionTitle($firstMessage)
-    {
-        $message = strtolower($firstMessage);
-
-        if (str_contains($message, 'stress'))
-            return 'Stress Management Discussion';
-        if (str_contains($message, 'work'))
-            return 'Work-Life Balance Chat';
-        if (str_contains($message, 'anxiety'))
-            return 'Anxiety Support Session';
-        if (str_contains($message, 'mood'))
-            return 'Mood Pattern Analysis';
-        if (str_contains($message, 'sleep'))
-            return 'Sleep & Wellness Chat';
-
-        return 'Therapy Session';
-    }
 
     public function deleteSession($sessionId)
     {

@@ -29,7 +29,6 @@ class AiChatService
         try {
             $conversationHistory = $this->getConversationHistory($conversationId);
 
-            // First, check for missing API keys and return a fallback response.
             if ($this->provider === 'openai' && !$this->openaiApiKey) {
                 return $this->generateFallbackResponse($message);
             }
@@ -42,7 +41,6 @@ class AiChatService
                 return $this->generateFallbackResponse($message);
             }
 
-            // Then, determine which provider to use and call the corresponding method.
             if ($this->provider === 'openai') {
                 return $this->generateOpenAIResponse($message, $conversationHistory);
             } elseif ($this->provider === 'huggingface') {
@@ -51,11 +49,9 @@ class AiChatService
                 return $this->generateGeminiResponse($message, $conversationHistory);
             }
 
-            // If no provider matches the configured value, return a generic error.
             return 'Sorry, the configured AI provider is not supported.';
 
         } catch (\Exception $e) {
-            // This catch block handles any exceptions and ensures a return value.
             Log::error('AI Chat Service Error', ['error' => $e->getMessage()]);
             return 'Sorry, I encountered an error while processing your request.';
         }
@@ -63,7 +59,6 @@ class AiChatService
 
     protected function generateGeminiResponse(string $message, array $conversationHistory): string
     {
-        // The long system prompt string goes here
         $systemPrompt = "### Memo-Mate AI Assistant System Prompt
 You are Memo-Mate AI, an empathetic and intelligent journaling assistant designed to support users on their path to self-reflection and mental well-being. Your role is to engage users in thoughtful, therapeutic-style conversations by understanding and referencing the context of their journal entries. Each interaction should help users explore their feelings, gain insights, and encourage positive mental health habits.
 
@@ -111,10 +106,11 @@ You are Memo-Mate AI, an empathetic and intelligent journaling assistant designe
 
         if ($response->successful()) {
             $data = $response->json();
+            \Log::info('Gemini Response', ['data' => $data]);
             return $data['candidates'][0]['content']['parts'][0]['text'] ?? 'Sorry, I could not generate a response.';
         }
 
-        Log::error('Gemini API Error', ['response' => $response->body()]);
+        \Log::error('Gemini API Error', ['response' => $response->body()]);
         return 'Sorry, I encountered an error while processing your request.';
     }
 
@@ -321,6 +317,7 @@ You are Memo-Mate AI, an empathetic and intelligent journaling assistant designe
             ]
         ];
 
+        \Log::info(json_encode($messages));
         return $messages;
     }
 
@@ -340,5 +337,31 @@ You are Memo-Mate AI, an empathetic and intelligent journaling assistant designe
                 ];
             })
             ->toArray();
+    }
+    // In a new method in your AiChatService, or a dedicated TitleService
+    public function generateTitleFromChat(string $chatContent): string
+    {
+        $prompt = "Summarize this chat into a short, concise title: " . $chatContent;
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+        ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$this->geminiApiKey}", [
+                    'contents' => [
+                        [
+                            'role' => 'user',
+                            'parts' => [
+                                ['text' => $prompt]
+                            ]
+                        ]
+                    ]
+                ]);
+
+        if ($response->successful()) {
+            $data = $response->json();
+            return $data['candidates'][0]['content']['parts'][0]['text'] ?? 'Untitled Chat';
+        }
+
+        \Log::error('Gemini Title API Error', ['response' => $response->body()]);
+        return 'Untitled Chat';
     }
 }
