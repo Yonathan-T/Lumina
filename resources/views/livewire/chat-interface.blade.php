@@ -5,13 +5,13 @@
         <div class="p-4 border-b border-gray-700 flex items-center justify-between">
             <button wire:click="createNewSession"
                 class="cursor-pointer w-full flex items-center justify-center gap-2 bg-gradient-dark  text-white rounded-lg px-4 py-2.5 transition-colors">
-               <x-icon name="message" class="w-5 h-5" />
+                <x-icon name="message" class="w-5 h-5" />
                 New Chat
             </button>
             <div>
                 <!-- Hide the sidebar -->
                 <button class="ml-auto p-2 text-gray-400 hover:text-white transition-colors">
-                <x-icon name="panel-right-open" class="w-5 h-5" />
+                    <x-icon name="panel-right-open" class="w-5 h-5" />
                 </button>
             </div>
         </div>
@@ -27,7 +27,8 @@
                         <div class="flex items-start justify-between">
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2 mb-1">
-                                    <x-icon name="message" class="w-4 h-4 {{ $activeSession && $activeSession['id'] === $session['id'] ? 'text-white' : 'text-gray-400' }}" />
+                                    <x-icon name="message"
+                                        class="w-4 h-4 {{ $activeSession && $activeSession['id'] === $session['id'] ? 'text-white' : 'text-gray-400' }}" />
                                     <h4 class="text-sm font-medium truncate">{{ $session['title'] }}</h4>
                                 </div>
                                 <p
@@ -68,19 +69,26 @@
             <div class="bg-gradient-dark  border-b border-gray-700 p-4 rounded-t-lg">
                 <div class="flex items-center gap-3">
                     <div class="p-2 rounded-full bg-blue-600">
-                    <x-icon name="brain" class=" w-6 h-6" />
+                        <x-icon name="brain" class=" w-6 h-6" />
                     </div>
                     <div>
                         <h3 class="text-lg font-semibold text-white">{{ $activeSession['title'] }}</h3>
                         <p class="text-sm text-gray-400">AI-powered reflection and insights</p>
                     </div>
+
                 </div>
+                <!-- <div class=" flex  items center gap-2 justify-end">
+                                                                                            <span class="text-muted">Gen-Z Mode</span>
+                                                                                            <x-toggle :model="'darkMode'" />
+                                                                                        </div> -->
+
             </div>
 
             <!-- Messages Area -->
             <div class="flex-1 overflow-y-auto p-6 space-y-6" id="messages-container">
-               @forelse($messages as $message)
-                    <div class="flex items-start gap-4 {{ $message['isAi'] ? '' : 'flex-row-reverse' }}">
+                @forelse($messages as $message)
+                    <div
+                        class="flex items-start gap-4 {{ $message['isAi'] ? '' : 'flex-row-reverse' }} {{ isset($message['isOptimistic']) ? 'opacity-70' : '' }}">
                         @if($message['isAi'])
                             <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                                 <x-icon name="flash-outline" class="w-4 h-4" />
@@ -92,11 +100,15 @@
                         @endif
 
                         <div class="max-w-[300px] md:max-w-[400px] lg:max-w-[500px]">
-                            <div class="rounded-2xl px-4 py-3 {{ $message['isAi'] ? 'bg-gray-800 text-gray-100' : 'bg-blue-600 text-white' }}">
+                            <div
+                                class="rounded-2xl px-4 py-3 {{ $message['isAi'] ? 'bg-gray-800 text-gray-100' : 'bg-blue-600 text-white' }} {{ isset($message['isError']) ? 'bg-red-600' : '' }}">
                                 <p class="text-sm leading-relaxed whitespace-pre-wrap break-words">{{ $message['content'] }}</p>
                             </div>
                             <div class="flex items-center gap-2 mt-2 {{ $message['isAi'] ? '' : 'justify-end' }}">
                                 <p class="text-xs text-gray-500">{{ $message['timestamp'] }}</p>
+                                @if(isset($message['isOptimistic']))
+                                    <div class="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -114,13 +126,10 @@
                     </div>
                 @endforelse
 
-                @if($isLoading)
+                @if($isTyping)
                     <div class="flex items-start gap-4">
                         <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                            </svg>
+                            <x-icon name="flash-outline" class="w-4 h-4" />
                         </div>
                         <div class="bg-gray-800 rounded-2xl px-4 py-3">
                             <div class="flex items-center space-x-2">
@@ -140,30 +149,27 @@
 
             <!-- Message Input -->
             <div class="bg-gray-700 border-t border-gray-600 rounded-b-lg bg-gradient-dark p-4">
-    <form wire:submit="sendMessage" class="flex items-center space-x-3">
-        <div class="flex-1">
-            <textarea
-                wire:model="newMessage"
-                placeholder="Share your thoughts..."
-                class="w-full bg-gray-700 border bg-gradient-dark rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent disabled:opacity-50 overflow-hidden resize-none max-h-[200px]"
-                {{ $isLoading ? 'disabled' : '' }}
-                oninput="this.style.height='auto'; this.style.height=(this.scrollHeight)+'px';"
-                onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault(); this.closest('form').dispatchEvent(new Event('submit', {bubbles: true}));}"
-            ></textarea>
-        </div>
-        <div>
-            <button type="submit"
-                class="text-white p-3 rounded-xl transition-colors flex items-center justify-center"
-                {{ $isLoading ? 'disabled' : '' }}>
-                @if($isLoading)
-                    <x-icon name="stop" class="w-5 h-5" />
-                @else
-                    <x-icon name="send" class="w-5 h-5" />
-                @endif
-            </button>
-        </div>
-    </form>
-</div>
+                <form wire:submit="sendMessage" class="flex items-center space-x-3">
+                    <div class="flex-1">
+                        <textarea wire:model="newMessage" placeholder="Share your thoughts..."
+                            class="w-full bg-gray-700 border bg-gradient-dark rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent disabled:opacity-50 overflow-hidden resize-none max-h-[200px]"
+                            {{ $isTyping ? 'disabled' : '' }}
+                            oninput="this.style.height='auto'; this.style.height=(this.scrollHeight)+'px';"
+                            onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault(); this.closest('form').dispatchEvent(new Event('submit', {bubbles: true}));}"></textarea>
+                    </div>
+                    <div>
+                        <button type="submit"
+                            class=" cursor-pointer text-white p-3 rounded-xl bg-white/5 hover:border  transition-colors flex items-center justify-center"
+                            {{ $isTyping ? 'disabled' : '' }}>
+                            @if($isTyping)
+                                <x-icon name="stop" class="w-5 h-5 bg-white" />
+                            @else
+                                <x-icon name="send" class="w-5 h-5" />
+                            @endif
+                        </button>
+                    </div>
+                </form>
+            </div>
 
         @else
             <!-- No Active Session -->
@@ -195,20 +201,35 @@
 
 <script>
     document.addEventListener('livewire:init', () => {
-        Livewire.on('scroll-to-bottom', () => {
+        Livewire.on('messages-updated', () => {
             const container = document.getElementById('messages-container');
             if (container) {
-                setTimeout(() => {
+                // Use requestAnimationFrame to ensure DOM is updated
+                requestAnimationFrame(() => {
                     container.scrollTop = container.scrollHeight;
-                }, 100);
+                });
             }
         });
 
-        Livewire.on('add-ai-message', (data) => {
-            setTimeout(() => {
-                @this.messages.push(data[0]);
-                @this.$refresh();
-            }, 1500);
+        // Handle async events
+        Livewire.on('create-session-async', (data) => {
+            // Session creation handled in background
+        });
+
+        Livewire.on('message-sent-async', (data) => {
+            // Message processing handled in background
+        });
+
+        Livewire.on('generate-ai-response', (data) => {
+            // AI response generation handled in background
+        });
+
+        Livewire.on('session-selected', (data) => {
+            // Load messages in background
+        });
+
+        Livewire.on('delete-session-async', (data) => {
+            // Session deletion handled in background
         });
     });
 </script>

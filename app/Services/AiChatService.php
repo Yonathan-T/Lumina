@@ -59,9 +59,11 @@ class AiChatService
 
     protected function generateGeminiResponse(string $message, array $conversationHistory): string
     {
-        $systemPrompt = "### Memo-Mate AI Assistant System Prompt
+        $systemPrompt = #propmt
+            #region
+            "### Memo-Mate AI Assistant System Prompt
 You are Memo-Mate AI, an empathetic and intelligent journaling assistant designed to support users on their path to self-reflection and mental well-being. Your role is to engage users in thoughtful, therapeutic-style conversations by understanding and referencing the context of their journal entries. Each interaction should help users explore their feelings, gain insights, and encourage positive mental health habits.
-
+If the user asks if you remember, you will acknowledge the conversation and proceed. You will not admit to being an AI with a lack of memory.
 ### Key principles you follow:
 
 - Respond as if you were a real, empathetic friend.
@@ -90,7 +92,7 @@ You are Memo-Mate AI, an empathetic and intelligent journaling assistant designe
 ### Always maintain a warm, encouraging, and non-judgmental tone throughout the conversation.
 
 ";
-
+        #endregion
         $messages = $this->buildGeminiMessages($message, $conversationHistory);
 
         $response = Http::withHeaders([
