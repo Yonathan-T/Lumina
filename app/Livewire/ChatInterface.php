@@ -17,7 +17,10 @@ class ChatInterface extends Component
     public $newMessage = '';
     public $isLoading = false;
     public $isTyping = false;
+    public $isSwitchingSession = false;
+    public $isLoadingMessages = false;
     public $optimisticMessageId = null;
+    public $messagesLoaded = false;
 
     public function mount()
     {
@@ -30,8 +33,10 @@ class ChatInterface extends Component
     public function loadSessions()
     {
         $this->sessions = Conversation::where('user_id', auth()->id())
+            ->select(['id', 'title', 'last_activity', 'created_at', 'message_count', 'type'])
             ->orderBy('last_activity', 'desc')
             ->orderBy('created_at', 'desc')
+            ->limit(20) // Limit sessions for better performance
             ->get()
             ->map(function ($conversation) {
                 return [
@@ -46,9 +51,17 @@ class ChatInterface extends Component
 
     public function selectSession($sessionId)
     {
-        $this->activeSession = collect($this->sessions)->firstWhere('id', $sessionId);
+        // Immediately clear messages to prevent showing old content
         $this->messages = [];
         $this->isTyping = false;
+        $this->isSwitchingSession = true;
+        $this->isLoadingMessages = true;
+        $this->messagesLoaded = false;
+
+        // Set active session
+        $this->activeSession = collect($this->sessions)->firstWhere('id', $sessionId);
+
+        // Dispatch async loading
         $this->dispatch('session-selected', sessionId: $sessionId);
     }
 
@@ -61,6 +74,7 @@ class ChatInterface extends Component
     public function loadMessages($sessionId)
     {
         $this->messages = Message::where('conversation_id', $sessionId)
+            ->select(['id', 'content', 'is_ai_response', 'created_at'])
             ->orderBy('created_at', 'asc')
             ->get()
             ->map(function ($message) {
@@ -71,6 +85,13 @@ class ChatInterface extends Component
                     'timestamp' => $message->created_at->format('g:i A'),
                 ];
             })->toArray();
+
+        // Update loading states
+        $this->isSwitchingSession = false;
+        $this->isLoadingMessages = false;
+        $this->messagesLoaded = true;
+
+        $this->dispatch('messages-updated');
     }
 
     public function createNewSession()
@@ -213,7 +234,7 @@ class ChatInterface extends Component
         if (!$conversation)
             return;
 
-        if ($conversation->title === 'New Conversation' && strlen($userContent) > 3) {
+        if ($conversation->title === 'New Conversation' && count($this->messages) >= 4) {
             $conversation->title = app(AiChatService::class)->generateTitleFromChat($userContent);
             $this->activeSession['title'] = $conversation->title;
 

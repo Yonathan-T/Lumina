@@ -78,15 +78,23 @@
 
                 </div>
                 <!-- <div class=" flex  items center gap-2 justify-end">
-                                                                                            <span class="text-muted">Gen-Z Mode</span>
-                                                                                            <x-toggle :model="'darkMode'" />
-                                                                                        </div> -->
+                                                                                                <span class="text-muted">Gen-Z Mode</span>
+                                                                                                <x-toggle :model="'darkMode'" />
+                                                                                            </div> -->
 
             </div>
 
             <!-- Messages Area -->
             <div class="flex-1 overflow-y-auto p-6 space-y-6" id="messages-container">
-                @forelse($messages as $message)
+                @if($isLoadingMessages)
+                    <div class="flex items-center justify-center py-8">
+                        <div class="flex items-center space-x-3">
+                            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                            <span class="text-gray-400 text-sm">Loading messages...</span>
+                        </div>
+                    </div>
+                @else
+                    @forelse($messages as $message)
                     <div
                         class="flex items-start gap-4 {{ $message['isAi'] ? '' : 'flex-row-reverse' }} {{ isset($message['isOptimistic']) ? 'opacity-70' : '' }}">
                         @if($message['isAi'])
@@ -126,24 +134,25 @@
                     </div>
                 @endforelse
 
-                @if($isTyping)
-                    <div class="flex items-start gap-4">
-                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                            <x-icon name="flash-outline" class="w-4 h-4" />
-                        </div>
-                        <div class="bg-gray-800 rounded-2xl px-4 py-3">
-                            <div class="flex items-center space-x-2">
-                                <div class="flex space-x-1">
-                                    <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                                    <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.1s">
+                    @if($isTyping)
+                        <div class="flex items-start gap-4">
+                            <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                <x-icon name="flash-outline" class="w-4 h-4" />
+                            </div>
+                            <div class="bg-gray-800 rounded-2xl px-4 py-3">
+                                <div class="flex items-center space-x-2">
+                                    <div class="flex space-x-1">
+                                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.1s">
+                                        </div>
+                                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.2s">
+                                        </div>
                                     </div>
-                                    <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.2s">
-                                    </div>
+                                    <span class="text-sm text-gray-400">AI is thinking...</span>
                                 </div>
-                                <span class="text-sm text-gray-400">AI is thinking...</span>
                             </div>
                         </div>
-                    </div>
+                    @endif
                 @endif
             </div>
 

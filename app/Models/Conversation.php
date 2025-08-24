@@ -31,6 +31,14 @@ class Conversation extends Model
         return $this->hasMany(Message::class)->orderBy('created_at');
     }
 
+    protected static function booted()
+    {
+        static::deleting(function ($conversation) {
+            // Delete all messages when conversation is deleted
+            $conversation->messages()->delete();
+        });
+    }
+
     public function latestMessage()
     {
         return $this->hasOne(Message::class)->latestOfMany();
