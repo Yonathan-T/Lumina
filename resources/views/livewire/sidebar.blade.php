@@ -6,7 +6,7 @@
         <div class="flex items-center justify-between h-14 border-white/10 border-b px-4">
             <div class="flex items-center gap-2 font-semibold text-white">
                 <x-custom-icon />
-                <span class="text-lg font-bold">Memo Mate</span>
+                <span class="text-lg font-bold">Lumina</span>
             </div>
         </div>
         {{-- Navigation --}}

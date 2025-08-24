@@ -25,7 +25,7 @@ class CustomResetPassword extends ResetPasswordNotification
         ], false));
 
         return (new MailMessage)
-            ->subject('Reset Your Password | Memo Mate')
+            ->subject('Reset Your Password | Lumina')
             ->view('auth.password.passwordResetlink', ['url' => $url, 'name' => $notifiable->name]);
     }
 }

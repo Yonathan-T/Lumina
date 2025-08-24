@@ -22,7 +22,7 @@
           <!--ANIMATion would be nice around here -->
           <p class="mt-[24px] text-paper/70 max-w-md">
             A beautiful, private space for your thoughts, dreams, and reflections.
-            Memo Mate helps you cultivate mindfulness and emotional clarity through journaling.
+            Lumina helps you cultivate mindfulness and emotional clarity through journaling.
           </p>
 
         </div>
@@ -103,7 +103,7 @@
   <section class="mt-5  py-12 "> <!-- Main container -->
     <div class="text-center max-w-2xl mx-auto mb-6">
       <h2 class="font-playfair text-3xl md:text-4xl font-bold mb-6 tracking-wide">
-        Why Memo Mate?
+        Why Lumina?
       </h2>
       <p class="text-white/70">
         Our thoughtfully crafted features make journaling a delightful part of your daily routine.
@@ -128,7 +128,7 @@
       From Our Community
     </h2>
     <p class="text-white/70">
-      Hear from people who have transformed their journaling practice with MemoMate. </p>
+      Hear from people who have transformed their journaling practice with Lumina. </p>
   </div>
   <x-testimonials />
 
@@ -142,7 +142,7 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
         <div class="flex items-center gap-2">
           <x-icons type="heart" />
           <a href="/">
-            <span class="text-xl font-semibold text-[#7c6a54]">Memo Mate</span>
+            <span class="text-xl font-semibold text-[#7c6a54]">Lumina</span>
           </a>
         </div>
         <p class="text-white/60 text-sm"><x-icons type="leftQ" /> Your private space for mindful journaling <x-icons
@@ -224,7 +224,7 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
 
     <!-- Copyright -->
     <div class="max-w-7xl mx-auto pt-8 mt-8 border-t border-white/10 text-center text-white/40 text-sm">
-      © 2025 Memo Mate. All rights reserved.
+      © 2025 Lumina. All rights reserved.
     </div>
   </footer>
 </x-layout>

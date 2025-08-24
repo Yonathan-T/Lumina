@@ -18,7 +18,7 @@
             <p class="text-sm text-paper/60">Mindfulness Coach</p>
           </div>
         </div>
-        <p class="text-paper/80">"MemoMate transformed how my clients process emotions."</p>
+        <p class="text-paper/80">"Lumina transformed how my clients process emotions."</p>
       </div>
       <!-- Testimonial 2 -->
       <div class="flex-shrink-0 w-80 bg-[#1a1d24] p-6 rounded-xl border border-paper/10">
@@ -43,7 +43,7 @@
             <p class="text-sm text-paper/60">Mindfulness Coach</p>
           </div>
         </div>
-        <p class="text-paper/80">"MemoMate transformed how my clients process emotions."</p>
+        <p class="text-paper/80">"Lumina transformed how my clients process emotions."</p>
       </div>
 
       <!-- Testimonial 2 -->
@@ -69,7 +69,7 @@
             <p class="text-sm text-paper/60">Mindfulness Coach</p>
           </div>
         </div>
-        <p class="text-paper/80">"MemoMate transformed how my clients process emotions."</p>
+        <p class="text-paper/80">"Lumina transformed how my clients process emotions."</p>
       </div>
     </div>
   </div>

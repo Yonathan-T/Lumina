@@ -1,6 +1,6 @@
-# Memo-Mate 📝
+# Lumina 📝
 
-Memo-Mate is your personal digital diary and note-taking companion, built with Laravel. Capture your thoughts, organize your ideas, and gain insights from your daily entries—all in a beautiful, privacy-focused app.
+Lumina is your personal digital diary and note-taking companion, built with Laravel. Capture your thoughts, organize your ideas, and gain insights from your daily entries—all in a beautiful, privacy-focused app.
 
 ---
 
@@ -26,7 +26,7 @@ Memo-Mate is your personal digital diary and note-taking companion, built with L
 
 ## 🤝 Contributing
 
-If you like Memo-Mate, please consider starring the project! ⭐
+If you like Lumina, please consider starring the project! ⭐
 
 Pull requests are welcome. For major changes, open an issue first to discuss what you would like to change.
 

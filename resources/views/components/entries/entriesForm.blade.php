@@ -5,7 +5,7 @@
       Welcome to
       <span class="relative inline-block ml-2">
         <span class="absolute inset-0 bg-gradient-to-r from-[#7c6a54] to-transparent rounded-sm"></span>
-        <span class="relative text-white  px-2 ">Memo Mate</span>
+        <span class="relative text-white  px-2 ">Lumina</span>
       </span>
     </h1>
   </div>
