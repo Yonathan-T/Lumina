@@ -5,7 +5,15 @@
         {{-- Brand / Logo --}}
         <div class="flex items-center justify-between h-14 border-white/10 border-b px-4">
             <div class="flex items-center gap-2 font-semibold text-white">
-                <x-custom-icon />
+                <svg class="w-10 h-10 rotate-[-45deg]" fill="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                    <g id="SVGRepo_iconCarrier">
+                        <path d="M13,2l9,13.6L13,22ZM11,2,2,15.6,11,22Z"></path>
+                    </g>
+                </svg>
+
                 <span class="text-lg font-bold">Lumina</span>
             </div>
         </div>

@@ -8,6 +8,7 @@ use App\Models\Tag;
 use App\Models\User;
 use DB;
 use App\Services\StreakService;
+use App\Services\UserDataService;
 use Illuminate\Notifications\DatabaseNotification;
 
 class DashboardStats extends Component
@@ -28,6 +29,8 @@ class DashboardStats extends Component
     public $unreadCount;
     public $isModalOpen = false;
 
+    protected $userDataService;
+
     public function getPollingIntervalProperty()
     {
         return 30000; // 30 seconds
@@ -42,6 +45,7 @@ class DashboardStats extends Component
 
     public function mount()
     {
+        $this->userDataService = app(UserDataService::class);
         $this->loadNotifications();
         $this->loadStats();
         $this->currentStreak = StreakService::getCurrentStreak(auth()->id());
@@ -113,11 +117,8 @@ class DashboardStats extends Component
 
 
         //recent entry sec
-        $this->recentEntries = Entry::where('user_id', auth()->id())
-            ->with('tags')
-            ->latest()
-            ->take(1)
-            ->get();
+        $lastEntry = $this->userDataService->getLastEntry();
+        $this->recentEntries = $lastEntry ? collect([$lastEntry]) : collect();
         $this->loading = false;
     }
 

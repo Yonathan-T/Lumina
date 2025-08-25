@@ -344,14 +344,34 @@ You are Lumi, an empathetic and intelligent journaling assistant designed to sup
     protected function getUserContext(string $message): string
     {
         try {
-            $relevantEntries = $this->userDataService->getContextualEntries($message, 5);
+            // Get a broader set of entries for the AI to work with
+            $allEntries = $this->userDataService->getAllEntriesForContext();
+            $recentEntries = $allEntries->take(10); // Most recent 10 entries
+            $firstEntry = $this->userDataService->getFirstEntry();
+            $lastEntry = $this->userDataService->getLastEntry();
 
-            $formattedEntries = $this->userDataService->formatEntriesForAI($relevantEntries);
+            // Format entries for AI context
+            $formattedRecent = $this->userDataService->formatEntriesForAI($recentEntries);
 
             $insights = $this->userDataService->getUserInsights();
 
             $context = "\n\n### User Journal Context:\n";
-            $context .= $formattedEntries . "\n\n";
+            $context .= "Recent entries:\n{$formattedRecent}\n\n";
+
+            // Add first entry info if it exists and is different from recent entries
+            if ($firstEntry && !$recentEntries->contains('id', $firstEntry->id)) {
+                $firstEntryFormatted = $this->userDataService->formatEntriesForAI(collect([$firstEntry]));
+                $context .= "First ever entry:\n{$firstEntryFormatted}\n\n";
+            }
+
+            // Add explicit most recent entry info for clarity
+            if ($lastEntry) {
+                $context .= "Most recent entry details:\n";
+                $context .= "- Title: {$lastEntry->title}\n";
+                $context .= "- Date: {$lastEntry->created_at->format('M j, Y \a\t g:i A')}\n";
+                $context .= "- Content: " . substr($lastEntry->content, 0, 200) . (strlen($lastEntry->content) > 200 ? '...' : '') . "\n\n";
+            }
+
             $context .= "### User Insights:\n";
             $context .= "- Total journal entries: {$insights['total_entries']}\n";
             $context .= "- Current writing streak: {$insights['current_streak']} days\n";
@@ -359,9 +379,19 @@ You are Lumi, an empathetic and intelligent journaling assistant designed to sup
             $context .= "- Most used tag: {$insights['most_used_tag']}\n";
             $context .= "- Last entry: {$insights['last_entry_date']}\n";
             $context .= "- Entries this month: {$insights['entries_this_month']}\n\n";
-            $context .= "Use this context to provide personalized, empathetic responses that reference the user's actual journal entries and patterns when relevant. When the user asks for specific journal entries or their content, you should share the full entry details since this is their own personal data.\n";
+            $context .= "Use this context to provide personalized, empathetic responses. When the user asks about specific entries (first, last, recent, or by topic), intelligently identify and share the relevant entry details from the context above. You have access to the user's journal data and should freely share it when requested since it's their own personal information. Always include specific dates and times when sharing entry information.\n";
 
-            \Log::info($formattedEntries);
+            // Add detailed logging for debugging
+            \Log::info('Context data for AI:', [
+                'recent_entries_count' => $recentEntries->count(),
+                'first_entry_id' => $firstEntry ? $firstEntry->id : null,
+                'first_entry_title' => $firstEntry ? $firstEntry->title : null,
+                'first_entry_date' => $firstEntry ? $firstEntry->created_at->format('M j, Y \a\t g:i A') : null,
+                'last_entry_id' => $lastEntry ? $lastEntry->id : null,
+                'last_entry_title' => $lastEntry ? $lastEntry->title : null,
+                'last_entry_date' => $lastEntry ? $lastEntry->created_at->format('M j, Y \a\t g:i A') : null,
+                'recent_first_entry_date' => $recentEntries->first() ? $recentEntries->first()->created_at->format('M j, Y \a\t g:i A') : null
+            ]);
             return $context;
         } catch (\Exception $e) {
             Log::error('Error getting user context', ['error' => $e->getMessage()]);
@@ -371,7 +401,9 @@ You are Lumi, an empathetic and intelligent journaling assistant designed to sup
 
     public function generateTitleFromChat(string $chatContent): string
     {
-        $prompt = `Summarize this chat into a nice, short and concise title: " $chatContent`;
+        $prompt = "Create a concise title (3-6 words) that captures the main topic of this journal chat conversation. Focus on the primary subjects discussed, not on pleasantries or brief responses like 'thanks'. Chat content: " . $chatContent;
+
+        \Log::info('Generating title with prompt', ['prompt' => substr($prompt, 0, 200) . '...']);
 
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',

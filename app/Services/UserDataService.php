@@ -21,6 +21,34 @@ class UserDataService
             ->get();
     }
 
+    public function getFirstEntry(): ?Entry
+    {
+        $firstEntry = Entry::where('user_id', Auth::id())
+            ->with('tags')
+            ->orderBy('created_at', 'asc')
+            ->first();
+
+        if ($firstEntry) {
+            \Log::info('First entry query result:', [
+                'id' => $firstEntry->id,
+                'title' => $firstEntry->title,
+                'created_at_raw' => $firstEntry->created_at,
+                'created_at_string' => $firstEntry->created_at->toDateTimeString(),
+                'user_id' => $firstEntry->user_id
+            ]);
+        }
+
+        return $firstEntry;
+    }
+
+    public function getLastEntry(): ?Entry
+    {
+        return Entry::where('user_id', Auth::id())
+            ->with('tags')
+            ->orderBy('created_at', 'desc')
+            ->first();
+    }
+
     public function searchEntries(string $query, int $limit = 5): Collection
     {
         return Entry::where('user_id', Auth::id())
@@ -55,8 +83,10 @@ class UserDataService
         $formattedEntries = $entries->map(function ($entry) {
             $tags = $entry->tags->pluck('name')->join(', ');
             $date = $entry->created_at->format('M j, Y');
+            $time = $entry->created_at->format('g:i A');
+            $fullDateTime = $entry->created_at->format('M j, Y \a\t g:i A');
 
-            return "Entry from {$date}" . ($tags ? " (Tags: {$tags})" : "") . ":\n" .
+            return "Entry from {$fullDateTime}" . ($tags ? " (Tags: {$tags})" : "") . ":\n" .
                 "Title: {$entry->title}\n" .
                 "Content: " . $entry->content . "\n";
         })->join("\n---\n");
@@ -66,6 +96,7 @@ class UserDataService
 
     public function getContextualEntries(string $message, int $limit = 5): Collection
     {
+        // Extract keywords and search for relevant entries
         $keywords = $this->extractKeywords($message);
 
         if (empty($keywords)) {
@@ -80,6 +111,14 @@ class UserDataService
         }
 
         return $relevantEntries->unique('id')->take($limit);
+    }
+
+    public function getAllEntriesForContext(): Collection
+    {
+        return Entry::where('user_id', Auth::id())
+            ->with('tags')
+            ->orderBy('created_at', 'desc')
+            ->get();
     }
 
     private function extractKeywords(string $message): array
