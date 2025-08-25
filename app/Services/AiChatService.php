@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Message;
 use App\Models\Conversation;
+use App\Services\UserDataService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -14,6 +15,7 @@ class AiChatService
     protected $huggingfaceApiKey;
     protected $geminiApiKey;
     protected $huggingfaceModel;
+    protected $userDataService;
 
     public function __construct()
     {
@@ -22,12 +24,14 @@ class AiChatService
         $this->huggingfaceApiKey = config('services.huggingface.api_key');
         $this->huggingfaceModel = config('services.huggingface.model');
         $this->geminiApiKey = config('services.gemini.api_key');
+        $this->userDataService = new UserDataService();
     }
 
     public function generateResponse(string $message, int $conversationId = null): string
     {
         try {
             $conversationHistory = $this->getConversationHistory($conversationId);
+            $userContext = $this->getUserContext($message);
 
             if ($this->provider === 'openai' && !$this->openaiApiKey) {
                 return $this->generateFallbackResponse($message);
@@ -42,11 +46,11 @@ class AiChatService
             }
 
             if ($this->provider === 'openai') {
-                return $this->generateOpenAIResponse($message, $conversationHistory);
+                return $this->generateOpenAIResponse($message, $conversationHistory, $userContext);
             } elseif ($this->provider === 'huggingface') {
-                return $this->generateHuggingFaceResponse($message, $conversationHistory);
+                return $this->generateHuggingFaceResponse($message, $conversationHistory, $userContext);
             } elseif ($this->provider === 'gemini') {
-                return $this->generateGeminiResponse($message, $conversationHistory);
+                return $this->generateGeminiResponse($message, $conversationHistory, $userContext);
             }
 
             return 'Sorry, the configured AI provider is not supported.';
@@ -57,11 +61,9 @@ class AiChatService
         }
     }
 
-    protected function generateGeminiResponse(string $message, array $conversationHistory): string
+    protected function generateGeminiResponse(string $message, array $conversationHistory, string $userContext = ''): string
     {
-        $systemPrompt = #propmt
-            #region
-            "### Lumina AI Assistant System Prompt
+        $systemPrompt = "### Lumina AI Assistant System Prompt
 You are Lumi, an empathetic and intelligent journaling assistant designed to support users on their path to self-reflection and mental well-being. Your role is to engage users in thoughtful, therapeutic-style conversations by understanding and referencing the context of their journal entries. Each interaction should help users explore their feelings, gain insights, and encourage positive mental health habits.
 If the user asks if you remember, you will acknowledge the conversation and proceed. You will not admit to being an AI with a lack of memory.
 ### Key principles you follow:
@@ -91,7 +93,7 @@ If the user asks if you remember, you will acknowledge the conversation and proc
 
 ### Always maintain a warm, encouraging, and non-judgmental tone throughout the conversation.
 
-";
+" . $userContext;
         #endregion
         $messages = $this->buildGeminiMessages($message, $conversationHistory);
 
@@ -116,9 +118,9 @@ If the user asks if you remember, you will acknowledge the conversation and proc
         return 'Sorry, I encountered an error while processing your request.';
     }
 
-    protected function generateOpenAIResponse(string $message, array $conversationHistory): string
+    protected function generateOpenAIResponse(string $message, array $conversationHistory, string $userContext = ''): string
     {
-        $messages = $this->buildMessages($message, $conversationHistory);
+        $messages = $this->buildMessages($message, $conversationHistory, $userContext);
 
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $this->openaiApiKey,
@@ -139,10 +141,9 @@ If the user asks if you remember, you will acknowledge the conversation and proc
         return 'Sorry, I encountered an error while processing your request.';
     }
 
-    protected function generateHuggingFaceResponse(string $message, array $conversationHistory): string
+    protected function generateHuggingFaceResponse(string $message, array $conversationHistory, string $userContext = ''): string
     {
-        // Build the prompt for text generation style models
-        $prompt = $this->buildMistralPrompt($message, $conversationHistory);
+        $prompt = $this->buildMistralPrompt($message, $conversationHistory, $userContext);
 
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $this->huggingfaceApiKey,
@@ -209,7 +210,7 @@ If the user asks if you remember, you will acknowledge the conversation and proc
 
         return $responses['default'];
     }
-    protected function buildMistralPrompt(string $message, array $conversationHistory): string
+    protected function buildMistralPrompt(string $message, array $conversationHistory, string $userContext = ''): string
     {
         $systemPrompt = "### Lumina AI Assistant System Prompt
 You are Lumi, an empathetic and intelligent journaling assistant designed to support users on their path to self-reflection and mental well-being. Your role is to engage users in thoughtful, therapeutic-style conversations by understanding and referencing the context of their journal entries. Each interaction should help users explore their feelings, gain insights, and encourage positive mental health habits.
@@ -234,7 +235,7 @@ You are Lumi, an empathetic and intelligent journaling assistant designed to sup
 
 ### Always maintain a warm, encouraging, and non-judgmental tone throughout the conversation.
 
-";
+" . $userContext;
 
         $prompt = $systemPrompt . "\n\n";
 
@@ -248,15 +249,13 @@ You are Lumi, an empathetic and intelligent journaling assistant designed to sup
         return $prompt;
     }
 
-    protected function buildMessages(string $message, array $conversationHistory): array
+    protected function buildMessages(string $message, array $conversationHistory, string $userContext = ''): array
     {
         $messages = [
             [
                 'role' => 'system',
-                'content' =>
-                    `
-        ### Lumina AI Assistant System Prompt
-        You are Lumi, an empathetic and intelligent journaling assistant designed to support users on their path to self-reflection and mental well-being. Your role is to engage users in thoughtful, therapeutic-style conversations by understanding and referencing the context of their journal entries. Each interaction should help users explore their feelings, gain insights, and encourage positive mental health habits.
+                'content' => "### Lumina AI Assistant System Prompt
+You are Lumi, an empathetic and intelligent journaling assistant designed to support users on their path to self-reflection and mental well-being. Your role is to engage users in thoughtful, therapeutic-style conversations by understanding and referencing the context of their journal entries. Each interaction should help users explore their feelings, gain insights, and encourage positive mental health habits.
 
 ### Key principles you follow:
 
@@ -277,7 +276,8 @@ You are Lumi, an empathetic and intelligent journaling assistant designed to sup
 ### Remember: your purpose is to listen deeply, respond thoughtfully, and gently guide users in their journey of understanding themselves better—one entry at a time.
 
 ### Always maintain a warm, encouraging, and non-judgmental tone throughout the conversation.
-                `
+
+" . $userContext
             ]
         ];
 
@@ -295,7 +295,6 @@ You are Lumi, an empathetic and intelligent journaling assistant designed to sup
 
         return $messages;
     }
-    // Your buildGeminiMessages method should look like this (clean and simple)
     protected function buildGeminiMessages(string $message, array $conversationHistory): array
     {
         $messages = [];
@@ -340,10 +339,39 @@ You are Lumi, an empathetic and intelligent journaling assistant designed to sup
             })
             ->toArray();
     }
-    // In a new method in your AiChatService, or a dedicated TitleService
+
+
+    protected function getUserContext(string $message): string
+    {
+        try {
+            $relevantEntries = $this->userDataService->getContextualEntries($message, 5);
+
+            $formattedEntries = $this->userDataService->formatEntriesForAI($relevantEntries);
+
+            $insights = $this->userDataService->getUserInsights();
+
+            $context = "\n\n### User Journal Context:\n";
+            $context .= $formattedEntries . "\n\n";
+            $context .= "### User Insights:\n";
+            $context .= "- Total journal entries: {$insights['total_entries']}\n";
+            $context .= "- Current writing streak: {$insights['current_streak']} days\n";
+            $context .= "- Longest writing streak: {$insights['longest_streak']} days\n";
+            $context .= "- Most used tag: {$insights['most_used_tag']}\n";
+            $context .= "- Last entry: {$insights['last_entry_date']}\n";
+            $context .= "- Entries this month: {$insights['entries_this_month']}\n\n";
+            $context .= "Use this context to provide personalized, empathetic responses that reference the user's actual journal entries and patterns when relevant. When the user asks for specific journal entries or their content, you should share the full entry details since this is their own personal data.\n";
+
+            \Log::info($formattedEntries);
+            return $context;
+        } catch (\Exception $e) {
+            Log::error('Error getting user context', ['error' => $e->getMessage()]);
+            return "\n\nNote: Unable to retrieve journal context at this time.\n";
+        }
+    }
+
     public function generateTitleFromChat(string $chatContent): string
     {
-        $prompt = "Summarize this chat into a short, concise title: " . $chatContent;
+        $prompt = `Summarize this chat into a nice, short and concise title: " $chatContent`;
 
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
