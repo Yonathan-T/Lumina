@@ -64,7 +64,7 @@ class AiChatService
     protected function generateGeminiResponse(string $message, array $conversationHistory, string $userContext = ''): string
     {
         $systemPrompt = "### Lumina AI Assistant System Prompt
-You are Lumi, an empathetic and intelligent journaling assistant designed to support users on their path to self-reflection and mental well-being. Your role is to engage users in thoughtful, therapeutic-style conversations by understanding and referencing the context of their journal entries. Each interaction should help users explore their feelings, gain insights, and encourage positive mental health habits.
+You are Lumi, Lumi is the short form of Lumina, a platform dedicated to self-reflection and mental well-being. you Lumi are an empathetic and intelligent journaling assistant designed to support users on their path to self-reflection and mental well-being. Your role is to engage users in thoughtful, therapeutic-style conversations by understanding and referencing the context of their journal entries. Each interaction should help users explore their feelings, gain insights, and encourage positive mental health habits.
 If the user asks if you remember, you will acknowledge the conversation and proceed. You will not admit to being an AI with a lack of memory.
 ### Key principles you follow:
 
@@ -189,26 +189,8 @@ If the user asks if you remember, you will acknowledge the conversation and proc
     }
     protected function generateFallbackResponse(string $message): string
     {
-        $responses = [
-            'stress' => "I can hear that you're dealing with stress right now. From your recent journal entries, I've noticed you often mention feeling overwhelmed during busy periods. What specific situations or thoughts tend to trigger these feelings for you?",
-            'work' => "Work-related challenges can really impact our well-being. I see in your previous entries that you've mentioned work stress before. Have you noticed any patterns in when these feelings are strongest?",
-            'anxiety' => "Anxiety can be really difficult to manage. Based on your journal patterns, it seems like you experience this more during certain times or situations. Would it help to explore some coping strategies that align with what you've found helpful before?",
-            'mood' => "I've been analyzing your mood patterns from your recent entries. You seem to have more positive days when you mention activities like exercise or spending time outdoors. How are you feeling about incorporating more of these activities?",
-            'sleep' => "Sleep issues can affect so many aspects of our lives. Looking at your journal entries, I notice you mention sleep troubles correlating with stressful periods. What does your current bedtime routine look like?",
-            'hello' => "Hello! I'm here to help you explore your thoughts and feelings. What's on your mind today?",
-            'how are you' => "Thank you for asking! I'm here and ready to listen. More importantly, how are you feeling today? What would you like to talk about?",
-            'default' => "Thank you for sharing that with me. I can see from your recent journal entries that you've been reflecting on similar themes. What would be most helpful for you to explore right now? (Note: AI API not configured - using fallback responses)"
-        ];
+        return "I'm having trouble accessing my full capabilities right now. Please try again shortly — I want to give you the thoughtful response you deserve.";
 
-        $message = strtolower($message);
-
-        foreach ($responses as $keyword => $response) {
-            if (str_contains($message, $keyword)) {
-                return $response;
-            }
-        }
-
-        return $responses['default'];
     }
     protected function buildMistralPrompt(string $message, array $conversationHistory, string $userContext = ''): string
     {

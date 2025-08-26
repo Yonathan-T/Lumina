@@ -255,17 +255,20 @@ class ChatInterface extends Component
 
     public function deleteSession($sessionId)
     {
+        // Find the session to see if it was the active one
+        $deletedSession = collect($this->sessions)->firstWhere('id', $sessionId);
+
+        // Delete the conversation and all associated messages from the database
         Conversation::destroy($sessionId);
 
+        // Reload the sessions list from the database
         $this->loadSessions();
 
-        if ($this->activeSession && $this->activeSession['id'] === $sessionId) {
-            if (!empty($this->sessions)) {
-                $this->selectSession($this->sessions[0]['id']);
-            } else {
-                $this->activeSession = null;
-                $this->messages = [];
-            }
+        // Now, if the active session was deleted, force the UI to reset
+        if ($deletedSession && $this->activeSession && $deletedSession['id'] === $this->activeSession['id']) {
+            // This is the key change: force a reset regardless of remaining sessions
+            $this->activeSession = null;
+            $this->messages = [];
         }
     }
 
