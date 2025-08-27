@@ -81,7 +81,7 @@ class ChatInterface extends Component
                 return [
                     'id' => $message->id,
                     'content' => $message->content,
-                    'isAi' => $message->is_ai,
+                    'isAi' => $message->is_ai_response,
                     'timestamp' => $message->created_at->format('g:i A'),
                 ];
             })->toArray();

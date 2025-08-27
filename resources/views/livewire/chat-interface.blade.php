@@ -78,11 +78,11 @@
 
                 </div>
                 <!--
-                                         <div class=" flex  items center gap-2 justify-end">
-                                                <span class="text-muted">Gen-Z Mode</span>
-                                                <x-toggle :model="'darkMode'" />
-                                            </div>
-                                             -->
+                                                 <div class=" flex  items center gap-2 justify-end">
+                                                        <span class="text-muted">Gen-Z Mode</span>
+                                                        <x-toggle :model="'darkMode'" />
+                                                    </div>
+                                                     -->
 
             </div>
 
