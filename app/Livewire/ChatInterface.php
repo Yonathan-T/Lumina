@@ -51,17 +51,14 @@ class ChatInterface extends Component
 
     public function selectSession($sessionId)
     {
-        // Immediately clear messages to prevent showing old content
         $this->messages = [];
         $this->isTyping = false;
         $this->isSwitchingSession = true;
         $this->isLoadingMessages = true;
         $this->messagesLoaded = false;
 
-        // Set active session
         $this->activeSession = collect($this->sessions)->firstWhere('id', $sessionId);
 
-        // Dispatch async loading
         $this->dispatch('session-selected', sessionId: $sessionId);
     }
 
@@ -82,7 +79,7 @@ class ChatInterface extends Component
                     'id' => $message->id,
                     'content' => $message->content,
                     'isAi' => $message->is_ai_response,
-                    'timestamp' => $message->created_at->format('g:i A'),
+                    'timestamp' => $message->created_at->format('g:i A'),// time stamp should use their systems time i think
                 ];
             })->toArray();
 
@@ -272,6 +269,7 @@ class ChatInterface extends Component
         }
     }
 
+    //nobody is using you bro
     #[On('delete-session-async')]
     public function deleteSessionAsync($sessionId)
     {

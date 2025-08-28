@@ -32,12 +32,13 @@
                     <div
                         class="flex items-stretch rounded-lg card-highlight  shadow-md  bg-gradient-dark border border-white/10 overflow-hidden mb-4">
                         <!-- Date Square -->
-                        <div class="flex flex-col justify-center items-center 
-                                                                                                    bg-gradient-dark  border border-white/10 
-                                                                                                    w-20 min-w-30 h-30 
-                                                                                                    rounded-xl shadow-lg 
-                                                                                                    m-4 card-highlight
-                                                                                                    self-center">
+                        <div
+                            class="flex flex-col justify-center items-center 
+                                                                                                                                            bg-gradient-dark  border border-white/10 
+                                                                                                                                            w-20 min-w-30 h-30 
+                                                                                                                                            rounded-xl shadow-lg 
+                                                                                                                                            m-4 card-highlight
+                                                                                                                                            self-center">
                             <span class="text-lg font-bold">
                                 {{ strtoupper($entry->created_at->format('M')) }}
                             </span>
@@ -52,10 +53,16 @@
                                     <h3 class="text-2xl font-semibold leading-none tracking-tight">{{ $entry->title }}</h3>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <button onclick="event.preventDefault(); event.stopPropagation(); " wire:click="handleTest"
-                                        class="text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 px-2 py-1 rounded text-sm flex items-center gap-1 transition-colors">
-                                        <x-icon name="stethoscope" class="h-4 w-4" />
-                                        Reflect
+                                    <button onclick="event.preventDefault(); event.stopPropagation(); "
+                                        wire:click="Reflect({{ $entry->id }})" @disabled($isProcessing === 'reflection' && $processingEntryId === $entry->id)
+                                        class="cursor-pointer text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 px-2 py-1 rounded text-sm flex items-center gap-1 transition-colors disabled:opacity-50">
+                                        @if($isProcessing === 'reflection' && $processingEntryId === $entry->id)
+                                            <x-icon name="rotate-ccw" class="h-4 w-4 animate-spin" />
+                                            Starting...
+                                        @else
+                                            <x-icon name="stethoscope" class="h-4 w-4" />
+                                            Reflect
+                                        @endif
                                     </button>
 
                                     <div class="text-sm text-muted whitespace-nowrap">

@@ -304,4 +304,46 @@ class UserDataService
             'entries_this_month' => $entriesThisMonth,
         ];
     }
+    public function reflectOnEntry($entryId)
+    {
+        $entry = Entry::with('tags')
+            ->where('user_id', auth()->id())
+            ->find($entryId);
+
+        if (!$entry) {
+            return null;
+        }
+
+        $tags = $entry->tags->pluck('name')->join(', ');
+        $date = $entry->created_at->format('M j, Y');
+        $time = $entry->created_at->format('g:i A');
+
+        // Complete reflection prompt with all context and formatting
+        $reflectionPrompt = "You are Lumi, conducting a reflection session on a specific journal entry. This is NOT a general journaling conversation - the user has already written their entry and wants to reflect on it with you.
+
+**The specific entry being reflected on:**
+- Title: {$entry->title}
+- Written on: {$date} at {$time}
+- Content: {$entry->content}" . ($tags ? "\n- Tags: {$tags}" : "") . "
+
+**Format your response exactly like this:**
+
+I've read your entry \"{$entry->title}\". [Add a brief empathetic comment about the entry content]. Would you like to explore these feelings/thoughts together?
+
+Then ask 1-2 thoughtful, warm questions to help them reflect deeper.
+
+**Important guidelines:**
+- Focus ONLY on this specific entry
+- You have complete access to all entry details above
+- Only share the full entry content if the user specifically asks for it
+- Never say you don't have access to information
+- Reference exact dates/times when asked
+- This is reflection, not journaling prompts";
+
+        return [
+            'entry' => $entry,
+            'prompt' => $reflectionPrompt,
+            'conversation_title' => 'Reflection: "' . $entry->title . '"'
+        ];
+    }
 }

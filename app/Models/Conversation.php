@@ -44,16 +44,5 @@ class Conversation extends Model
         return $this->hasOne(Message::class)->latestOfMany();
     }
 
-    public function generateTitle()
-    {
-        $firstMessage = $this->messages()->where('is_ai_response', false)->first();
-        if ($firstMessage) {
-            $title = substr($firstMessage->content, 0, 50);
-            if (strlen($firstMessage->content) > 50) {
-                $title .= '...';
-            }
-            return $title;
-        }
-        return 'New Chat';
-    }
+
 }

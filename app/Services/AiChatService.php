@@ -61,6 +61,7 @@ class AiChatService
         }
     }
 
+
     protected function generateGeminiResponse(string $message, array $conversationHistory, string $userContext = ''): string
     {
         $systemPrompt = "### Lumina AI Assistant System Prompt
@@ -321,6 +322,7 @@ You are Lumi, an empathetic and intelligent journaling assistant designed to sup
             })
             ->toArray();
     }
+
 
 
     protected function getUserContext(string $message): string
