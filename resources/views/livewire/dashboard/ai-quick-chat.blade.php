@@ -6,7 +6,7 @@
                 <x-icon name="sparkles" class="h-6 w-6 text-blue-500" />
                 AI-Powered Insights
             </h2>
-            <p class="text-muted">Let AI help you explore your thoughts and patterns</p>
+            <p class="text-muted">Let Lumi AI help you explore your thoughts and patterns</p>
         </div>
 
         <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1">
@@ -21,7 +21,7 @@
                         </div>
                         <div>
                             <h3 class="text-lg font-semibold">Start Guided Reflection</h3>
-                            <p class="text-sm text-muted-foreground">AI-guided self-reflection session</p>
+                            <p class="text-sm text-muted">AI-guided self-reflection session</p>
                         </div>
                     </div>
                 </div>
@@ -47,7 +47,7 @@
                         </div>
                         <div>
                             <h3 class="text-lg font-semibold">Weekly Summary</h3>
-                            <p class="text-sm text-muted-foreground">TLDR + insights from recent entries</p>
+                            <p class="text-sm text-muted"> insights from recent entries</p>
                         </div>
                     </div>
                 </div>
@@ -73,7 +73,7 @@
                         </div>
                         <div>
                             <h3 class="text-lg font-semibold">Quick Chat</h3>
-                            <p class="text-sm text-muted-foreground">Private chat (not saved)</p>
+                            <p class="text-sm text-muted">Private chat (not saved)</p>
                         </div>
                     </div>
                 </div>
@@ -90,7 +90,7 @@
                         </div>
                         <div>
                             <h3 class="text-lg font-semibold">Review Past Memos</h3>
-                            <p class="text-sm text-muted-foreground">Analyze patterns in your writing</p>
+                            <p class="text-sm text-muted">Analyze patterns in your writing</p>
                         </div>
                     </div>
                 </div>
@@ -188,51 +188,37 @@
 
     <!-- Quick Chat Modal -->
     @if($showQuickChatModal)
-        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            wire:click="closeQuickChatModal">
-            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-2xl w-full h-[600px] flex flex-col"
-                wire:click.stop>
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div class="bg-card border border-white/10 rounded-lg max-w-2xl w-full mx-4 h-[600px] flex flex-col shadow-xl">
                 <!-- Header -->
-                <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                    <h2 class="text-lg font-semibold flex items-center gap-2">
-                        <x-icon name="chatbubbles-outline" class="h-5 w-5 text-purple-500" />
-                        Quick Chat
-                    </h2>
-                    <button wire:click="closeQuickChatModal"
-                        class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                        <x-icon name="message" class="h-4 w-4" />
+                <div class="flex items-center justify-between p-4 border-b border-white/10">
+                    <h3 class="text-lg font-semibold text-white">Quick Chat</h3>
+                    <button wire:click="closeQuickChatModal" class="text-muted hover:text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                            </path>
+                        </svg>
                     </button>
                 </div>
 
                 <!-- Messages -->
-                <div class="flex-1 overflow-y-auto p-4 space-y-4 chat-scrollbar">
+                <div class="flex-1 overflow-y-auto p-4 space-y-4">
                     @foreach($quickChatMessages as $message)
-                            <div class="flex {{ $message['sender'] === 'ai' ? 'justify-start' : 'justify-end' }}">
-                                <div class="max-w-[80%] group">
-                                    <div class="p-3 rounded-lg {{ $message['sender'] === 'ai'
-                        ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-                        : 'bg-blue-500 text-white' }}">
-                                        {{ $message['content'] }}
-                                    </div>
-                                    <div
-                                        class="text-xs text-gray-500 mt-1 {{ $message['sender'] === 'ai' ? 'text-left' : 'text-right' }}">
-                                        {{ $message['timestamp'] }}
-                                    </div>
-                                </div>
+                        <div class="flex {{ $message['sender'] === 'user' ? 'justify-end' : 'justify-start' }}">
+                            <div
+                                class="max-w-[80%] {{ $message['sender'] === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted/20 text-white' }} rounded-lg p-3">
+                                <p class="text-sm whitespace-pre-wrap">{{ $message['content'] }}</p>
+                                <p class="text-xs opacity-70 mt-1">{{ $message['timestamp'] }}</p>
                             </div>
+                        </div>
                     @endforeach
 
                     @if($quickChatLoading)
                         <div class="flex justify-start">
-                            <div class="max-w-[80%]">
-                                <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                                    <div class="flex space-x-2">
-                                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                                            style="animation-delay: 0.2s"></div>
-                                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                                            style="animation-delay: 0.4s"></div>
-                                    </div>
+                            <div class="bg-muted/20 rounded-lg p-3">
+                                <div class="flex items-center space-x-2">
+                                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                    <span class="text-sm text-muted">Thinking...</span>
                                 </div>
                             </div>
                         </div>
@@ -240,21 +226,10 @@
                 </div>
 
                 <!-- Input -->
-                <div class="p-4 border-t border-gray-200 dark:border-gray-700">
-                    <form wire:submit.prevent="sendQuickChat" class="flex gap-2">
-                        <input type="text" wire:model.defer="quickChatInput" placeholder="Type your message..."
-                            class="flex-1 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 focus:border-blue-500 focus:ring focus:ring-blue-200 dark:focus:ring-blue-800"
-                            {{ $quickChatLoading ? 'disabled' : '' }}>
-                        <button type="submit"
-                            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors"
-                            {{ $quickChatLoading ? 'disabled' : '' }}>
-                            @if($quickChatLoading)
-                                <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            @else
-                                Send
-                            @endif
-                        </button>
-                    </form>
+                <div class="p-4 border-t border-white/10">
+                    <x-chat-form wire-submit="sendQuickChat" wire-model="quickChatInput"
+                        placeholder="Share your thoughts..." :is-disabled="$quickChatLoading" :is-typing="$quickChatLoading"
+                        submit-icon="send" typing-icon="stop" />
                 </div>
             </div>
         </div>

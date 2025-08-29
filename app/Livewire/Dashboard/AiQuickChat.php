@@ -163,7 +163,10 @@ class AiQuickChat extends Component
         $this->quickChatLoading = true;
 
         try {
-            $prompt = "You are having a quick, supportive chat with a user. Be helpful, empathetic, and concise. User message: " . $userMessage;
+            $prompt = "You are having a quick, temporary chat with a user. This conversation will not be saved. ";
+            $prompt .= "Be helpful, empathetic, and concise. If the user wants to save the conversation, suggest using the main chat feature. ";
+            $prompt .= "User message: " . $userMessage;
+
             $aiResponse = app(AiChatService::class)->generateResponse($prompt, null);
 
             $this->quickChatMessages[] = [

@@ -39,6 +39,7 @@
         <!-- Header -->
         <div style="text-align: center; margin-bottom: 30px;">
             <h1 style="margin: 0; font-size: 38px; font-weight: bold; color: #ffffff;">
+
                 Lumina
             </h1>
             <p style="margin: 10px 0 0 0; font-size: 17px; color: #b3b3b3;">
