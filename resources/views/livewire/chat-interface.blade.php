@@ -78,11 +78,11 @@
 
                 </div>
                 <!--
-                                                 <div class=" flex  items center gap-2 justify-end">
-                                                        <span class="text-muted">Gen-Z Mode</span>
-                                                        <x-toggle :model="'darkMode'" />
-                                                    </div>
-                                                     -->
+                                                                 <div class=" flex  items center gap-2 justify-end">
+                                                                        <span class="text-muted">Gen-Z Mode</span>
+                                                                        <x-toggle :model="'darkMode'" />
+                                                                    </div>
+                                                                     -->
 
             </div>
 
@@ -174,40 +174,50 @@
 
             <!-- Message Input -->
             <div class="bg-gray-700 border-t border-gray-600 rounded-b-lg bg-gradient-dark p-4">
-                <x-chat-form 
-                    wire-submit="sendMessage"
-                    wire-model="newMessage"
-                    placeholder="Share your thoughts..."
-                    :is-typing="$isTyping"
-                    submit-icon="send"
-                    typing-icon="stop" />
+                <x-chat-form wire-submit="sendMessage" wire-model="newMessage" placeholder="Share your thoughts..."
+                    :is-typing="$isTyping" submit-icon="send" typing-icon="stop" />
             </div>
 
         @else
             <!-- No Active Session -->
             <div class="flex-1 flex items-center justify-center">
-                <div class="text-center max-w-md">
-                    <div class="flex items-center justify-center h-full text-center text-gray-500 py-8">
-                        <div class="w-full">
-                            <svg class="w-12 h-12 mx-auto mb-3 text-gray-600" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
-                                </path>
-                            </svg>
-                            <p class="text-sm">No conversations yet</p>
-                            <p class="text-xs mt-1">Start a new chat to begin</p>
+                @if(!$sessions)
+                    <div class="text-center max-w-md">
+                        <div class="flex items-center justify-center h-full text-center text-gray-500 py-8">
+                            <div class="w-full">
+                                <x-icon name="message" class="w-12 h-12 mx-auto mb-3 text-gray-600" />
+                                <p class="text-sm">You haven’t started any chats yet. Ready to dive in?</p>
+                                <p class="text-xs mt-1">Start a new chat to begin</p>
+                            </div>
                         </div>
+                        <button wire:click="createNewSession"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-medium transition-colors inline-flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            Start New Chat
+                        </button>
                     </div>
-                    <button wire:click="createNewSession"
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-medium transition-colors inline-flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        Start New Chat
-                    </button>
-                </div>
+                @else
+                    <div class="text-center max-w-md">
+                        <div class="flex items-center justify-center h-full text-center text-gray-500 py-8">
+                            <div class="w-full">
+                                <x-icon name="message" class="w-12 h-12 mx-auto mb-3 text-gray-600" />
+                                <p class="text-sm">This conversation is no longer available.</p>
+                                <p class="text-xs mt-1">Choose another from the sidebar or start a new one</p>
+                            </div>
+                        </div>
+                        <button wire:click="createNewSession"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-medium transition-colors inline-flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            Start New Chat
+                        </button>
+                    </div>
+                @endif
             </div>
+
         @endif
     </div>
 </div>
