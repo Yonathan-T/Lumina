@@ -15,7 +15,7 @@
     @livewireStyles
 </head>
 
-<body class="bg-[#060b16] text-[#c3beb6]  min-h-screen flex flex-col">
+<body class="bg-[#060b16] text-[#c3beb6] min-h-screen flex flex-col">
 
 
 
@@ -23,7 +23,7 @@
 
         <x-navs>
 
-            <a href="/" class="ml-5 flex items-center gap-2">
+            <a href="/" class="ml-3 flex items-center gap-2">
 
                 <svg class="w-10 h-10 rotate-[-45deg]" fill="currentColor" viewBox="0 0 24 24"
                     xmlns="http://www.w3.org/2000/svg">
@@ -33,7 +33,7 @@
                         <path d="M13,2l9,13.6L13,22ZM11,2,2,15.6,11,22Z"></path>
                     </g>
                 </svg>
-                <!-- <p class="">LUMINA</p> -->
+                <p class="font-playfair font-bold text-xl">LUMINA</p>
 
             </a>
             <div class="space-x-6 font-bold">
@@ -45,35 +45,33 @@
             </div>
             <div>
                 @auth
-                    <a href="/dashboard"
-                        class="
-                                                                                                                                                                                                                                                                                                                                                                                        border border-white/25 rounded-lg px-3 py-2
-                                                                                                                                                                                                                                                                                                                                                                                        bg-[#060b16] text-white font-semibold
-                                                                                                                                                                                                                                                                                                                                                                                        shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
-                                                                                                                                                                                                                                                                                                                                                                                        active:translate-y-[2px] 
-                                                                                                                                                                                                                                                                                                                                                                                        active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
-                                                                                                                                                                                                                                                                                                                                                                                        active:border-gray-600
-                                                                                                                                                                                                                                                                                                                                                                                        transition-all duration-200 ease-in-out
-                                                                                                                                                                                                                                                                                                                                                                                        select-none
-                                                                                                                                                                                                                                                                                                                                                                                        inline-block
-                                                                                                                                                                                                                                                                                                                                                                                    ">
+                    <a href="/dashboard" class="
+                                                                        border border-white/25 rounded-lg px-3 py-2
+                                                                        bg-[#060b16] text-white font-semibold
+                                                                        shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
+                                                                        active:translate-y-[2px] 
+                                                                        active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
+                                                                        active:border-gray-600
+                                                                        transition-all duration-200 ease-in-out
+                                                                        select-none
+                                                                        inline-block
+                                                                    ">
                         Dashboard
                     </a>
                 @endauth
                 @guest
 
-                    <a href="/auth/register"
-                        class="
-                                                                                                                                                                                                                                                                                                                                                                                        border border-white/25 rounded-lg px-3 py-2
-                                                                                                                                                                                                                                                                                                                                                                                        bg-[#060b16] text-white font-semibold
-                                                                                                                                                                                                                                                                                                                                                                                        shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
-                                                                                                                                                                                                                                                                                                                                                                                        active:translate-y-[2px] 
-                                                                                                                                                                                                                                                                                                                                                                                        active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
-                                                                                                                                                                                                                                                                                                                                                                                        active:border-gray-600
-                                                                                                                                                                                                                                                                                                                                                                                        transition-all duration-200 ease-in-out
-                                                                                                                                                                                                                                                                                                                                                                                        select-none
-                                                                                                                                                                                                                                                                                                                                                                                        inline-block
-                                                                                                                                                                                                                                                                                                                                                                                    ">
+                    <a href="/auth/register" class="
+                                                                                border border-white/25 rounded-lg px-3 py-2
+                                                                                bg-[#060b16] text-white font-semibold
+                                                                                shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
+                                                                                active:translate-y-[2px] 
+                                                                                active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
+                                                                                active:border-gray-600
+                                                                                transition-all duration-200 ease-in-out
+                                                                                select-none
+                                                                                inline-block
+                                                                            ">
                         Sign up
                     </a>
 

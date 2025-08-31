@@ -20,7 +20,7 @@
 
           </h2>
           <!--ANIMATion would be nice around here -->
-          <p class="mt-[24px] text-paper/70 max-w-md">
+          <p class="mt-[24px]  max-w-md">
             A beautiful, private space for your thoughts, dreams, and reflections.
             Lumina helps you cultivate mindfulness and emotional clarity through journaling.
           </p>
@@ -53,7 +53,7 @@
             class="w-full h-full bg-paper/10 backdrop-blur-sm rounded-xl shadow-2xl border border-paper/20 p-5 transform rotate-4">
             <div class="h-full rounded-lg bg-paper/10 p-6 flex flex-col">
               <div class="flex justify-between mb-6">
-                <div class="text-sm text-paper/70">{{ now()->format('F j')}}</div>
+                <div class="text-sm ">{{ now()->format('F j')}}</div>
                 <div class="text-accent-peach text-sm">Personal</div>
               </div>
               <h3 class="font-playfair text-lg mb-4">Today's Reflection</h3>
@@ -74,7 +74,7 @@
                         d="M14 10h4v4h-4v4h-4v-4H6v-4h4V6h4v4z" />
                     </svg>
                   </div>
-                  <span class="text-sm text-paper/70">Feeling calm today</span>
+                  <span class="text-sm ">Feeling calm today</span>
                 </div>
               </div>
             </div>
@@ -85,7 +85,7 @@
             class="absolute -bottom-10 -right-10 w-64 h-40 bg-paper/10 backdrop-blur-sm rounded-lg shadow-xl border border-paper/20 p-3 transform -rotate-6">
             <div class="h-full rounded bg-paper/10 p-3">
               <div class="flex justify-between mb-3">
-                <div class="text-xs text-paper/70">Jan 6</div>
+                <div class="text-xs ">Jan 6</div>
               </div>
               <div class="space-y-1 animate-pulse">
                 <div class="h-2 bg-white/20 rounded-full w-full"></div>

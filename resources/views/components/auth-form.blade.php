@@ -13,13 +13,13 @@
             <a href="{{ url('auth/google/redirect') }}"
                 class="cursor-pointer mt-2 w-full py-2 px-4 bg-white/5 border border-gray-600 rounded-md text-white hover:bg-gray-600 transition flex items-center justify-center">
                 <span class="text-xl">
-                    <x-icon name="google1" class="w-8 h-8" />
+                    <x-icon name="google" class="w-8 h-8" />
                 </span>
             </a>
             <a href="{{ url('auth/github/redirect') }}"
                 class="cursor-pointer mt-2 w-full py-2 px-4 bg-white/5 border border-gray-600 rounded-md text-white hover:bg-gray-600 transition flex items-center justify-center">
                 <span class="text-xl">
-                    <x-icon name="github" class="w-8 h-8 " />
+                    <x-icon name="github" class="w-8 h-8 text-white " />
                 </span>
             </a>
         </div>
