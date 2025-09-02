@@ -10,6 +10,7 @@ use App\Http\Controllers\SessionController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SocialLoginController;
+use App\Http\Controllers\BlogController;
 use App\Livewire\SettingsPanel;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\PasswordResetController;
@@ -42,8 +43,12 @@ Route::middleware('auth')->group(function () {
     // Settings
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     //Route::get('/settings', SettingsPanel::class)->name('settings.index');
+
+    // Blogs
 });
 
+Route::get('/blogs', [BlogController::class, 'index'])->name('blogs.index');
+Route::get('/blogs/refresh', [BlogController::class, 'refresh'])->name('blogs.refresh');
 Route::get('/', function () {
     return view('landing-page');
 });

@@ -6,6 +6,7 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use App\Console\Commands\SendDailyReminders;
 use App\Console\Commands\SendStreakReminders;
+use App\Console\Commands\FetchBlogContent;
 
 class Kernel extends ConsoleKernel
 {
@@ -29,6 +30,9 @@ class Kernel extends ConsoleKernel
 
         // Run the streak reminder every day at 7:00 PM
         $schedule->command(SendStreakReminders::class)->dailyAt('19:00');
+
+        // Fetch blog content twice daily
+        $schedule->command(FetchBlogContent::class)->twiceDaily(8, 20);
 
         // Process queued jobs every minute
         $schedule->command('queue:work --once')->everyMinute();

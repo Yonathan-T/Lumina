@@ -100,7 +100,7 @@
     </div>
   </section>
   <!--BENEFITS -->
-  <section class="mt-5  py-12 "> <!-- Main container -->
+  <section id="features" class="mt-5  py-12 "> <!-- Main container -->
     <div class="text-center max-w-2xl mx-auto mb-6">
       <h2 class="font-playfair text-3xl md:text-4xl font-bold mb-6 tracking-wide">
         Why Lumina?
@@ -134,7 +134,7 @@
 
   <!-- 
 ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
-  <footer class=" bg-white/5 border-t border-white/10 mt-20 py-12 px-16">
+  <footer id="contact" class=" bg-white/5 border-t border-white/10 mt-20 py-12 px-16">
     <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
 
       <!-- Brand Column -->
