@@ -27,8 +27,8 @@
 
                     <h2 class="text-3xl font-bold text-white mb-4 animate-fade-in">
                         Don't miss what's new at <span
-                            class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Memo
-                            Mate</span>
+                            class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Lumina
+                        </span>
                     </h2>
 
                     <p class="text-gray-300 text-lg mb-8 max-w-xl mx-auto">

@@ -33,7 +33,7 @@
             </a>
 
             <a href="{{ route('archive.entries') }}" wire:navigate
-                class="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('entries.index') ? 'bg-blue-300/15 text-white' : '' }}">
+                class="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('archive.entries') ? 'bg-blue-300/15 text-white' : '' }}">
 
                 <x-heroicon-o-calendar-days class="w-4 h-4" />
                 History
