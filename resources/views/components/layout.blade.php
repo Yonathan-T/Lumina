@@ -46,23 +46,6 @@
                 @auth
                     <a href="/dashboard"
                         class="
-                                                                                                                                                                                border border-white/25 rounded-lg px-3 py-2
-                                                                                                                                                                                bg-[#060b16] text-white font-semibold
-                                                                                                                                                                                shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
-                                                                                                                                                                                active:translate-y-[2px] 
-                                                                                                                                                                                active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
-                                                                                                                                                                                active:border-gray-600
-                                                                                                                                                                                transition-all duration-200 ease-in-out
-                                                                                                                                                                                select-none
-                                                                                                                                                                                inline-block
-                                                                                                                                                                            ">
-                        Dashboard
-                    </a>
-                @endauth
-                @guest
-
-                    <a href="/auth/register"
-                        class="
                                                                                                                                                                                         border border-white/25 rounded-lg px-3 py-2
                                                                                                                                                                                         bg-[#060b16] text-white font-semibold
                                                                                                                                                                                         shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
@@ -73,6 +56,23 @@
                                                                                                                                                                                         select-none
                                                                                                                                                                                         inline-block
                                                                                                                                                                                     ">
+                        Dashboard
+                    </a>
+                @endauth
+                @guest
+
+                    <a href="/auth/register"
+                        class="
+                                                                                                                                                                                                border border-white/25 rounded-lg px-3 py-2
+                                                                                                                                                                                                bg-[#060b16] text-white font-semibold
+                                                                                                                                                                                                shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
+                                                                                                                                                                                                active:translate-y-[2px] 
+                                                                                                                                                                                                active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
+                                                                                                                                                                                                active:border-gray-600
+                                                                                                                                                                                                transition-all duration-200 ease-in-out
+                                                                                                                                                                                                select-none
+                                                                                                                                                                                                inline-block
+                                                                                                                                                                                            ">
                         Sign up
                     </a>
 
@@ -103,37 +103,36 @@
 
 </html>
 <script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const sections = document.querySelectorAll('section[id]');
         const navLinks = document.querySelectorAll('a[data-section]');
 
         function highlightNav() {
             let current = '';
-            
+
             sections.forEach(section => {
                 const sectionTop = section.offsetTop;
-        const sectionHeight = section.clientHeight;
-                
+                const sectionHeight = section.clientHeight;
+
                 if (window.scrollY >= (sectionTop - 100)) {
-            current = section.getAttribute('id');
+                    current = section.getAttribute('id');
                 }
             });
 
             navLinks.forEach(link => {
-            link.classList.remove('text-white');
-        link.classList.add('text-gray-400');
+                link.classList.remove('text-white');
+                link.classList.add('text-gray-400');
 
-        if (link.getAttribute('data-section') === current) {
-            link.classList.remove('text-gray-400');
-        link.classList.add('text-white');
-        // Show the underline for active section
-        link.querySelector('span').classList.add('scale-x-100');
-        link.querySelector('span').classList.remove('scale-x-0');
+                if (link.getAttribute('data-section') === current) {
+                    link.classList.remove('text-gray-400');
+                    link.classList.add('text-white');
+                    // Show the underline for active section
+                    link.querySelector('span').classList.add('scale-x-100');
+                    link.querySelector('span').classList.remove('scale-x-0');
                 } else {
-            // Ensure other links' underlines are hidden when not active
-            link.querySelector('span').classList.remove('scale-x-100');
-        link.querySelector('span').classList.add('scale-x-0');
+                    // Ensure other links' underlines are hidden when not active
+                    link.querySelector('span').classList.remove('scale-x-100');
+                    link.querySelector('span').classList.add('scale-x-0');
                 }
             });
         }

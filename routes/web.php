@@ -10,6 +10,7 @@ use App\Http\Controllers\SessionController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SocialLoginController;
+use App\Livewire\Pricing;
 use App\Livewire\SettingsPanel;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\PasswordResetController;
@@ -83,3 +84,9 @@ Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
 // Route::post('/entries',[EntryController::class ,'store'])->middleware('auth');
 
 
+// Pricing page (public and authenticated)
+Route::get('/pricing', function () {
+    return auth()->check() 
+        ? view('SecViews.pricing')
+        : view('pricing');
+})->name('pricing');
