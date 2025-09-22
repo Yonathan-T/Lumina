@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Danestves\LaravelPolar\Billable;
 use App\Notifications\CustomResetPassword;
 use App\Services\StreakService;
 use NotificationChannels\WebPush\HasPushSubscriptions;
@@ -13,7 +14,7 @@ use NotificationChannels\WebPush\HasPushSubscriptions;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasPushSubscriptions;
+    use HasFactory, Notifiable, HasPushSubscriptions, Billable;
 
     /**
      * The attributes that are mass assignable.

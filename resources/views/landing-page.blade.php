@@ -132,7 +132,7 @@
   </div>
   <x-testimonials />
 
-  <x-pricing-section />
+  <x-pricing-section :products="$products" />
 
   <!-- 
 ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->

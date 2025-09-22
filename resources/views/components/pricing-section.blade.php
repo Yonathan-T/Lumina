@@ -1,11 +1,11 @@
-@props(['withBackground' => false])
+@props(['withBackground' => false, 'products' => []])
 
 <div id="pricing" class="relative w-full overflow-hidden">
     @if($withBackground)
-    <!-- Decorative elements -->
-    <div class="absolute inset-0 bg-gradient-to-br from-blue-900/30 via-transparent to-purple-900/30 -z-10"></div>
-    <div class="absolute -top-20 -right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
-    <div class="absolute -bottom-20 -left-20 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+        <!-- Decorative elements -->
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-900/30 via-transparent to-purple-900/30 -z-10"></div>
+        <div class="absolute -top-20 -right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-20 -left-20 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
     @endif
 
     <div class="relative z-10 w-full max-w-7xl mx-auto px-6 py-8">
@@ -44,45 +44,23 @@
 
         <!-- Pricing Cards -->
         <div class="grid gap-8 md:grid-cols-3 max-w-6xl mx-auto">
-            <!-- Free Plan -->
-            <x-pricing-card name="Free" subtitle="For casual journaling" price="Free" yearly-price="Free"
-                description="Perfect for getting started with journaling" :features="[
-        'Up to 10 journal entries',
-        'Basic entry organization',
-        'Simple tag system',
-        'Email support',
-        'Basic insights',
-        'Standard security'
-    ]" button-text="Get Started" :popular="false" />
+            @foreach ($products as $product)
+                @php
+                    $monthly = collect($product['prices'])->firstWhere('type', 'recurring');
+                    $yearly = collect($product['prices'])->firstWhere('type', 'recurring'); 
+                    $features = isset($product['benefits']) ? collect($product['benefits'])->pluck('description')->all() : [];
+                    $checkoutUrl = isset($product['prices'][0]['id']) ? url('/checkout?priceId=' . $product['prices'][0]['id']) : '#';
+                @endphp
 
-            <!-- Standard Plan -->
-            <x-pricing-card name="Standard" subtitle="For regular journalers" price="$9.99" yearly-price="$7.99"
-                description="Great for regular journaling with AI insights" :features="[
-        'Unlimited journal entries',
-        'Advanced organization',
-        'AI mood tracking',
-        '10 therapy chats/month',
-        'Export options',
-        'Priority support',
-        'Advanced analytics',
-        'Custom themes'
-    ]" button-text="Start Free Trial" :popular="true" />
-
-            <!-- Pro Plan -->
-            <x-pricing-card name="Pro" subtitle="For power users" price="$19.99" yearly-price="$15.99"
-                description="Complete journaling experience with premium AI" :features="[
-        'Everything in Standard',
-        'Unlimited AI therapy',
-        'AI pattern recognition',
-        'Voice-to-text',
-        'Audio summaries',
-        '24/7 priority support',
-        'Advanced security',
-        'API access',
-        'Early access to features',
-        'AI coach recommendations'
-    ]"
-                button-text="Start Free Trial" :popular="false" />
+                <x-pricing-card :name="$product['name']"
+                    subtitle="" :price="'$' . ($monthly ? $monthly['price_amount'] / 100 : '0.00')"
+                    :yearly-price="'$' . ($yearly ? $yearly['price_amount'] / 100 * 0.8 : '0.00')" 
+                    {{-- Assuming a 20% discount for yearly sub--}}
+                     :description="$product['description']" :features="$features"
+                    button-text="Get Started" 
+                    :checkout-url="$checkoutUrl"
+                    :popular="$product['name'] === 'Standard Journaling Plan'" />
+            @endforeach
         </div>
     </div>
 </div>

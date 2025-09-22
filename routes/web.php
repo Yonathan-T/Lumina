@@ -9,9 +9,14 @@ use App\Http\Controllers\RegisteredUserController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\SearchController;
+
+use App\Http\Controllers\ConfirmationController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\SocialLoginController;
+use App\Http\Controllers\ProductsController;
 use App\Livewire\Pricing;
 use App\Livewire\SettingsPanel;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\PasswordResetController;
 
@@ -51,7 +56,8 @@ Route::get('/blogs', function () {
     return view('blogs.index');
 })->name('blogs.index');
 Route::get('/', function () {
-    return view('landing-page');
+    $products = ProductsController::fetchProducts();
+    return view('landing-page', ['products' => $products]);
 });
 // Route::get('/dashboard', function () {
 //     return view('entries.index');
@@ -67,7 +73,7 @@ Route::post('/auth/logout', [SessionController::class, 'destroy'])->name('logout
 Route::get('/auth/{provider}/redirect', [SocialLoginController::class, 'redirectToProvider']);
 Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'handleProviderCallback']);
 
-Route::get('/search', [App\Http\Controllers\SearchController::class, 'search'])->name('search');
+Route::get('/search', [SearchController::class, 'search'])->name('search');
 
 Route::get('password/reset', [PasswordResetController::class, 'showLinkRequestForm'])->name('password.request');
 
@@ -83,10 +89,12 @@ Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
 // Route::get('/entries',[EntryController::class ,'create']);
 // Route::post('/entries',[EntryController::class ,'store'])->middleware('auth');
 
+// Subscription management routes
+Route::middleware('auth')->group(function () {
+    Route::post('/subscription/upgrade', [ConfirmationController::class, 'upgradeSubscription'])->name('subscription.upgrade');
+});
 
-// Pricing page (public and authenticated)
-Route::get('/pricing', function () {
-    return auth()->check() 
-        ? view('SecViews.pricing')
-        : view('pricing');
-})->name('pricing');
+// Pricing and checkout routes
+Route::get('/pricing', [ProductsController::class, 'handle'])->name('pricing');
+Route::get('/checkout', [CheckoutController::class, 'handle']);
+Route::get('/confirmation', [ConfirmationController::class, 'handle']);
