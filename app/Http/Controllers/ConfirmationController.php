@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Plan;
 use App\Mail\WelcomeEmail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -42,7 +41,7 @@ class ConfirmationController extends Controller
                 ]);
 
                 // Handle specific error cases
-                if (str_contains(strtolower($errorMessage), 'already have an active subscription')) {
+                if (str_contains(strtolower($errorMessage), 'You already have an active subscription')) {
                     // Check if we can find the existing subscription
                     $email = $request->query('email') ?? $request->user()?->email;
                     if ($email) {
@@ -71,6 +70,7 @@ class ConfirmationController extends Controller
                 'customer_email' => $checkout['customer_email'] ?? null,
                 'customer_id' => $checkout['customer_id'] ?? null,
                 'subscription_id' => $checkout['subscription_id'] ?? null,
+                'product_id' => $checkout['product']['id'] ?? null,
                 'product_name' => $checkout['product']['name'] ?? null,
                 'checkout_id' => $checkout['id'] ?? null
             ]);
@@ -82,19 +82,13 @@ class ConfirmationController extends Controller
                 return redirect('/')->with('error', 'No email found in checkout details. Please contact support.');
             }
 
-            // Get the product name from the checkout
+            // Get the product information from the checkout
+            $productId = $checkout['product']['id'] ?? null;
             $productName = $checkout['product']['name'] ?? null;
-            if (!$productName) {
-                \Log::error('No product name found in checkout', ['checkout' => $checkout]);
+
+            if (!$productId || !$productName) {
+                \Log::error('No product information found in checkout', ['checkout' => $checkout]);
                 return redirect('/')->with('error', 'No product information found in checkout. Please contact support.');
-            }
-
-            // Find the corresponding plan in your database
-            $plan = Plan::where('name', $productName)->first();
-
-            if (!$plan) {
-                \Log::error('Plan not found', ['product_name' => $productName]);
-                return redirect('/')->with('error', 'Selected plan not found. Please contact support.');
             }
 
             // Get the customer name from checkout, or use the part before @ in email as a fallback
@@ -109,15 +103,9 @@ class ConfirmationController extends Controller
 
             // Update or set user details with the customer's name
             $user->name = $customerName;
-            $user->plan_id = $plan->id;
-            $user->polar_customer_id = $checkout['customer_id'];
-            $user->subscription_id = $checkout['subscription_id'];
 
-            // Set subscription end date
-            $interval = $checkout['product']['recurring_interval'] ?? 'month';
-            $user->subscription_ends_at = $interval === 'year'
-                ? Carbon::now()->addYear()
-                : Carbon::now()->addMonth();
+            // The Polar Billable trait will handle the subscription data automatically
+            // through the polar_subscriptions table when the webhook is processed
 
             // For new users, generate a password reset token and send welcome email
             if ($isNewUser) {

@@ -20,6 +20,7 @@ class CheckoutController extends Controller
 
         if (auth()->check()) {
             $payload['customer_email'] = auth()->user()->email;
+            $payload['customer_name'] = auth()->user()->name;
         }
 
         $result = Http::withHeaders([
