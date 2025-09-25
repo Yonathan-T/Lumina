@@ -99,17 +99,18 @@
 </style>
 
 <div class="modal-overlay" id="welcome-modal">
-    <div class="modal-content">
-        <div class="heart-icon">💖</div>
-        <h3>Thank You!</h3>
-        <p>You now have access to all Lumina's features!</p>
-        <a href="{{ route('dashboard') }}" class="dashboard-button">
-            Go to Dashboard
-        </a>
-        <a href="#" class="support-link">
-            Need help? Visit our Support Center.
-        </a>
-    </div>
+        <div class="modal-content">
+                <div class="heart-icon">💖</div>
+                <h3>Thank You!</h3>
+                <p>Your payment was successful! We are setting up your account and subscription. You will receive an
+            email shortly with details on how to access your new features.</p>
+                <a href="{{ route('dashboard') }}" class="dashboard-button">
+                        Go to Dashboard
+                    </a>
+                <a href="#" class="support-link">
+                        Need help? Visit our Support Center.
+                    </a>
+            </div>
 </div>
 
 <script>

@@ -1,5 +1,4 @@
 <?php
-
 return [
     'configs' => [
         [
@@ -7,7 +6,7 @@ return [
              * This package supports multiple webhook receiving endpoints. If you only have
              * one endpoint receiving webhooks, you can use 'default'.
              */
-            'name' => 'polar',
+            'name' => 'default',
 
             /*
              * We expect that every webhook call will be signed using a secret. This secret
@@ -25,23 +24,24 @@ return [
              *
              * It should implement \Spatie\WebhookClient\SignatureValidator\SignatureValidator
              */
-            'signature_validator' => Danestves\LaravelPolar\Handlers\PolarSignature::class,
+            // 'signature_validator' => \Spatie\WebhookClient\SignatureValidator\DefaultSignatureValidator::class,
+            'signature_validator' => App\Handler\PolarSignature::class,
 
             /*
              * This class determines if the webhook call should be stored and processed.
              */
-            'webhook_profile' => Spatie\WebhookClient\WebhookProfile\ProcessEverythingWebhookProfile::class,
+            'webhook_profile' => \Spatie\WebhookClient\WebhookProfile\ProcessEverythingWebhookProfile::class,
 
             /*
              * This class determines the response on a valid webhook call.
              */
-            'webhook_response' => Spatie\WebhookClient\WebhookResponse\DefaultRespondsTo::class,
+            'webhook_response' => \Spatie\WebhookClient\WebhookResponse\DefaultRespondsTo::class,
 
             /*
              * The classname of the model to be used to store webhook calls. The class should
              * be equal or extend Spatie\WebhookClient\Models\WebhookCall.
              */
-            'webhook_model' => Spatie\WebhookClient\Models\WebhookCall::class,
+            'webhook_model' => \Spatie\WebhookClient\Models\WebhookCall::class,
 
             /*
              * In this array, you can pass the headers that should be stored on
@@ -49,28 +49,21 @@ return [
              *
              * To store all headers, set this value to `*`.
              */
-            'store_headers' => [
-
-            ],
+            'store_headers' => [],
 
             /*
              * The class name of the job that will process the webhook request.
              *
              * This should be set to a class that extends \Spatie\WebhookClient\Jobs\ProcessWebhookJob.
              */
-            'process_webhook_job' => Danestves\LaravelPolar\Handlers\ProcessWebhook::class,
+            'process_webhook_job' => App\Handler\ProcessWebhook::class,
         ],
     ],
 
     /*
      * The integer amount of days after which models should be deleted.
      *
-     * It deletes all records after 30 days. Set to null if no models should be deleted.
+     * 7 deletes all records after 1 week. Set to null if no models should be deleted.
      */
     'delete_after_days' => 30,
-
-    /*
-     * Should a unique token be added to the route name
-     */
-    'add_unique_token_to_route_name' => false,
 ];

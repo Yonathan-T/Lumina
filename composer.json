@@ -23,6 +23,7 @@
         "laravel/tinker": "^2.10.1",
         "livewire/livewire": "^3.6",
         "saade/blade-iconsax": "^1.2",
+        "spatie/laravel-webhook-client": "^3.4",
         "standard-webhooks/standard-webhooks": "dev-main"
     },
     "require-dev": {
