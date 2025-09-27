@@ -1,130 +1,57 @@
-<style>
-    /* Styles for the modal overlay and content */
-    :root {
-        --dark-bg: #1A1A2E;
-        --modal-bg: rgba(26, 26, 46, 0.9);
-        --text-color: #E0E0E0;
-        --accent-blue: #4E60F7;
-        --accent-purple: #8A4EF7;
-    }
+{{-- resources/views/components/thank-you.blade.php --}}
+@props(['preview' => false, 'orderDetails' => null])
+<x-layout :showSidebar="false" :showNav="false">
 
-    .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.6);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-    }
+    <div class="min-h-screen bg-black relative overflow-hidden flex items-center justify-center">
+        <div class="absolute inset-0">
+            {{-- Confetti particles --}}
+            @for ($i = 0; $i < 50; $i++)
+                @php
+                    $left = rand(0, 100);
+                    $top = rand(0, 100);
+                    $animationDelay = rand(0, 3000) / 1000;
+                    $animationDuration = 2 + rand(0, 3000) / 1000;
+                    $colors = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#06b6d4", "#3b82f6", "#8b5cf6", "#ec4899"];
+                    $color = $colors[array_rand($colors)];
+                  @endphp
+                <div class="absolute animate-pulse"
+                    style="left: {{ $left }}%; top: {{ $top }}%; animation-delay: {{ $animationDelay }}s; animation-duration: {{ $animationDuration }}s;">
+                    <div class="w-2 h-2 rounded-full" style="background-color: {{ $color }};"></div>
+                </div>
+            @endfor
+        </div>
 
-    .modal-content {
-        background: var(--modal-bg);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        padding: 30px;
-        border-radius: 15px;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        text-align: center;
-        width: 90%;
-        max-width: 400px;
-        color: var(--text-color);
-        position: relative;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
+        <div class="relative z-10 max-w-sm w-full mx-4">
+            <div
+                class="bg-gray-800/90 backdrop-blur-lg border border-gray-700/50 rounded-3xl p-8 text-center shadow-2xl">
+                {{-- Success Icon with celebration --}}
+                <div class="flex items-center justify-center gap-2 mb-6">
+                    {{-- Assuming you have SVG Blade components for Brain and Sparkles --}}
+                    <x-icons name="brain" class="w-6 h-6 text-red-500" />
+                    <x-icons name="sparkles" class="w-6 h-6 text-yellow-400" />
+                </div>
 
-    .heart-icon {
-        font-size: 3rem;
-        animation: pulse 1.5s infinite ease-in-out;
-    }
+                {{-- Simple Thank You Message --}}
+                <h1 class="text-3xl font-bold text-white mb-4">Thank You!</h1>
+                <p class="text-gray-300 mb-8">
+                    You now have access to all {{ $preview ? 'Premium' : ($orderDetails->planName ?? 'Premium') }}
+                    features.
+                </p>
 
-    @keyframes pulse {
+                {{-- Single Action Button --}}
+                <a href="{{ url('/') }}"
+                    class="block w-full bg-gray-700 hover:bg-gray-600 text-white font-medium py-4 px-6 rounded-2xl transition-all duration-200 mb-6">
+                    Done
+                </a>
 
-        0%,
-        100% {
-            transform: scale(1);
-        }
-
-        50% {
-            transform: scale(1.1);
-        }
-    }
-
-    .modal-content h3 {
-        font-size: 1.8rem;
-        margin-top: 15px;
-        margin-bottom: 10px;
-        font-weight: 600;
-    }
-
-    .modal-content p {
-        font-size: 1rem;
-        line-height: 1.5;
-        margin-bottom: 25px;
-        color: #B0B0B0;
-    }
-
-    .dashboard-button {
-        display: inline-block;
-        padding: 12px 25px;
-        border-radius: 8px;
-        text-decoration: none;
-        color: #fff;
-        font-weight: bold;
-        background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .dashboard-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-    }
-
-    .support-link {
-        color: var(--accent-blue);
-        text-decoration: none;
-        font-weight: bold;
-        margin-top: 20px;
-        display: block;
-        transition: color 0.2s;
-    }
-
-    .support-link:hover {
-        color: var(--accent-purple);
-    }
-</style>
-
-<div class="modal-overlay" id="welcome-modal">
-        <div class="modal-content">
-                <div class="heart-icon">💖</div>
-                <h3>Thank You!</h3>
-                <p>Your payment was successful! We are setting up your account and subscription. You will receive an
-            email shortly with details on how to access your new features.</p>
-                <a href="{{ route('dashboard') }}" class="dashboard-button">
-                        Go to Dashboard
-                    </a>
-                <a href="#" class="support-link">
-                        Need help? Visit our Support Center.
-                    </a>
-            </div>
-</div>
-
-<script>
-    // Optional: JavaScript to show/hide the modal
-    // You can control its visibility with a Blade conditional if you prefer.
-    const modal = document.getElementById('welcome-modal');
-
-    // Example of a simple way to show the modal
-    // modal.style.display = 'flex';
-
-    // Example of a way to hide the modal on click outside
-    modal.addEventListener('click', (e) => {
-        if (e.target.id === 'welcome-modal') {
-            modal.style.display = 'none';
-        }
-    });
-</script>
+                <p class="text-sm text-gray-400">
+                    @if ($preview)
+                        A confirmation email will be sent to your inbox
+                    @else
+                        Your invoice is available in the <span class="text-orange-400">Customer Portal</span>
+                    @endif
+                </p>
+            </div>
+        </div>
+    </div>
+</x-layout>
