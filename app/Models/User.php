@@ -10,6 +10,8 @@ use Danestves\LaravelPolar\Billable;
 use App\Notifications\CustomResetPassword;
 use App\Services\StreakService;
 use NotificationChannels\WebPush\HasPushSubscriptions;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use App\Models\Payment\PolarSubscription;
 
 class User extends Authenticatable
 {
@@ -26,8 +28,13 @@ class User extends Authenticatable
         'email',
         'password',
         'reminder_time',
-        'settings'
+        'settings',
+        // --- CRITICAL POLAR WEBHOOK FIELDS ADDED BELOW ---
+        'polar_customer_id',
+        'is_subscribed',
+        // ---
     ];
+    
     public function hasEntryToday()
     {
         return StreakService::getCurrentStreak($this) > 0 && now()->isSameDay(StreakService::getLastEntryDate($this));
@@ -58,6 +65,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'settings' => 'array',
+            'is_subscribed' => 'boolean',
         ];
     }
     public function entries()
@@ -69,4 +77,11 @@ class User extends Authenticatable
         $this->notify(new CustomResetPassword($token));
     }
 
+    /**
+     * Subscriptions linked to this user via the billable morph.
+     */
+    public function subscriptions(): MorphMany
+    {
+        return $this->morphMany(PolarSubscription::class, 'billable');
+    }
 }
