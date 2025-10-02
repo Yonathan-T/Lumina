@@ -64,7 +64,7 @@ class ProcessWebhook extends ProcessWebhookJob
                     case "subscription.paused":
                         $this->handleSubscriptionUpdateEvent($data);
                         break;
-                        
+
                     case "subscription.canceled":
                     case "subscription.revoked":
                         $this->handleSubscriptionRevokeEvent($data);
@@ -80,7 +80,7 @@ class ProcessWebhook extends ProcessWebhookJob
                     'exception' => $e,
                     'payload' => $data,
                 ]);
-                throw $e; 
+                throw $e;
             }
         });
 
@@ -96,19 +96,27 @@ class ProcessWebhook extends ProcessWebhookJob
         $polarId = $data['id'];
         $email = $data['email'] ?? null;
         $name = $data['name'] ?? null;
-        
-        $billable = $this->findOrCreateUserFromEmail($email, $name);
-        
+
+        $billable = $this->findUserFromEmail($email);
+
+        if (!$billable) {
+            Log::error('Customer event for non-existent user. User must be registered before payment.', [
+                'polar_id' => $polarId,
+                'email' => $email
+            ]);
+            return;
+        }
+
         $updateFields = [
-            'trial_ends_at' => null, 
+            'trial_ends_at' => null,
             'billable_id' => $billable->getKey(),
             'billable_type' => $billable->getMorphClass(),
         ];
 
         try {
             $existingForUser = PolarCustomer::where('billable_type', $billable->getMorphClass())
-                                            ->where('billable_id', $billable->getKey())
-                                            ->first();
+                ->where('billable_id', $billable->getKey())
+                ->first();
 
             if ($existingForUser && empty($existingForUser->polar_id)) {
                 $existingForUser->fill($updateFields);
@@ -117,13 +125,13 @@ class ProcessWebhook extends ProcessWebhookJob
                 $polarCustomer = $existingForUser;
             } else {
                 $polarCustomer = PolarCustomer::updateOrCreate(
-                    ['polar_id' => $polarId], 
+                    ['polar_id' => $polarId],
                     $updateFields
                 );
             }
 
             Log::info('PolarCustomer record updated/created.', [
-                'polar_id' => $polarId, 
+                'polar_id' => $polarId,
                 'local_user_id' => $billable->id,
             ]);
 
@@ -132,7 +140,7 @@ class ProcessWebhook extends ProcessWebhookJob
                 $billable->save();
             }
         } catch (Exception $e) {
-             Log::error('PolarCustomer DB Insertion Failed.', [
+            Log::error('PolarCustomer DB Insertion Failed.', [
                 'error' => $e->getMessage(),
                 'polar_id' => $polarId,
                 'email_used' => $email
@@ -173,13 +181,13 @@ class ProcessWebhook extends ProcessWebhookJob
             Log::info('Found local User via PolarCustomer link.', ['User name' => $user->name]);
         } else {
             if ($customerEmail) {
-                $user = $this->findOrCreateUserFromEmail($customerEmail, $customerName);
+                $user = $this->findUserFromEmail($customerEmail);
             }
 
             if ($user) {
                 $existingForUser = PolarCustomer::where('billable_type', $user->getMorphClass())
-                                                ->where('billable_id', $user->getKey())
-                                                ->first();
+                    ->where('billable_id', $user->getKey())
+                    ->first();
                 if ($existingForUser && empty($existingForUser->polar_id)) {
                     $existingForUser->polar_id = $polarCustomerId;
                     $existingForUser->save();
@@ -195,14 +203,14 @@ class ProcessWebhook extends ProcessWebhookJob
                 }
             }
         }
-        
+
         if (!$user) {
             Log::error('Order paid for unknown or unlinked user.', [
-                'polar_order_id' => $polarOrderId, 
+                'polar_order_id' => $polarOrderId,
                 'polar_customer_id' => $polarCustomerId,
                 'email' => $customerEmail
             ]);
-            return; 
+            return;
         }
 
         try {
@@ -212,7 +220,7 @@ class ProcessWebhook extends ProcessWebhookJob
             }
 
             $order = PolarOrder::updateOrCreate(
-                ['polar_id' => $polarOrderId], 
+                ['polar_id' => $polarOrderId],
                 [
                     'billable_type' => $user->getMorphClass(),
                     'billable_id' => $user->getKey(),
@@ -254,7 +262,7 @@ class ProcessWebhook extends ProcessWebhookJob
 
         } catch (Exception $e) {
             Log::error('PolarOrder processing failed.', ['error' => $e->getMessage(), 'polar_id' => $polarOrderId, 'data_keys' => array_keys($data)]);
-            throw $e; 
+            throw $e;
         }
     }
 
@@ -325,19 +333,28 @@ class ProcessWebhook extends ProcessWebhookJob
         $polarCustomerId = $data['customer_id'];
         $customerEmail = $data['customer']['email'] ?? null;
         $customerName = $data['customer']['name'] ?? null;
-        
+
         $polarCustomer = PolarCustomer::where('polar_id', $polarCustomerId)->first();
 
         if (!$polarCustomer || !$polarCustomer->billable) {
             if ($customerEmail) {
-                $user = $this->findOrCreateUserFromEmail($customerEmail, $customerName);
-                $polarCustomer = PolarCustomer::updateOrCreate(
-                    ['polar_id' => $polarCustomerId],
-                    [
-                        'billable_type' => $user->getMorphClass(),
-                        'billable_id' => $user->getKey(),
-                    ]
-                );
+                $user = $this->findUserFromEmail($customerEmail);
+                if ($user) {
+                    $polarCustomer = PolarCustomer::updateOrCreate(
+                        ['polar_id' => $polarCustomerId],
+                        [
+                            'billable_type' => $user->getMorphClass(),
+                            'billable_id' => $user->getKey(),
+                        ]
+                    );
+                } else {
+                    Log::error('Subscription update failed: User not found. User must be registered before payment.', [
+                        'subscription_id' => $data['id'],
+                        'customer_id' => $polarCustomerId,
+                        'email' => $customerEmail,
+                    ]);
+                    return;
+                }
             } else {
                 Log::error('Subscription update failed: Cannot resolve user without email.', [
                     'subscription_id' => $data['id'],
@@ -348,14 +365,14 @@ class ProcessWebhook extends ProcessWebhookJob
         }
 
         $user = $polarCustomer->billable;
-        
+
         PolarSubscription::updateOrCreate(
             ['polar_id' => $data['id']],
             [
                 'billable_type' => $user->getMorphClass(),
                 'billable_id' => $user->getKey(),
-                
-                'type' => $data['recurring_interval'] ? 'recurring' : 'one_time', 
+
+                'type' => $data['recurring_interval'] ? 'recurring' : 'one_time',
                 'status' => $status,
                 'product_id' => $data['product_id'],
                 'current_period_end' => $data['current_period_end'] ? Carbon::parse($data['current_period_end']) : null,
@@ -386,54 +403,50 @@ class ProcessWebhook extends ProcessWebhookJob
         Log::warning('PolarSubscription status updated to revoked/canceled.', ['id' => $subscriptionId, 'status' => $status]);
 
         $polarCustomer = PolarCustomer::where('polar_id', $polarCustomerId)->first();
-        
+
         if ($polarCustomer && $polarCustomer->billable) {
-             $user = $polarCustomer->billable; 
-             
-             $hasOtherActiveSubs = $user->subscriptions()
-                                        ->where('status', 'active')
-                                        ->where('polar_id', '!=', $subscriptionId)
-                                        ->exists();
-             
-             if (!$hasOtherActiveSubs) {
+            $user = $polarCustomer->billable;
+
+            $hasOtherActiveSubs = $user->subscriptions()
+                ->where('status', 'active')
+                ->where('polar_id', '!=', $subscriptionId)
+                ->exists();
+
+            if (!$hasOtherActiveSubs) {
                 $user->is_subscribed = false;
                 $user->save();
                 Log::info('User access revoked/canceled (no other active subscriptions found).', ['user_id' => $user->id]);
-             } else {
-                 Log::info('Subscription canceled, but user retains access due to other active subscriptions.', ['user_id' => $user->id]);
-             }
+            } else {
+                Log::info('Subscription canceled, but user retains access due to other active subscriptions.', ['user_id' => $user->id]);
+            }
         }
     }
 
     /**
-     * Case-insensitive lookup for User by email. Creates a minimal User if none exists.
+     * Case-insensitive lookup for User by email.
+     * Returns null if user doesn't exist (user must be registered before payment).
      */
-    private function findOrCreateUserFromEmail(?string $email, ?string $name = null): User
+    private function findUserFromEmail(?string $email): ?User
     {
         if (!$email) {
-            throw new Exception('Email is required to resolve or create a User.');
+            Log::error('Email is required to find a User.');
+            return null;
         }
 
         $normalizedEmail = strtolower(trim($email));
 
         $user = User::whereRaw('LOWER(email) = ?', [$normalizedEmail])->first();
+
         if ($user) {
-            return $user;
+            Log::info('Found existing user from webhook email.', [
+                'user_id' => $user->id,
+                'email' => $normalizedEmail,
+            ]);
+        } else {
+            Log::warning('User not found for webhook email. User must register before payment.', [
+                'email' => $normalizedEmail,
+            ]);
         }
-
-        $user = new User();
-        $user->email = $normalizedEmail;
-        if ($name) {
-            $user->name = $name;
-        }
-        $user->password = bcrypt(Str::random(32));
-        $user->is_subscribed = false;
-        $user->save();
-
-        Log::info('Created new local User from webhook email.', [
-            'user_id' => $user->id,
-            'email' => $normalizedEmail,
-        ]);
 
         return $user;
     }
