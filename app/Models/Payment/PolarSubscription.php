@@ -6,7 +6,7 @@ namespace App\Models\Payment;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
+use Carbon\Carbon;
 /**
  * @property string $polar_subscription_id Unique ID from Polar
  * @property string $polar_customer_id Foreign key to PolarCustomer
@@ -19,7 +19,7 @@ class PolarSubscription extends Model
     use HasFactory;
 
     protected $table = 'polar_subscriptions';
-    
+
     // Use default auto-increment primary key
     protected $fillable = [
         'billable_type',
@@ -45,5 +45,11 @@ class PolarSubscription extends Model
     {
         return $this->belongsTo(PolarCustomer::class, 'customer_id', 'polar_id');
     }
-     
+    public function isActive(): bool
+    {
+        return $this->status === 'active' &&
+            $this->current_period_end instanceof Carbon &&
+            $this->current_period_end->isFuture();
+    }
+
 }

@@ -69,14 +69,14 @@ You are Lumi, Lumi is the short form of Lumina, a platform dedicated to self-ref
 If the user asks if you remember, you will acknowledge the conversation and proceed. You will not admit to being an AI with a lack of memory.
 ### Key principles you follow:
 
-- Respond as if you were a real, empathetic friend.
+- Respond as if you were a real, empathetic friend Listen and respond naturally - don't over-analyze or ask obvious questions.
 - Use simple, human-like language.
-- Ask open-ended questions to encourage the user to share more.
+- Ask open-ended questions to encourage the user to share more but - When someone is clear about something, acknowledge it and move forward.
 - Never use markdown formatting like asterisks (*), bolding (**), or numbered lists.
 - **When the user starts the conversation with a simple greeting like 'hey there,' respond with a warm and conversational, but very concise, greeting that is no more than one short sentence. For example, 'Hey there! So glad you're here today' or 'Hi! Great to see you, how can I support you today?' or 'Hey there! Ready to begin journaling today? Would you like to share what's on your mind?'**
 - Maintain a warm, encouraging, and non-judgmental tone.
 
-- Contextual Awareness: Use the user's past journal entries as context to guide conversations, provide relevant reflections, and offer personalized prompts or advice.
+- Contextual Awareness: Use the user's past journal entries as context to guide conversations, provide relevant reflections, and offer personalized prompts or advice, but reference journal entries only when truly relevant, not forced.
 
 - Empathy and Support: Respond with kindness, patience, and understanding, mirroring the tone of a compassionate therapist or supportive friend.
 
@@ -92,22 +92,36 @@ If the user asks if you remember, you will acknowledge the conversation and proc
 
 ### Remember: your purpose is to listen deeply, respond thoughtfully, and gently guide users in their journey of understanding themselves better—one entry at a time.
 
-### Always maintain a warm, encouraging, and non-judgmental tone throughout the conversation.
+### Always maintain a warm, encouraging, and non-judgmental tone throughout the conversation - Be encouraging without being repetitive or overly therapeutic.
+
+### And finally Focus on genuine connection over coaching techniques
 
 " . $userContext;
         #endregion
         $messages = $this->buildGeminiMessages($message, $conversationHistory);
+        
+        $requestData = [
+            'contents' => $messages,
+            'systemInstruction' => [
+                'parts' => [
+                    ['text' => $systemPrompt]
+                ]
+            ],
+        ];
+        
+        \Log::info('Gemini Request Data', ['request' => $requestData]);
 
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-        ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$this->geminiApiKey}", [
-                    'system_instruction' => [
-                        'parts' => [
-                            ['text' => $systemPrompt]
-                        ]
-                    ],
-                    'contents' => $messages,
-                ]);
+       $response = Http::withHeaders([
+    'Content-Type' => 'application/json',
+])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$this->geminiApiKey}", [
+    'contents' => $messages,
+    'systemInstruction' => [
+        'parts' => [
+['text' => $systemPrompt]
+        ]
+    ],
+]);
+
 
         if ($response->successful()) {
             $data = $response->json();
@@ -282,24 +296,45 @@ You are Lumi, an empathetic and intelligent journaling assistant designed to sup
     {
         $messages = [];
 
-        // Add conversation history
+        $genericError = 'Sorry, I encountered an error while processing your request.';
+        $lastRole = null;
+        $lastText = null;
+
+        // Add conversation history, filtering out prior generic error responses and collapsing duplicates
         foreach ($conversationHistory as $historyMessage) {
             $role = $historyMessage['is_ai_response'] ? 'model' : 'user';
+            $text = (string) ($historyMessage['content'] ?? '');
+
+            // Skip AI generic error echoes
+            if ($historyMessage['is_ai_response'] && trim($text) === $genericError) {
+                continue;
+            }
+
+            // Collapse duplicate consecutive messages
+            if ($lastRole === $role && $lastText !== null && trim($lastText) === trim($text)) {
+                continue;
+            }
+
             $messages[] = [
                 'role' => $role,
                 'parts' => [
-                    ['text' => $historyMessage['content']]
+                    ['text' => $text]
+                ]
+            ];
+
+            $lastRole = $role;
+            $lastText = $text;
+        }
+
+        // Add current message (and avoid duplicating if it's the same as the last user turn)
+        if (!($lastRole === 'user' && $lastText !== null && trim($lastText) === trim($message))) {
+            $messages[] = [
+                'role' => 'user',
+                'parts' => [
+                    ['text' => $message]
                 ]
             ];
         }
-
-        // Add current message
-        $messages[] = [
-            'role' => 'user',
-            'parts' => [
-                ['text' => $message]
-            ]
-        ];
 
         \Log::info(json_encode($messages));
         return $messages;
@@ -391,7 +426,7 @@ You are Lumi, an empathetic and intelligent journaling assistant designed to sup
 
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
-        ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$this->geminiApiKey}", [
+])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$this->geminiApiKey}", [
                     'contents' => [
                         [
                             'role' => 'user',
