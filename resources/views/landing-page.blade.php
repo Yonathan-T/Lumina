@@ -132,6 +132,8 @@
   </div>
   <x-testimonials />
 
+  <x-pricing-section :products="$products" />
+
   <!-- 
 ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
   <footer id="contact" class=" bg-white/5 border-t border-white/10 mt-20 py-12 px-16">

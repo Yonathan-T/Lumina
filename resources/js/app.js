@@ -240,10 +240,11 @@ self.addEventListener('notificationclick', event => {
 
 const profileButton = document.getElementById('profileButton');
 const profileMenu = document.getElementById('profileMenu');
-
-profileButton.addEventListener('click', () => {
-    profileMenu.classList.toggle('hidden');
-});
+if(profileButton && profileMenu) {
+    profileButton.addEventListener('click', () => {
+        profileMenu.classList.toggle('hidden');
+    });
+}
 
 // Optional: Close when clicking outside
 document.addEventListener('click', (event) => {

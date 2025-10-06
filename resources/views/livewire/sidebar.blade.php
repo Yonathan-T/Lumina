@@ -68,8 +68,8 @@
         </nav>
 
         {{-- Upgrade Button --}}
-        <div class=" p-4">
-            <a href="#" type="button"
+        <div class="p-4">
+            <a href="{{ route('pricing') }}" wire:navigate type="button"
                 class="z-222 h-10 px-4 py-2 w-full border border-white/10 hover:bg-blue-300/15 flex items-center rounded-md justify-center gap-2">
                 <x-iconsax-lin-verify class="w-5 h-5" />
                 Upgrade to Pro

@@ -16,12 +16,15 @@
         "codeat3/blade-element-plus-icons": "^1.1",
         "codeat3/blade-iconpark": "^1.7",
         "codeat3/blade-system-uicons": "^1.8",
+        "danestves/laravel-polar": "^1.2",
         "laravel-notification-channels/webpush": "^10.2",
         "laravel/framework": "^12.0",
         "laravel/socialite": "^5.23",
         "laravel/tinker": "^2.10.1",
         "livewire/livewire": "^3.6",
-        "saade/blade-iconsax": "^1.2"
+        "saade/blade-iconsax": "^1.2",
+        "spatie/laravel-webhook-client": "^3.4",
+        "standard-webhooks/standard-webhooks": "dev-main"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
