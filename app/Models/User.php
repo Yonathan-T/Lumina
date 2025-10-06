@@ -11,7 +11,7 @@ use App\Notifications\CustomResetPassword;
 use App\Services\StreakService;
 use NotificationChannels\WebPush\HasPushSubscriptions;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-   use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use App\Models\Payment\PolarSubscription;
 
 class User extends Authenticatable
@@ -35,7 +35,7 @@ class User extends Authenticatable
         'is_subscribed',
         // ---
     ];
-    
+
     public function hasEntryToday()
     {
         return StreakService::getCurrentStreak($this) > 0 && now()->isSameDay(StreakService::getLastEntryDate($this));
@@ -95,10 +95,14 @@ class User extends Authenticatable
      */
     public function hasActiveSubscription(): bool
     {
-        $subscription = $this->latestSubscription;
-        return $subscription
-            && $subscription->status === 'active'
-            && $subscription->current_period_end?->isFuture();
+        // Force fresh query to avoid stale cache
+        $subscription = $this->subscriptions()
+            ->where('status', 'active')
+            ->where('current_period_end', '>', now())
+            ->latest()
+            ->first();
+
+        return $subscription !== null;
     }
 
     /**
@@ -114,91 +118,34 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the user's current plan key (free, reflector_pro, mindful_master)
+     * Get the user's current plan key (free, standard, pro)
      */
     public function getCurrentPlan(): string
     {
-        if (!$this->hasActiveSubscription()) {
+        // Force fresh query to avoid stale cache
+        $subscription = $this->subscriptions()
+            ->where('status', 'active')
+            ->where('current_period_end', '>', now())
+            ->latest()
+            ->first();
+
+        if (!$subscription) {
             return 'free';
         }
 
-        $subscription = $this->latestSubscription;
         $productId = $subscription->product_id;
 
-        // Check which plan this product_id belongs to
-        $plans = config('subscription_plans.plans');
-        foreach ($plans as $planKey => $planConfig) {
-            if (in_array($productId, $planConfig['product_ids'] ?? [])) {
-                return $planKey;
-            }
+        // Simple mapping using .env variables
+        if ($productId === env('POLAR_STANDARD_PRODUCT_ID')) {
+            return 'standard';
         }
 
-        // Default to free if no matching plan found
-        return 'free';
-    }
-
-    /**
-     * Check if user can access a specific feature
-     */
-    public function canAccess(string $feature): bool
-    {
-        $currentPlan = $this->getCurrentPlan();
-        $planConfig = config("subscription_plans.plans.{$currentPlan}");
-        
-        return $planConfig['features'][$feature] ?? false;
-    }
-
-    /**
-     * Get the user's plan configuration
-     */
-    public function getPlanConfig(): array
-    {
-        $currentPlan = $this->getCurrentPlan();
-        return config("subscription_plans.plans.{$currentPlan}", []);
-    }
-
-    /**
-     * Check if user has reached their monthly entry limit
-     */
-    public function hasReachedEntryLimit(): bool
-    {
-        if ($this->canAccess('unlimited_entries')) {
-            return false;
+        if ($productId === env('POLAR_PRO_PRODUCT_ID')) {
+            return 'pro';
         }
 
-        $limit = $this->getPlanConfig()['features']['entries_per_month'] ?? 0;
-        if ($limit === -1) { // Unlimited
-            return false;
-        }
-
-        $entriesThisMonth = $this->entries()
-            ->whereYear('created_at', now()->year)
-            ->whereMonth('created_at', now()->month)
-            ->count();
-
-        return $entriesThisMonth >= $limit;
-    }
-
-    /**
-     * Get remaining entries for this month
-     */
-    public function getRemainingEntries(): int
-    {
-        if ($this->canAccess('unlimited_entries')) {
-            return -1; // Unlimited
-        }
-
-        $limit = $this->getPlanConfig()['features']['entries_per_month'] ?? 0;
-        if ($limit === -1) {
-            return -1;
-        }
-
-        $entriesThisMonth = $this->entries()
-            ->whereYear('created_at', now()->year)
-            ->whereMonth('created_at', now()->month)
-            ->count();
-
-        return max(0, $limit - $entriesThisMonth);
+        // Default to standard if it's an active subscription but unknown product ID
+        return 'standard';
     }
 
     /**
@@ -206,11 +153,36 @@ class User extends Authenticatable
      */
     public function hasMinimumPlan(string $requiredPlan): bool
     {
-        $planHierarchy = ['free', 'reflector_pro', 'mindful_master'];
-        $currentPlanLevel = array_search($this->getCurrentPlan(), $planHierarchy);
-        $requiredPlanLevel = array_search($requiredPlan, $planHierarchy);
-        
-        return $currentPlanLevel !== false && $requiredPlanLevel !== false && $currentPlanLevel >= $requiredPlanLevel;
+        $currentPlan = $this->getCurrentPlan();
+
+        // Simple tier hierarchy: free=0, standard=1, pro=2
+        $tiers = ['free' => 0, 'standard' => 1, 'pro' => 2];
+
+        $currentTier = $tiers[$currentPlan] ?? 0;
+        $requiredTier = $tiers[$requiredPlan] ?? 0;
+
+        return $currentTier >= $requiredTier;
     }
 
+    /**
+     * Check if user has unlimited entries (Pro plan only)
+     */
+    public function hasUnlimitedEntries(): bool
+    {
+        return $this->getCurrentPlan() === 'pro';
+    }
+
+    /**
+     * Get monthly entry limit based on plan
+     */
+    public function getMonthlyEntryLimit(): int
+    {
+        $plan = $this->getCurrentPlan();
+        return match ($plan) {
+            'free' => 10,
+            'standard' => 100,
+            'pro' => -1, // Unlimited
+            default => 10
+        };
+    }
 }

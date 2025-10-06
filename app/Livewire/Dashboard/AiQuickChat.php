@@ -10,6 +10,7 @@ use App\Models\Message;
 use App\Services\AiChatService;
 use App\Services\UserDataService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Gate;
 
 class AiQuickChat extends Component
 {
@@ -27,6 +28,13 @@ class AiQuickChat extends Component
 
     public function mount()
     {
+        // Force complete refresh of user and subscriptions
+        if (auth()->check()) {
+            $user = auth()->user();
+            $user->refresh();
+            $user->unsetRelation('subscriptions');
+            $user->unsetRelation('latestSubscription');
+        }
     }
 
     /**
@@ -131,6 +139,9 @@ class AiQuickChat extends Component
      */
     public function startQuickChat()
     {
+        if (!Gate::allows('access-premium')) {
+            abort(403, 'You must upgrade your plan to access this feature.');
+        }
         $this->showQuickChatModal = true;
         $this->quickChatMessages = [
             [

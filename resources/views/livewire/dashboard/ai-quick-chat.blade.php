@@ -63,21 +63,43 @@
             </div>
 
             <!-- Quick Chat Card -->
-            <div class="card-highlight border cursor-pointer transition-all duration-200 hover:scale-[1.02] bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/20 rounded-lg"
-                wire:click="startQuickChat" wire:loading.class="opacity-50 pointer-events-none"
-                wire:target="startQuickChat">
-                <div class="p-4 pb-3">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2 rounded-lg bg-gradient-dark">
-                            <x-icon name="flash-outline" class="h-5 w-5" />
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-semibold">Quick Chat</h3>
-                            <p class="text-sm text-muted">Private chat (not saved)</p>
+            @can('access-premium')
+                {{-- ✅ Premium users see and can click the card --}}
+                <div class="card-highlight border cursor-pointer transition-all duration-200 hover:scale-[1.02] bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/20 rounded-lg"
+                    wire:click="startQuickChat" wire:loading.class="opacity-50 pointer-events-none"
+                    wire:target="startQuickChat">
+                    <div class="p-4 pb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 rounded-lg bg-gradient-dark">
+                                <x-icon name="flash-outline" class="h-5 w-5" />
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold">Quick Chat</h3>
+                                <p class="text-sm text-muted">Private chat (not saved)</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            @else
+                {{-- 🔒 Free users see a locked state --}}
+                <div
+                    class="card-highlight border cursor-not-allowed opacity-70 bg-purple-500/10 border-purple-500/20 rounded-lg relative">
+                    <div class="p-4 pb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 rounded-lg bg-gradient-dark">
+                                <x-icon name="lock" class="h-5 w-5" />
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold">Quick Chat</h3>
+                                <p class="text-sm text-muted">Upgrade to unlock this feature</p>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+            @endcan
+
 
             <!-- Review Memos Card -->
             <div class="card-highlight border cursor-pointer transition-all duration-200 hover:scale-[1.02] bg-yellow-500/10 hover:bg-yellow-500/20 border-yellow-500/20 rounded-lg"

@@ -23,10 +23,24 @@ class AuthServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerPolicies();
-         Gate::define('access-premium', function (User $user) {
-            return $user->hasActiveSubscription();
+        
+        // Basic gates for your 3 tiers
+        Gate::define('access-premium', function (User $user) {
+            // Clear cached relationships to force fresh query
+            $user->unsetRelation('subscriptions');
+            return $user->hasActiveSubscription(); // Any paid plan
         });
-
-        //
+        
+        Gate::define('access-standard', function (User $user) {
+            // Clear cached relationships to force fresh query
+            $user->unsetRelation('subscriptions');
+            return $user->hasMinimumPlan('standard'); // Standard or higher
+        });
+        
+        Gate::define('access-pro', function (User $user) {
+            // Clear cached relationships to force fresh query
+            $user->unsetRelation('subscriptions');
+            return $user->hasMinimumPlan('pro'); // Pro plan only
+        });
     }
 }

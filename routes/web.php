@@ -95,6 +95,8 @@ Route::middleware('auth')->group(function () {
 });
 
 // Pricing and checkout routes
-Route::get('/pricing', [ProductsController::class, 'handle'])->name('pricing');
-Route::get('/checkout', [CheckoutController::class, 'handle']);
-Route::get('/confirmation', [ConfirmationController::class, 'handle']);
+Route::middleware('auth')->group(function () {
+    Route::get('/pricing', [ProductsController::class, 'handle'])->name('pricing');
+    Route::get('/checkout', [CheckoutController::class, 'handle']);
+    Route::get('/confirmation', [ConfirmationController::class, 'handle']);
+});
