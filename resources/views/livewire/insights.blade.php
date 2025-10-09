@@ -15,16 +15,6 @@
         </div>
     </div>
 
-    <!-- Debug Info -->
-    @if(config('app.debug'))
-        <!-- <div class="bg-gray-800 p-4 rounded-lg mb-4">
-                    <h3 class="text-white font-semibold mb-2">Debug Info:</h3>
-                    <pre class="text-xs text-gray-300">{{ json_encode($this->debugData(), JSON_PRETTY_PRINT) }}</pre>
-                </div>
-                <button wire:click="loadSummaryStats">Refresh Streak Data</button> -->
-
-    @endif
-
     <!-- Summary Cards -->
     <div class="grid gap-4 md:grid-cols-4">
         <div class="card-highlight bg-gradient-dark border border-white/5 rounded-lg p-4">
@@ -61,187 +51,168 @@
             <p class="text-xs text-gray-500">Current streak: {{ $currentStreak }} days</p>
         </div>
     </div>
-    <!-- <pre>{{ json_encode($tagData) }}</pre>
-    <pre>{{ json_encode($streakData) }}</pre> -->
+
     <!-- Charts -->
-
     <div class="grid gap-4 md:grid-cols-2">
-        <div class="bg-gradient-dark border border-white/5 rounded-lg p-6 card-highlight" wire:ignore>
 
+        <!-- Entries per Week -->
+        <div class="bg-gradient-dark border border-white/5 rounded-lg p-6 card-highlight">
             <h3 class="text-lg font-semibold text-white mb-2">Entries per Week</h3>
             <p class="text-sm text-gray-400 mb-4">Number of journal entries written each day</p>
-            <x-chart id="weeklyChart" height="320px" :config="json_encode([
-        'type' => 'bar',
-        'data' => [
-            'labels' => $weeklyLabels,
-            'datasets' => [
-                [
-                    'label' => 'Entries',
-                    'data' => $weeklyData,
-                    'backgroundColor' => 'rgba(210, 214, 220, 0.9)',
-                    'borderColor' => 'rgba(210, 214, 220, 1)',
-                    'borderWidth' => 0,
-                    'borderRadius' => 4
-                ]
-            ]
-        ],
-        'options' => [
-            'responsive' => true,
-            'maintainAspectRatio' => false,
-            'plugins' => [
-                'legend' => ['display' => false]
-            ],
-            'scales' => [
-                'y' => [
-                    'beginAtZero' => true,
-                    'ticks' => [
-                        'color' => '#9CA3AF',
-                        'stepSize' => 1
+
+            @if(empty($weeklyData) || count(array_filter($weeklyData)) === 0)
+                <div class="h-80 flex items-center justify-center text-gray-500 text-sm text-center">
+                    📓 No data yet.<br> Start journaling to see your daily and weekly patterns!
+                </div>
+            @else
+                    <x-chart id="weeklyChart" height="320px" :config="json_encode([
+                    'type' => 'bar',
+                    'data' => [
+                        'labels' => $weeklyLabels,
+                        'datasets' => [
+                            [
+                                'label' => 'Entries',
+                                'data' => $weeklyData,
+                                'backgroundColor' => 'rgba(210, 214, 220, 0.9)',
+                                'borderColor' => 'rgba(210, 214, 220, 1)',
+                                'borderWidth' => 0,
+                                'borderRadius' => 4
+                            ]
+                        ]
                     ],
-                    'grid' => [
-                        'color' => '#374151',
-                        'drawBorder' => false
+                    'options' => [
+                        'responsive' => true,
+                        'maintainAspectRatio' => false,
+                        'plugins' => ['legend' => ['display' => false]],
+                        'scales' => [
+                            'y' => [
+                                'beginAtZero' => true,
+                                'ticks' => ['color' => '#9CA3AF', 'stepSize' => 1],
+                                'grid' => ['color' => '#374151', 'drawBorder' => false]
+                            ],
+                            'x' => [
+                                'ticks' => ['color' => '#9CA3AF'],
+                                'grid' => ['display' => false]
+                            ]
+                        ]
                     ]
-                ],
-                'x' => [
-                    'ticks' => ['color' => '#9CA3AF'],
-                    'grid' => ['display' => false]
-                ]
-            ]
-        ]
-    ])" />
+                ])" />
+            @endif
         </div>
 
-        <div class="bg-gradient-dark border border-white/5 rounded-lg p-6 card-highlight" wire:ignore>
-
+        <!-- Tag Usage -->
+        <div class="bg-gradient-dark border border-white/5 rounded-lg p-6 card-highlight">
             <h3 class="text-lg font-semibold text-white mb-2">Tag Usage</h3>
             <p class="text-sm text-gray-400 mb-4">Distribution of tags across your entries</p>
-            <x-chart id="tagChart" height="320px" :config="json_encode([
-        'type' => 'doughnut',
-        'data' => [
-            'labels' => array_keys($tagData),
-            'datasets' => [
-                [
-                    'data' => array_values($tagData),
-                    'backgroundColor' => [
-                        '#3B82F6', // Blue
-                        '#10B981', // Green
-                        '#F59E0B', // Yellow
-                        '#EF4444', // Red
-                        '#8B5CF6'  // Purple
+
+            @if(empty($tagData) || count(array_filter($tagData)) === 0)
+                <div class="h-60 flex items-center justify-center text-gray-500 text-sm text-center">
+                    🏷️ No tags yet.<br> Add tags to your entries to see them here!
+                </div>
+            @else
+                    <x-chart id="tagChart" height="200px" :config="json_encode([
+                    'type' => 'pie',
+                    'data' => [
+                        'labels' => array_keys($tagData),
+                        'datasets' => [
+                            [
+                                'data' => array_values($tagData),
+                                'backgroundColor' => collect(array_keys($tagData))->map(function ($tag, $index) {
+                                    $colors = [
+                                        '#3B82F6',
+                                        '#10B981',
+                                        '#F59E0B',
+                                        '#EF4444',
+                                        '#8B5CF6',
+                                        '#EC4899',
+                                        '#14B8A6',
+                                        '#F97316',
+                                        '#84CC16',
+                                        '#06B6D4',
+                                        '#A855F7',
+                                        '#D946EF'
+                                    ];
+                                    return $colors[$index % count($colors)];
+                                })->toArray(),
+                                'borderWidth' => 0
+                            ]
+                        ]
                     ],
-                    'borderWidth' => 0,
-                    'cutout' => '60%'
-                ]
-            ]
-        ],
-        'options' => [
-            'responsive' => true,
-            'maintainAspectRatio' => false,
-            'plugins' => [
-                'legend' => [
-                    'position' => 'right',
-                    'labels' => [
-                        'color' => '#9CA3AF',
-                        'usePointStyle' => true,
-                        'padding' => 20
+                    'options' => [
+                        'responsive' => true,
+                        'maintainAspectRatio' => false,
+                        'plugins' => [
+                            'legend' => [
+                                'position' => 'right',
+                                'labels' => [
+                                    'color' => '#9CA3AF',
+                                    'usePointStyle' => true,
+                                    'padding' => 8
+                                ]
+                            ]
+                        ]
                     ]
-                ]
-            ]
-        ]
-    ])" />
+                ])" />
+
+            @endif
         </div>
 
-        <div class="col-span-2 bg-gradient-dark border border-white/5 rounded-lg p-6 card-highlight" wire:ignore> {{--
-            ADD wire:ignore HERE --}}
+
+        <!-- Writing Streak -->
+        <div class="col-span-2 bg-gradient-dark border border-white/5 rounded-lg p-6 card-highlight">
             <h3 class="text-lg font-semibold text-white mb-2">Writing Streak</h3>
             <p class="text-sm text-gray-400 mb-4">Your daily writing streak over time</p>
-            <x-chart id="streakChart" height="320px" :config="json_encode([
-        'type' => 'line',
-        'data' => [
-            'labels' => $streakLabels,
-            'datasets' => [
-                [
-                    'label' => 'streak',
-                    'data' => $streakData,
-                    'borderColor' => 'rgba(210, 214, 220, 1)',
-                    'backgroundColor' => 'rgba(210, 214, 220, 0.1)',
-                    'borderWidth' => 2,
-                    'fill' => false,
-                    'tension' => 0.1,
-                    'pointBackgroundColor' => 'rgba(210, 214, 220, 1)',
-                    'pointBorderColor' => 'rgba(210, 214, 220, 1)',
-                    'pointRadius' => 3,
-                    'pointHoverRadius' => 5
-                ]
-            ]
-        ],
-        'options' => [
-            'responsive' => true,
-            'maintainAspectRatio' => false,
-            'plugins' => [
-                'legend' => [
-                    'display' => true,
-                    'position' => 'bottom',
-                    'labels' => [
-                        'color' => '#9CA3AF',
-                        'usePointStyle' => true
-                    ]
-                ]
-            ],
-            'scales' => [
-                'y' => [
-                    'beginAtZero' => true,
-                    'ticks' => [
-                        'color' => '#9CA3AF',
-                        'stepSize' => 3
+
+            @if(empty($streakData) || count(array_filter($streakData)) === 0)
+                <div class="h-80 flex items-center justify-center text-gray-500 text-sm text-center">
+                    🔥 No streak yet.<br> Write daily to build your streak!
+                </div>
+            @else
+                    <x-chart id="streakChart" height="320px" :config="json_encode([
+                    'type' => 'line',
+                    'data' => [
+                        'labels' => $streakLabels,
+                        'datasets' => [
+                            [
+                                'label' => 'streak',
+                                'data' => $streakData,
+                                'borderColor' => 'rgba(210, 214, 220, 1)',
+                                'backgroundColor' => 'rgba(210, 214, 220, 0.1)',
+                                'borderWidth' => 2,
+                                'fill' => false,
+                                'tension' => 0.1,
+                                'pointBackgroundColor' => 'rgba(210, 214, 220, 1)',
+                                'pointBorderColor' => 'rgba(210, 214, 220, 1)',
+                                'pointRadius' => 3,
+                                'pointHoverRadius' => 5
+                            ]
+                        ]
                     ],
-                    'grid' => [
-                        'color' => '#374151',
-                        'drawBorder' => false
+                    'options' => [
+                        'responsive' => true,
+                        'maintainAspectRatio' => false,
+                        'plugins' => [
+                            'legend' => [
+                                'display' => true,
+                                'position' => 'bottom',
+                                'labels' => ['color' => '#9CA3AF', 'usePointStyle' => true]
+                            ]
+                        ],
+                        'scales' => [
+                            'y' => [
+                                'beginAtZero' => true,
+                                'ticks' => ['color' => '#9CA3AF', 'stepSize' => 3],
+                                'grid' => ['color' => '#374151', 'drawBorder' => false]
+                            ],
+                            'x' => [
+                                'ticks' => ['color' => '#9CA3AF'],
+                                'grid' => ['display' => false]
+                            ]
+                        ],
+                        'interaction' => ['intersect' => false, 'mode' => 'index']
                     ]
-                ],
-                'x' => [
-                    'ticks' => ['color' => '#9CA3AF'],
-                    'grid' => ['display' => false]
-                ]
-            ],
-            'interaction' => [
-                'intersect' => false,
-                'mode' => 'index'
-            ]
-        ]
-    ])" />
+                ])" />
+            @endif
         </div>
     </div>
 </div>
-
-{{-- Include Chart.js --}}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    // This script runs within the main Livewire component's scope
-    document.addEventListener('livewire:init', () => {
-        Livewire.on('chart-data-updated', () => { // No chartId parameter needed here, we'll trigger all
-            console.log('PARENT: chart-data-updated event received. Re-initializing all charts.');
-
-            // Call the debounced initialization function for each chart by its ID
-            if (typeof debouncedInitializeChart_weeklyChart === 'function') {
-                debouncedInitializeChart_weeklyChart();
-            } else {
-                console.warn('debouncedInitializeChart_weeklyChart function not found.');
-            }
-
-            if (typeof debouncedInitializeChart_tagChart === 'function') {
-                debouncedInitializeChart_tagChart();
-            } else {
-                console.warn('debouncedInitializeChart_tagChart function not found.');
-            }
-
-            if (typeof debouncedInitializeChart_streakChart === 'function') {
-                debouncedInitializeChart_streakChart();
-            } else {
-                console.warn('debouncedInitializeChart_streakChart function not found.');
-            }
-        });
-    });
-</script>
