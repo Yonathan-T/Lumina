@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Models\Entry;
 use App\Models\Tag;
 use Illuminate\Support\Str;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class EditEntry extends Component
 {
@@ -130,6 +131,29 @@ class EditEntry extends Component
         });
         $this->selectedTags = array_values($this->selectedTags);
     }
+
+    public function downloadPdf()
+    {
+        try {
+            // Refresh the entry to get the latest data with tags
+            $entry = Entry::with('tags')->findOrFail($this->entry->id);
+            
+            $pdf = Pdf::loadView('livewire.download-entry-pdf', [
+                'entry' => $entry
+            ]);
+
+            $fileName = 'entry-' . Str::slug($entry->title) . '-' . date('Y-m-d') . '.pdf';
+            
+            return response()->streamDownload(function () use ($pdf) {
+                echo $pdf->output();
+            }, $fileName);
+
+        } catch (\Exception $e) {
+            \Log::error('PDF Generation Error: ' . $e->getMessage());
+            session()->flash('error', 'Failed to generate PDF: ' . $e->getMessage());
+        }
+    }
+
     //copy pasted same messages from the new-entry form error so maybe this needs to be component ?
     public function messages()
     {
