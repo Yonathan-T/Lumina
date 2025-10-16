@@ -14,30 +14,31 @@ class DataExportReady extends Mailable
     use Queueable, SerializesModels;
 
     public $userName;
-    public $totalEntries;
+    public $totalItems; // Renamed from totalEntries to be generic
     public $exportedAt;
     public $downloadUrl;
     public $expiresAt;
+    public $exportType; // New property for conditional rendering
 
-    
-    public function __construct($userName, $totalEntries, $downloadUrl, $expiresAt)
+    public function __construct($userName, $totalItems, $downloadUrl, $expiresAt, $exportType = 'entries')
     {
         $this->userName = $userName;
-        $this->totalEntries = $totalEntries;
+        $this->totalItems = $totalItems;
         $this->downloadUrl = $downloadUrl;
         $this->expiresAt = $expiresAt;
         $this->exportedAt = now()->format('F j, Y \a\t g:i A');
+        $this->exportType = $exportType; // Default to 'entries' if not specified
     }
 
-    
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your Lumina Data Export is Ready! 📦',
+            subject: $this->exportType === 'conversations' 
+                ? 'Your Lumina Chat Export is Ready! 📦'
+                : 'Your Lumina Data Export is Ready! 📦',
         );
     }
 
-  
     public function content(): Content
     {
         return new Content(
@@ -45,11 +46,6 @@ class DataExportReady extends Mailable
         );
     }
 
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
     public function attachments(): array
     {
         return [];

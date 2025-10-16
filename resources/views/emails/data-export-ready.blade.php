@@ -1,3 +1,77 @@
+{{--
+
+<div class="stat-row">
+    <span class="stat-label">📅 Exported On</span>
+    <span class="stat-value">{{ $exportedAt }}</span>
+</div>
+<div class="stat-row">
+    <span class="stat-label">⏰ Link Expires</span>
+    <span class="stat-value">{{ $expiresAt }}</span>
+</div>
+</div>
+
+<center>
+    <table border="0" cellpadding="0" cellspacing="0" role="presentation"
+        style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
+        <tr>
+            <td align="center">
+                <table border="0" cellpadding="0" cellspacing="0" role="presentation"
+                    style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
+                    <tr>
+                        <td style="border-radius: 8px; background: #000000;">
+                            <a href="{{ $downloadUrl }}" download
+                                style="display: inline-block; background: #000000; color: #ffffff; text-decoration: none; border-radius: 8px; padding: 14px 32px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);">
+                                @if($exportType === 'conversations') 📥 Download Chat Export (JSON) @else 📥
+                                Download Export (JSON) @endif
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</center>
+
+<div style="margin-top: 15px; text-align: center;">
+    <p style="font-size: 12px; color: #9ca3af; margin: 0;">
+        <strong>Button not working?</strong> Right-click the button above and select "Copy Link Address",
+        then paste it in your browser.
+    </p>
+</div>
+
+<div class="warning-box">
+    <p>
+        <strong>⚠️ Security Notice:</strong> This download link will expire in 24 hours for your security.
+        The file contains all your @if($exportType === 'conversations') chat conversations @else journal
+        entries @endif, so keep it safe!
+    </p>
+</div>
+
+<div class="message">
+    <strong>What's in the export?</strong><br>
+    @if($exportType === 'conversations')
+    Your export includes all your chat conversations with titles, message counts, and detailed message data
+    (role, content, timestamps) in JSON format. Perfect for backups, analysis, or creating visualizations!
+    @else
+    Your export includes all your journal entries with titles, content, tags, mood data, and timestamps in
+    JSON format. Perfect for backups, data portability, or creating visualizations!
+    @endif
+</div>
+</div>
+
+<div class="footer">
+    <p><strong>{{ config('app.name') }}</strong> - Your AI-Powered Journal</p>
+    <p>Questions? Reply to this email or visit our <a href="{{ config('app.url') }}">support page</a></p>
+    <p style="margin-top: 20px; font-size: 12px; color: #9ca3af;">
+        You received this email because you requested a @if($exportType === 'conversations') chat export @else
+        data export @endif from your {{ config('app.name') }} account.
+    </p>
+</div>
+</div>
+</body>
+
+</html>
+--}}
 <!DOCTYPE html>
 <html>
 
@@ -148,8 +222,10 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎉 Your Export is Ready!</h1>
-            <p>Your journal data has been prepared</p>
+            <h1>🎉 @if($exportType === 'conversations') Your Chat Export is Ready! @else Your Data Export is Ready!
+            @endif</h1>
+            <p>@if($exportType === 'conversations') Your conversation data has been prepared @else Your journal data has
+            been prepared @endif</p>
         </div>
 
         <div class="content">
@@ -158,24 +234,31 @@
             </div>
 
             <div class="message">
-                Great news! Your Lumina journal export is ready to download. We've packaged all your entries into a
-                beautiful JSON format that's easy to use, import elsewhere, or visualize.
+                @if($exportType === 'conversations')
+                    Great news! Your Lumina chat export is ready to download. We've packaged all your conversations into a
+                    beautiful JSON format that's easy to use, import elsewhere, or visualize.
+                @else
+                    Great news! Your Lumina journal export is ready to download. We've packaged all your entries into a
+                    beautiful JSON format that's easy to use, import elsewhere, or visualize.
+                @endif
             </div>
 
             <div class="stats-box">
                 <div class="stat-row">
-                    <span class="stat-label">📝 Total Entries</span>
-                    <span class="stat-value">{{ $totalEntries }}</span>
+                    <span class="stat-label">@if($exportType === 'conversations') 💬 Total Conversations @else 📝 Total
+                    Entries @endif :</span>
+                    <span class="stat-value">{{ $totalItems }}</span>
                 </div>
                 <div class="stat-row">
-                    <span class="stat-label">📅 Exported On</span>
+                    <span class="stat-label">📅 Exported On :</span>
                     <span class="stat-value">{{ $exportedAt }}</span>
                 </div>
                 <div class="stat-row">
-                    <span class="stat-label">⏰ Link Expires</span>
+                    <span class="stat-label">⏰ Link Expires :</span>
                     <span class="stat-value">{{ $expiresAt }}</span>
                 </div>
             </div>
+
 
             <center>
                 <table border="0" cellpadding="0" cellspacing="0" role="presentation"
@@ -188,7 +271,9 @@
                                     <td style="border-radius: 8px; background: #000000;">
                                         <a href="{{ $downloadUrl }}" download
                                             style="display: inline-block; background: #000000; color: #ffffff; text-decoration: none; border-radius: 8px; padding: 14px 32px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);">
-                                            📥 Download Export (JSON)
+                                            @if($exportType === 'conversations') 📥 Download My Chat Export (JSON) @else
+                                                📥
+                                            Download My Entry Export (JSON) @endif
                                         </a>
                                     </td>
                                 </tr>
@@ -208,22 +293,33 @@
             <div class="warning-box">
                 <p>
                     <strong>⚠️ Security Notice:</strong> This download link will expire in 24 hours for your security.
-                    The file contains all your journal entries, so keep it safe!
+                    The file contains all your @if($exportType === 'conversations') chat conversations @else journal
+                    entries @endif, so keep it safe!
                 </p>
+
             </div>
 
             <div class="message">
+
                 <strong>What's in the export?</strong><br>
-                Your export includes all your journal entries with titles, content, tags, mood data, and timestamps in
-                JSON format. Perfect for backups, data portability, or creating visualizations!
+                @if($exportType === 'conversations')
+                    Your export includes all your chat conversations with titles, message counts, and detailed message data
+                    (role, content, timestamps) in JSON format. Perfect for backups, analysis, or creating visualizations!
+                @else
+                    Your export includes all your journal entries with titles, content, tags, and timestamps in
+                    JSON format. Perfect for backups, data portability
+                @endif
             </div>
         </div>
 
         <div class="footer">
+
+
             <p><strong>{{ config('app.name') }}</strong> - Your AI-Powered Journal</p>
             <p>Questions? Reply to this email or visit our <a href="{{ config('app.url') }}">support page</a></p>
             <p style="margin-top: 20px; font-size: 12px; color: #9ca3af;">
-                You received this email because you requested a data export from your {{ config('app.name') }} account.
+                You received this email because you requested a @if($exportType === 'conversations') chat export @else
+                data export @endif from your {{ config('app.name') }} account.
             </p>
         </div>
     </div>

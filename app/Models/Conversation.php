@@ -34,7 +34,6 @@ class Conversation extends Model
     protected static function booted()
     {
         static::deleting(function ($conversation) {
-            // Delete all messages when conversation is deleted
             $conversation->messages()->delete();
         });
     }
