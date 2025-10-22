@@ -175,37 +175,3 @@
     </div>
 
 </div>
-
-<script>
-    // Auto-dismiss messages after 5 seconds
-    document.addEventListener('DOMContentLoaded', function () {
-        const successMessage = document.getElementById('success-message');
-        const errorMessage = document.getElementById('error-message');
-
-        if (successMessage) {
-            setTimeout(() => {
-                dismissMessage('success-message');
-            }, 5000);
-        }
-
-        if (errorMessage) {
-            setTimeout(() => {
-                dismissMessage('error-message');
-            }, 5000);
-        }
-    });
-
-    // Manual dismiss function
-    function dismissMessage(messageId) {
-        const message = document.getElementById(messageId);
-        if (message) {
-            message.style.opacity = '0';
-            message.style.transform = 'translateY(-10px)';
-            message.style.transition = 'all 0.3s ease-out';
-
-            setTimeout(() => {
-                message.remove();
-            }, 300);
-        }
-    }
-</script>

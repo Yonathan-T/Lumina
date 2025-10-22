@@ -252,3 +252,63 @@ document.addEventListener('click', (event) => {
         profileMenu.classList.add('hidden');
     }
 });
+
+
+
+// Error message handler
+// Make dismissMessage globally accessible
+window.dismissMessage = function(messageId) {
+    const message = document.getElementById(messageId);
+    if (message) {
+        message.style.opacity = '0';
+        message.style.transform = 'translateY(-10px)';
+        message.style.transition = 'all 0.3s ease-out';
+
+        setTimeout(() => {
+            message.remove();
+        }, 300);
+    }
+};
+
+// Auto-dismiss messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function () {
+    const successMessage = document.getElementById('success-message');
+    const errorMessage = document.getElementById('error-message');
+
+    if (successMessage) {
+        setTimeout(() => {
+            dismissMessage('success-message');
+        }, 5000);
+    }
+
+    if (errorMessage) {
+        setTimeout(() => {
+            dismissMessage('error-message');
+        }, 5000);
+    }
+});
+
+// Also handle Livewire updates - messages might be added dynamically
+document.addEventListener('livewire:init', () => {
+    Livewire.hook('message.processed', (message, component) => {
+        // Check for new messages after Livewire updates
+        setTimeout(() => {
+            const successMessage = document.getElementById('success-message');
+            const errorMessage = document.getElementById('error-message');
+
+            if (successMessage && !successMessage.dataset.autoDismissed) {
+                successMessage.dataset.autoDismissed = 'true';
+                setTimeout(() => {
+                    dismissMessage('success-message');
+                }, 5000);
+            }
+
+            if (errorMessage && !errorMessage.dataset.autoDismissed) {
+                errorMessage.dataset.autoDismissed = 'true';
+                setTimeout(() => {
+                    dismissMessage('error-message');
+                }, 5000);
+            }
+        }, 100);
+    });
+});

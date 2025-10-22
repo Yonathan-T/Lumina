@@ -19,22 +19,18 @@ class ElevenLabsTTSService
 
     public function generateAudio($text, $voiceId = '21m00Tcm4TlvDq8ikWAM', $apiKey = null)
     {
-        // Debug log to check input
         \Log::info('Generating audio with text: ' . ($text ?: 'null'));
 
         try {
-            // Validate text
             if (empty(trim($text))) {
                 throw new Exception('Text is empty or null.');
             }
 
-            // Use user-provided key or fallback to app's key
             $effectiveApiKey = $apiKey ?: $this->apiKey;
             if (!$effectiveApiKey) {
                 throw new Exception('No API key provided.');
             }
 
-            // Truncate to 500 chars to stay within quota limits
             if (strlen($text) > 500) {
                 $text = substr($text, 0, 500) . '...';
                 \Log::info('Text truncated to 500 characters to stay within quota');
@@ -44,8 +40,8 @@ class ElevenLabsTTSService
                 'xi-api-key' => $effectiveApiKey,
                 'Content-Type' => 'application/json',
             ])->post("{$this->baseUrl}/text-to-speech/{$voiceId}", [
-                'text' => $text, // Explicitly set the text field
-                'model_id' => 'eleven_monolingual_v1', // Free tier model
+                'text' => $text, 
+                'model_id' => 'eleven_monolingual_v1', 
                 'voice_settings' => [
                     'stability' => 0.5,
                     'similarity_boost' => 0.5,
