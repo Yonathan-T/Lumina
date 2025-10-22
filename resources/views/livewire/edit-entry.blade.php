@@ -10,6 +10,19 @@
     </div>
 
     <div class="mt-3 flex flex-1 items-center justify-center">
+        {{-- Flash Messages --}}
+        @if (session()->has('message'))
+            <div class="fixed top-4 right-4 z-50 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg">
+                {{ session('message') }}
+            </div>
+        @endif
+
+        @if (session()->has('error'))
+            <div class="fixed top-4 right-4 z-50 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg">
+                {{ session('error') }}
+            </div>
+        @endif
+
         <div id="entry-card"
             class="rounded-lg border border-[rgb(29,40,58)]/10 shadow-lg card-highlight bg-gradient-dark w-full max-w-3xl mx-auto min-h-[400px] flex flex-col">
             <div class="p-10 flex flex-col flex-1 gap-6">
@@ -94,7 +107,25 @@
                             <span class="text-3xl font-bold px-2">{{ $entry->title }}</span>
                         </span>
 
-                        <div class="text-muted text-sm ml-4 whitespace-nowrap mt-1">
+                        <div class="text-muted text-sm ml-4 whitespace-nowrap mt-1 flex gap-2">
+                            {{-- Audio Player Button --}}
+                            <button wire:click="generateAudio" wire:loading.attr="disabled"
+                                class="cursor-pointer group relative p-2 rounded-lg border border-white/10 hover:border-purple-500/50 hover:bg-purple-500/10 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Listen to Entry">
+                                <div wire:loading.remove wire:target="generateAudio">
+                                    <x-icon name="voice"
+                                        class="w-5 h-5 text-gray-400 group-hover:text-purple-400 transition-colors" />
+
+                                </div>
+                                <div wire:loading wire:target="generateAudio">
+                                    <x-icon name="voice"
+                                        class="w-5 h-5 text-gray-400 group-hover:text-purple-400 transition-colors" />
+                                </div>
+
+
+                            </button>
+
+                            {{-- PDF Download Button --}}
                             <button wire:click="downloadPdf" wire:loading.attr="disabled"
                                 class="cursor-pointer group relative p-2 rounded-lg border border-white/10 hover:border-blue-500/50 hover:bg-blue-500/10 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="Download PDF">
@@ -121,13 +152,34 @@
                                     Download PDF
                                 </span>
                             </button>
-
                         </div>
                     </div>
 
                     <div class="ml-5 font-inter text-md leading-relaxed flex-1">
                         {!! nl2br(e($entry->content)) !!}
                     </div>
+
+                    {{-- Audio Player --}}
+                    @if($audioUrl)
+                        <div
+                            class="mt-6 p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-lg border border-purple-500/20">
+                            <div class="flex items-center gap-3">
+                                <div class="flex-shrink-0">
+                                    <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 14.142M6.343 6.343a1 1 0 000 1.414L10.586 12l-4.243 4.243a1 1 0 101.414 1.414L12 13.414l4.243 4.243a1 1 0 001.414-1.414L13.414 12l4.243-4.243a1 1 0 00-1.414-1.414L12 10.586 7.757 6.343a1 1 0 00-1.414 0z" />
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="text-sm font-medium text-white mb-1">Audio Reading</h4>
+                                    <audio controls class="w-full h-10 rounded-lg">
+                                        <source src="{{ $audioUrl }}" type="audio/mpeg">
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
 
                     <div>
                         @foreach($entry->tags as $tag)

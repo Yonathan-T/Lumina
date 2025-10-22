@@ -7,6 +7,7 @@ use App\Models\Entry;
 use App\Models\Tag;
 use Illuminate\Support\Str;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\ElevenLabsTTSService;
 
 class EditEntry extends Component
 {
@@ -19,6 +20,8 @@ class EditEntry extends Component
     public $tagError = null;
     public $isEditing = false;
     public $showDeleteModal = false;
+    public $audioUrl = null;
+    public $isGeneratingAudio = false;
 
     protected $rules = [
         'title' => 'required|string|min:3|max:255',
@@ -152,6 +155,36 @@ class EditEntry extends Component
             \Log::error('PDF Generation Error: ' . $e->getMessage());
             session()->flash('error', 'Failed to generate PDF: ' . $e->getMessage());
         }
+    }
+
+    public function generateAudio()
+    {
+        $this->isGeneratingAudio = true;
+        $this->audioUrl = null;
+
+        try {
+            $ttsService = new ElevenLabsTTSService();
+            
+            // Combine title and content for reading
+            $textToRead = $this->entry->title . ". " . $this->entry->content;
+            
+            $this->audioUrl = $ttsService->generateAudio(
+                $textToRead,
+                '21m00Tcm4TlvDq8ikWAM' // Default voice
+            );
+
+            if (!$this->audioUrl) {
+                session()->flash('error', 'Failed to generate audio. This might be due to quota limits or API issues. Please try again later or check your ElevenLabs account.');
+            } else {
+                session()->flash('message', 'Audio generated successfully!');
+            }
+
+        } catch (\Exception $e) {
+            \Log::error('Audio Generation Error: ' . $e->getMessage());
+            session()->flash('error', 'Failed to generate audio: ' . $e->getMessage());
+        }
+
+        $this->isGeneratingAudio = false;
     }
 
     //copy pasted same messages from the new-entry form error so maybe this needs to be component ?
