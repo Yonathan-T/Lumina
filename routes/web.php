@@ -9,6 +9,7 @@ use App\Http\Controllers\RegisteredUserController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\DataExportController;
 
 use App\Http\Controllers\ConfirmationController;
 use App\Http\Controllers\CheckoutController;
@@ -49,9 +50,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     //Route::get('/settings', SettingsPanel::class)->name('settings.index');
 
+    // Data Export Download
+
     // Blogs
 });
 
+// Data export download (outside auth for email links)
+Route::get('/export/download/{token}', [DataExportController::class, 'download'])->name('export.download');
 Route::get('/blogs', function () {
     return view('blogs.index');
 })->name('blogs.index');

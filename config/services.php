@@ -61,6 +61,9 @@ return [
     'ai' => [
         'provider' => env('AI_PROVIDER', 'gemini'),
     ],
+      'elevenlabs' => [
+        'key' => env('ELEVENLABS_API_KEY'),
+    ],
 
 
 ];
