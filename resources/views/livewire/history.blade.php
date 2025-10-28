@@ -1,5 +1,7 @@
 {{-- If you look to others for fulfillment, you will never truly be fulfilled. --}}
-<div>
+<div class="p-6" id="mainContent">
+
+
     <div>
         <h1 class="text-3xl font-bold tracking-tight">History</h1>
         <p class="text-muted">Browse and search through your past journal entries</p>
@@ -32,18 +34,15 @@
                     <div
                         class="flex items-stretch rounded-lg card-highlight  shadow-md  bg-gradient-dark border border-white/10 overflow-hidden mb-4">
                         <!-- Date Square -->
-                        <div class="flex flex-col justify-center items-center 
-                                            bg-gradient-dark  border border-white/10 
-                                            w-20 min-w-30 h-30 
-                                            rounded-xl shadow-lg 
-                                            m-4 card-highlight
-                                            self-center">
-                            <span class="text-lg font-bold">
-                                {{ strtoupper($entry->created_at->format('M')) }}
-                            </span>
-                            <span class="text-2xl font-extrabold leading-none">
-                                {{ $entry->created_at->format('d') }}
-                            </span>
+                        <div
+                            class="flex flex-col justify-center items-center 
+                                                                                                                    bg-gradient-dark  border border-white/10 
+                                                                                                                    w-20 min-w-30 h-30 
+                                                                                                                    rounded-xl shadow-lg 
+                                                                                                                    m-4 card-highlight
+                                                                                                                    self-center">
+                            <span class="text-lg font-bold">{{ strtoupper($entry->date_month) }}</span>
+                            <span class="text-2xl font-extrabold leading-none">{{ $entry->date_day }}</span>
                         </div>
                         <!-- Content -->
                         <div class="flex-1 flex flex-col justify-between p-6">
@@ -65,11 +64,12 @@
                                     </button>
 
                                     <div class="text-sm text-muted whitespace-nowrap">
-                                        {{ $entry->created_at->diffForHumans() }}
+                                        {{ $entry->diff }}
                                     </div>
                                 </div>
                             </div>
-                            <p class="line-clamp-3 mb-2"> {!! nl2br(e($entry->content)) !!}</p>
+                            {{-- <p class="line-clamp-3 mb-2"> {!! nl2br(e($entry->content)) !!}</p> --}}
+                            <p class="line-clamp-3 mb-2">{!! $entry->content_html !!}</p>
                             <div class="mt-2 flex flex-wrap gap-2">
                                 @foreach($entry->tags as $tag)
                                     <div

@@ -17,8 +17,9 @@ class History extends Component
 
     public $userDataService;
 
-    public $isProcessing = null;
-    public $processingEntryId = null;
+    public ?string $isProcessing = null;
+public ?int $processingEntryId = null;
+   
 
     public function Reflect($entryId)
     {
@@ -85,29 +86,61 @@ class History extends Component
         $this->resetPage();
     }
 
+    // public function render()
+    // {
+    //     $query = Entry::with('tags')->where('user_id', auth()->id());
+
+    //     switch ($this->sort) {
+    //         case 'oldest':
+    //             $query->orderBy('created_at', 'asc');
+    //             break;
+    //         case 'longest':
+    //             $query->orderByRaw('LENGTH(content) DESC');
+    //             break;
+    //         case 'shortest':
+    //             $query->orderByRaw('LENGTH(content) ASC');
+    //             break;
+    //         case 'newest':
+    //         default:
+    //             $query->orderBy('created_at', 'desc');
+    //     }
+
+    //     $recentEntries = $query->paginate(5)->withQueryString();
+
+    //     return view('livewire.history', [
+    //         'recentEntries' => $recentEntries
+    //     ]);
+    // }
     public function render()
-    {
-        $query = Entry::with('tags')->where('user_id', auth()->id());
+{
+    $query = Entry::with('tags')->where('user_id', auth()->id());
 
-        switch ($this->sort) {
-            case 'oldest':
-                $query->orderBy('created_at', 'asc');
-                break;
-            case 'longest':
-                $query->orderByRaw('LENGTH(content) DESC');
-                break;
-            case 'shortest':
-                $query->orderByRaw('LENGTH(content) ASC');
-                break;
-            case 'newest':
-            default:
-                $query->orderBy('created_at', 'desc');
-        }
+    match ($this->sort) {
+        'oldest'   => $query->oldest(),
+        'longest'  => $query->orderByRaw('LENGTH(content) DESC'),
+        'shortest' => $query->orderByRaw('LENGTH(content) ASC'),
+        default    => $query->latest(),
+    };
 
-        $recentEntries = $query->paginate(5)->withQueryString();
+    $recentEntries = $query->paginate(5)->withQueryString();
 
-        return view('livewire.history', [
+    // PRE-PROCESS – runs once, not per Blade line
+    $recentEntries->getCollection()->transform(function ($entry) {
+        $plain = strip_tags($entry->content);
+        $entry->content_html = nl2br(e(\Str::limit($plain, 200)));
+        $entry->date_month   = $entry->created_at->format('M');
+        $entry->date_day     = $entry->created_at->format('d');
+        $entry->diff         = $entry->created_at->diffForHumans();
+        return $entry;
+    });
+
+    // return view('livewire.history', compact('recentEntries'));
+     return view('livewire.history', [
             'recentEntries' => $recentEntries
-        ]);
-    }
+        ])->layout('components.layout', [
+                'showSidebar' => true,
+                'showNav' => false,
+                
+            ]);
+}
 }

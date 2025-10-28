@@ -222,6 +222,10 @@ class NewEntry extends Component
 
     public function render()
     {
-        return view('livewire.new-entry');
+        return view('livewire.new-entry')->layout('components.layout', [
+                'showSidebar' => true,
+                'showNav' => false,
+                
+            ]);
     }
 }
