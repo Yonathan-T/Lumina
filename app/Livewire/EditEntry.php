@@ -170,7 +170,7 @@ class EditEntry extends Component
             
             $this->audioUrl = $ttsService->generateAudio(
                 $textToRead,
-                '21m00Tcm4TlvDq8ikWAM' // Default voice
+                'UgBBYS2sOqTuMpoF3BR0' // Default voice
             );
 
             if (!$this->audioUrl) {

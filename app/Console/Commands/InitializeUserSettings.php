@@ -31,7 +31,9 @@ class InitializeUserSettings extends Command
             'daily_reminder' => false,
             'streak_alerts' => false,
             'blog_updates' => false,
-            'dark_mode' => false
+            'dark_mode' => false,
+            'entry_font' => 'inter',
+            'entry_font_size' => 16
         ];
 
         $updated = 0;
@@ -45,6 +47,8 @@ class InitializeUserSettings extends Command
                 'streak_alerts' => (bool) ($currentSettings['streak_alerts'] ?? false),
                 'blog_updates' => (bool) ($currentSettings['blog_updates'] ?? false),
                 'dark_mode' => (bool) ($currentSettings['dark_mode'] ?? false),
+                'entry_font' => $currentSettings['entry_font'] ?? 'inter',
+                'entry_font_size' => $currentSettings['entry_font'] ?? 16
             ];
 
             $user->update(['settings' => $normalizedSettings]);

@@ -12,6 +12,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&family=Poppins:wght@400;500;600;700&family=Lora:wght@400;500;600&family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Crimson+Text:wght@400;600&family=Merriweather:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Ubuntu:wght@400;500;700&display=swap"
+        rel="stylesheet">
     @livewireStyles
 </head>
 
@@ -44,35 +47,33 @@
             </div>
             <div>
                 @auth
-                    <a href="/dashboard"
-                        class="
-                                                                                                                                                                                                                                        border border-white/25 rounded-lg px-3 py-2
-                                                                                                                                                                                                                                        bg-[#060b16] text-white font-semibold
-                                                                                                                                                                                                                                        shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
-                                                                                                                                                                                                                                        active:translate-y-[2px] 
-                                                                                                                                                                                                                                        active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
-                                                                                                                                                                                                                                        active:border-gray-600
-                                                                                                                                                                                                                                        transition-all duration-200 ease-in-out
-                                                                                                                                                                                                                                        select-none
-                                                                                                                                                                                                                                        inline-block
-                                                                                                                                                                                                                                    ">
+                    <a href="/dashboard" class="
+                                border border-white/25 rounded-lg px-3 py-2
+                                bg-[#060b16] text-white font-semibold
+                                shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
+                                active:translate-y-[2px] 
+                                active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
+                                active:border-gray-600
+                                transition-all duration-200 ease-in-out
+                                select-none
+                                inline-block
+                            ">
                         Dashboard
                     </a>
                 @endauth
                 @guest
 
-                    <a href="/auth/register"
-                        class="
-                                                                                                                                                                                                                                                border border-white/25 rounded-lg px-3 py-2
-                                                                                                                                                                                                                                                bg-[#060b16] text-white font-semibold
-                                                                                                                                                                                                                                                shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
-                                                                                                                                                                                                                                                active:translate-y-[2px] 
-                                                                                                                                                                                                                                                active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
-                                                                                                                                                                                                                                                active:border-gray-600
-                                                                                                                                                                                                                                                transition-all duration-200 ease-in-out
-                                                                                                                                                                                                                                                select-none
-                                                                                                                                                                                                                                                inline-block
-                                                                                                                                                                                                                                            ">
+                    <a href="/auth/register" class="
+                                border border-white/25 rounded-lg px-3 py-2
+                                bg-[#060b16] text-white font-semibold
+                                shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
+                                active:translate-y-[2px] 
+                                active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
+                                active:border-gray-600
+                                transition-all duration-200 ease-in-out
+                                select-none
+                                inline-block
+                            ">
                         Sign up
                     </a>
 
@@ -98,6 +99,28 @@
         </main>
     @endif
     @livewireScripts
+    <script>
+        // Global listener to update all font preview areas instantly
+        window.addEventListener('font-changed', (e) => {
+            const font = e.detail.font;
+            // Toggle class on elements marked for font-binding
+            document.querySelectorAll('[data-font-bind]')
+                .forEach(el => {
+                    el.classList.remove('font-inter','font-poppins','font-ubuntu','font-playfair','font-lora','font-crimson','font-merriweather','font-caveat','font-dancing','font-jetbrains');
+                    el.classList.add('font-' + font);
+                });
+        });
+
+        // Global listener for font size changes
+        window.addEventListener('font-size-changed', (e) => {
+            const size = e.detail.size;
+            // Apply font size to all elements marked for font-size binding
+            document.querySelectorAll('[data-font-size-bind]')
+                .forEach(el => {
+                    el.style.fontSize = size + 'px';
+                });
+        });
+    </script>
 
 </body>
 
