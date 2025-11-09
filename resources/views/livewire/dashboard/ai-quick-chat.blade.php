@@ -161,11 +161,59 @@
     </div>
 
     <!-- Weekly Summary Modal -->
+    {{-- @if($showSummaryModal)
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        wire:click="closeSummaryModal">
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden"
+            wire:click.stop>
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-semibold flex items-center gap-2">
+                        <x-icon name="scroll-text" class="h-6 w-6 text-green-500" />
+                        Weekly Summary
+                    </h2>
+                    <button wire:click="closeSummaryModal"
+                        class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                        <x-icon name="message" class="h-5 w-5" />
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6 overflow-y-auto max-h-[60vh]">
+                @if($summaryLoading)
+                <div class="flex items-center justify-center py-12">
+                    <div class="text-center">
+                        <div
+                            class="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4">
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400">Analyzing your week...</p>
+                    </div>
+                </div>
+                @else
+                <div class="prose prose-lg max-w-none dark:prose-invert">
+                    {!! \Illuminate\Support\Str::markdown($weeklySummary) !!}
+                </div>
+                @endif
+            </div>
+
+            <div class="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                <div class="flex justify-end gap-3">
+                    <button wire:click="closeSummaryModal"
+                        class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif --}}
     @if($showSummaryModal)
         <div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             wire:click="closeSummaryModal">
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden"
                 wire:click.stop>
+
+                {{-- Header --}}
                 <div class="p-6 border-b border-gray-200 dark:border-gray-700">
                     <div class="flex items-center justify-between">
                         <h2 class="text-2xl font-semibold flex items-center gap-2">
@@ -179,7 +227,8 @@
                     </div>
                 </div>
 
-                <div class="p-6 overflow-y-auto max-h-[60vh]">
+                {{-- Content --}}
+                <div class="p-6 overflow-y-auto max-h-[60vh] space-y-6">
                     @if($summaryLoading)
                         <div class="flex items-center justify-center py-12">
                             <div class="text-center">
@@ -189,13 +238,34 @@
                                 <p class="text-gray-600 dark:text-gray-400">Analyzing your week...</p>
                             </div>
                         </div>
-                    @else
-                        <div class="prose prose-lg max-w-none dark:prose-invert">
-                            {!! \Illuminate\Support\Str::markdown($weeklySummary) !!}
+                    @elseif(!empty($weeklySummary))
+                        @php
+                            // Split TL;DR from the rest
+                            preg_match('/(🧭 TL;DR.*?)(?=✨|$)/s', $weeklySummary, $matches);
+                            $tldr = $matches[1] ?? '';
+                            $rest = trim(str_replace($tldr, '', $weeklySummary));
+                        @endphp
+
+                        {{-- TL;DR Card --}}
+                        @if(!empty($tldr))
+                            <div
+                                class="bg-green-50 dark:bg-green-900/40 border border-green-400/30 rounded-xl p-4 prose prose-lg dark:prose-invert">
+                                {!! \Illuminate\Support\Str::markdown($tldr) !!}
+                            </div>
+                        @endif
+
+                        {{-- Other Sections --}}
+                        <div class="mt-4 prose prose-lg dark:prose-invert">
+                            {!! \Illuminate\Support\Str::markdown($rest) !!}
                         </div>
+
+                    @else
+                        <p class="text-sm text-gray-500 dark:text-gray-400">No summary generated yet. Click the card to create
+                            one.</p>
                     @endif
                 </div>
 
+                {{-- Footer --}}
                 <div class="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
                     <div class="flex justify-end gap-3">
                         <button wire:click="closeSummaryModal"
@@ -204,9 +274,11 @@
                         </button>
                     </div>
                 </div>
+
             </div>
         </div>
     @endif
+
 
     <!-- Quick Chat Modal -->
     @if($showQuickChatModal)

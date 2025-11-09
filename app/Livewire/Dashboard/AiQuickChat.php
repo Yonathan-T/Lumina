@@ -121,6 +121,40 @@ class AiQuickChat extends Component
             $formattedEntries = $userDataService->formatEntriesForAI($entries);
 
             $prompt = "Create a weekly summary with:\n1. **TLDR** (2-3 sentences)\n2. **Key Themes**\n3. **Patterns**\n4. **Insights**\n5. **Action Items** (3 suggestions)\n\nEntries:\n" . $formattedEntries;
+ $prompt = "
+Generate a **weekly summary** of the following journal entries in Markdown format.
+
+Use this exact structure, with a blank line after each header:
+
+# 🧭 TL;DR
+
+2–3 sentences summarizing the main theme and emotional tone of the week.
+
+# ✨ Key Themes
+
+- List 3–5 recurring ideas or emotions in bullet points.
+
+# 🔁 Patterns & Reflections
+
+1 short paragraph describing repeating behaviors, thoughts, or insights.
+
+# 💡 Insights
+
+1 paragraph highlighting deeper takeaways.
+
+# 🚀 Action Items
+
+List 3 short, practical, motivating next steps.
+
+Rules:
+- Include blank lines after every header.
+- Do NOT ask questions.
+- Use proper Markdown spacing for readability.
+
+
+
+ Entries to summarize:". $formattedEntries;
+
 
             $summary = app(AiChatService::class)->generateResponse($prompt, null);
             $this->weeklySummary = $summary;

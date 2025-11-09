@@ -3,9 +3,9 @@
 <div id="pricing" class="relative w-full overflow-hidden">
     @if($withBackground)
         <!-- Decorative elements -->
-        <div class="absolute inset-0 bg-gradient-to-br from-blue-900/30 via-transparent to-purple-900/30 -z-10"></div>
+        {{-- <div class="absolute inset-0 bg-gradient-to-br from-blue-900/30 via-transparent to-purple-900/30 -z-10"></div> --}}
         <div class="absolute -top-20 -right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
-        <div class="absolute -bottom-20 -left-20 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-20 -left-20 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl"></div>
     @endif
 
     <div class="relative z-10 w-full max-w-7xl mx-auto px-6 py-8">
@@ -36,7 +36,7 @@
                 </div>
                 <span id="yearly-label" class="px-4 py-2 text-sm text-white/60">Yearly</span>
                 <span id="save-badge"
-                    class="absolute -top-2 right-0 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs px-3 py-1 rounded-full font-medium transform translate-y-[-50%]">
+                    class="absolute -top-2 right-0 bg-gradient-to-r from-blue-400 to-teal-700 text-white text-xs px-3 py-1 rounded-full font-medium transform translate-y-[-50%]">
                     Save 20%
                 </span>
             </div>

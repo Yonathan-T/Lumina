@@ -16,9 +16,19 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&family=Poppins:wght@400;500;600;700&family=Lora:wght@400;500;600&family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Crimson+Text:wght@400;600&family=Merriweather:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Ubuntu:wght@400;500;700&display=swap"
         rel="stylesheet">
     @livewireStyles
+    <script>
+        // Apply collapsed class ASAP to avoid sidebar flash on refresh
+        (function(){
+            try {
+                if (localStorage.getItem('sidebar-collapsed') === '1') {
+                    document.documentElement.classList.add('sc-init');
+                }
+            } catch (e) {}
+        })();
+    </script>
 </head>
 
-<body class="bg-[#060b16] text-[#c3beb6] min-h-screen flex flex-col">
+<body class="bg-[#060b16] text-[#c3beb6] min-h-screen flex flex-col {{ $showSidebar ? 'has-sidebar' : '' }}">
 
 
     @if ($showNav)
@@ -84,12 +94,17 @@
 
     @if($showSidebar)
         <div class="flex min-h-screen">
-            <aside class="w-64">
-                @cache('sidebar_html_' . auth()->id(), now()->addHours(6))
+            <aside id="appSidebarContainer" class="w-64 transition-all duration-300 md:translate-x-0 md:fixed fixed inset-y-0 left-0 z-40">
                 @include('components.cached-sidebar')
-                @endcache
             </aside>
-            <main class="bg-gradient-dark flex-1 bg-dot-pattern font-inter text-custom">
+            <div id="sidebarBackdrop" class="md:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-30 hidden"></div>
+            <main class="bg-gradient-dark flex-1 bg-dot-pattern font-inter text-custom relative min-h-screen overflow-y-auto pt-12 md:pt-0">
+                <button id="mobileSidebarToggle" class="md:hidden fixed top-4 left-4 z-50 inline-flex items-center justify-center w-10 h-10 rounded-md border border-white/25 bg-[#0b1220]/80 backdrop-blur-sm text-white/90 hover:text-white hover:bg-[#0b1220]/95 transition">
+                    <!-- simple hamburger -->
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                        <path fill-rule="evenodd" d="M3.75 6.75A.75.75 0 0 1 4.5 6h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75Zm0 5.25a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75Zm.75 4.5a.75.75 0 0 0 0 1.5h15a.75.75 0 0 0 0-1.5h-15Z" clip-rule="evenodd" />
+                    </svg>
+                </button>
                 {{ $slot }}
             </main>
         </div>
@@ -129,6 +144,68 @@
 </html>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // Restore sidebar collapsed state
+        try {
+            const collapsed = localStorage.getItem('sidebar-collapsed') === '1';
+            if (collapsed) {
+                document.body.classList.add('sidebar-collapsed');
+            }
+            // Remove initial HTML flag now that body is set
+            document.documentElement.classList.remove('sc-init');
+        } catch (e) {}
+
+        const collapseBtn = document.getElementById('sidebarCollapseToggle');
+        if (collapseBtn) {
+            collapseBtn.addEventListener('click', function () {
+                document.body.classList.toggle('sidebar-collapsed');
+                try {
+                    const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+                    localStorage.setItem('sidebar-collapsed', isCollapsed ? '1' : '0');
+                } catch (e) {}
+                updateSidebarTitles();
+            });
+        }
+
+        // Mobile toggle
+        const mobileToggle = document.getElementById('mobileSidebarToggle');
+        const mobileBackdrop = document.getElementById('sidebarBackdrop');
+        if (mobileToggle) {
+            mobileToggle.addEventListener('click', function () {
+                document.body.classList.toggle('sidebar-open');
+                const expanded = document.body.classList.contains('sidebar-open');
+                mobileToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+                if (mobileBackdrop) mobileBackdrop.classList.toggle('hidden', !expanded);
+            });
+        }
+        if (mobileBackdrop) {
+            mobileBackdrop.addEventListener('click', function(){
+                document.body.classList.remove('sidebar-open');
+                mobileToggle && mobileToggle.setAttribute('aria-expanded', 'false');
+                mobileBackdrop.classList.add('hidden');
+            });
+        }
+
+        // Close sidebar on route navigation in mobile (Livewire navigate)
+        window.addEventListener('popstate', function(){
+            document.body.classList.remove('sidebar-open');
+        });
+        function updateSidebarTitles() {
+            const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+            document.querySelectorAll('#sidebar [data-title]').forEach(function(el){
+                el.title = isCollapsed ? el.getAttribute('data-title') : '';
+            });
+            if (collapseBtn) {
+                collapseBtn.title = isCollapsed ? (collapseBtn.getAttribute('data-title') || 'Toggle sidebar') : '';
+                collapseBtn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+                const iconCollapse = collapseBtn.querySelector('.icon-collapse');
+                const iconExpand = collapseBtn.querySelector('.icon-expand');
+                if (iconCollapse && iconExpand) {
+                    if (isCollapsed) { iconCollapse.classList.add('hidden'); iconExpand.classList.remove('hidden'); }
+                    else { iconCollapse.classList.remove('hidden'); iconExpand.classList.add('hidden'); }
+                }
+            }
+        }
+        updateSidebarTitles();
         const sections = document.querySelectorAll('section[id]');
         const navLinks = document.querySelectorAll('a[data-section]');
 

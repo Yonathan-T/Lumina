@@ -61,7 +61,8 @@
 
     <div id="entry-card"
         class="rounded-lg border border-[rgb(29,40,58)]/10 shadow-lg card-highlight bg-gradient-dark w-full max-w-3xl mx-auto min-h-[400px] flex flex-col">
-        <div class="{{ \App\Helpers\FontHelper::getFontClass() }}" data-font-bind data-font-size-bind style="font-size: {{ \App\Helpers\FontHelper::getFontSize() }}px;">
+        <div class="{{ \App\Helpers\FontHelper::getFontClass() }}" data-font-bind data-font-size-bind
+            style="font-size: {{ \App\Helpers\FontHelper::getFontSize() }}px;">
             <div class="p-10 flex flex-col flex-1 gap-6">
 
                 @if($isEditing)
@@ -147,8 +148,7 @@
                         <div class="text-muted text-sm ml-4 whitespace-nowrap mt-1 flex gap-2">
                             {{-- Audio Player Button --}}
                             <button wire:click="generateAudio" wire:loading.attr="disabled"
-                                class="cursor-pointer group relative p-2 rounded-lg border border-white/10 hover:border-purple-500/50 hover:bg-purple-500/10 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Listen to Entry">
+                                class="cursor-pointer group relative p-2 rounded-lg border border-white/10 hover:border-purple-500/50 hover:bg-purple-500/10 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
                                 <div wire:loading.remove wire:target="generateAudio">
                                     <x-icon name="voice"
                                         class="w-5 h-5 text-gray-400 group-hover:text-purple-400 transition-colors" />
@@ -168,8 +168,7 @@
 
                             {{-- PDF Download Button --}}
                             <button wire:click="downloadPdf" wire:loading.attr="disabled"
-                                class="cursor-pointer group relative p-2 rounded-lg border border-white/10 hover:border-blue-500/50 hover:bg-blue-500/10 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Download PDF">
+                                class="cursor-pointer group relative p-2 rounded-lg border border-white/10 hover:border-blue-500/50 hover:bg-blue-500/10 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
                                 <div wire:loading.remove wire:target="downloadPdf">
                                     <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-400 transition-colors"
                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">

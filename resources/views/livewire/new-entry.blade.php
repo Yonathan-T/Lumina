@@ -1,10 +1,11 @@
-<div class="container mx-auto">
+<div class="container p-6 mx-auto" id="mainContent">
+
     <div class="space-y-6 relative">
 
         <div class="mt-4 flex items-center justify-between">
             <h1 class="text-3xl font-bold tracking-tight">New Entry</h1>
             <div class="text-sm text-muted">
-                {{ \Carbon\Carbon::now('Africa/Addis_Ababa')->format('l, F j, Y • H:i A') }}
+                {{ \Carbon\Carbon::now(timezone: 'Africa/Addis_Ababa')->format('l, F j, Y • H:i A') }}
                 <!-- this should be based on location instead of hard coding the timezone my self   -->
             </div>
         </div>
