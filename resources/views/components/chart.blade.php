@@ -1,5 +1,3 @@
-{{-- resources/views/components/chart.blade.php --}}
-
 <div class="chart-container"
     style="position: relative; height: {{ $height ?? '400px' }}; width: 100%; min-height: 200px;">
     <canvas id="{{ $id }}" style="width: 100% !important; height: 100% !important;"></canvas>

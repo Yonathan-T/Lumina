@@ -1,4 +1,6 @@
-<div class=" bg-[#1a1d24] p-6 rounded-xl flex flex-col space-y-4 shadow-md hover:shadow-lg transition-shadow">
+<div class=" bg-[#1a1d24] p-6 rounded-xl flex flex-col space-y-4 shadow-md hover:shadow-lg transition-shadow
+group transform transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl 
+         hover:border-white/30 hover:bg-white/5">
     <div class="w-12 h-12 bg-[#2e2e2e] rounded-full flex items-center justify-center">
         {!! file_get_contents(public_path($svg)) !!}
     </div>
