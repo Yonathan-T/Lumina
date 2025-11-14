@@ -33,6 +33,7 @@ class User extends Authenticatable
         // --- CRITICAL POLAR WEBHOOK FIELDS ADDED BELOW ---
         'polar_customer_id',
         'is_subscribed',
+        'api_key'
         // ---
     ];
 

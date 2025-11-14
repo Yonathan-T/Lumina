@@ -7,6 +7,8 @@ use App\Models\Conversation;
 use App\Services\UserDataService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Contracts\Encryption\DecryptException;
 
 class AiChatService
 {
@@ -19,11 +21,26 @@ class AiChatService
 
     public function __construct()
     {
-        $this->provider = config('services.ai.provider', 'huggingface');
-        $this->openaiApiKey = config('services.openai.api_key');
-        $this->huggingfaceApiKey = config('services.huggingface.api_key');
-        $this->huggingfaceModel = config('services.huggingface.model');
-        $this->geminiApiKey = config('services.gemini.api_key');
+
+        $user = auth()->user();
+
+        $encryptedKey = $user->api_key ?? null;
+
+        $this->geminiApiKey = null;
+
+        if ($encryptedKey) {
+            try {
+                $this->geminiApiKey = Crypt::decryptString($encryptedKey);
+            } catch (DecryptException $e) {
+                \Log::error("Failed to decrypt Gemini API key for user {$user->id}: " . $e->getMessage());
+            }
+        }
+
+        $this->provider = config('services.ai.provider', 'gemini');
+        // $this->openaiApiKey = config('services.openai.api_key');
+        // $this->huggingfaceApiKey = config('services.huggingface.api_key');
+        // $this->huggingfaceModel = config('services.huggingface.model');
+        // $this->geminiApiKey = config('services.gemini.api_key');
         $this->userDataService = new UserDataService();
     }
 
@@ -33,24 +50,25 @@ class AiChatService
             $conversationHistory = $this->getConversationHistory($conversationId);
             $userContext = $this->getUserContext($message);
 
+            if ($this->provider === 'gemini' && !$this->geminiApiKey) {
+                return $this->generateFallbackResponse('gemini');
+            }
+
             if ($this->provider === 'openai' && !$this->openaiApiKey) {
-                return $this->generateFallbackResponse($message);
+                return $this->generateFallbackResponse('openai');
             }
 
             if ($this->provider === 'huggingface' && !$this->huggingfaceApiKey) {
-                return $this->generateFallbackResponse($message);
+                return $this->generateFallbackResponse('huggingface');
             }
 
-            if ($this->provider === 'gemini' && !$this->geminiApiKey) {
-                return $this->generateFallbackResponse($message);
-            }
 
-            if ($this->provider === 'openai') {
-                return $this->generateOpenAIResponse($message, $conversationHistory, $userContext);
+            if ($this->provider === 'gemini') {
+                return $this->generateGeminiResponse($message, $conversationHistory, $userContext);
             } elseif ($this->provider === 'huggingface') {
                 return $this->generateHuggingFaceResponse($message, $conversationHistory, $userContext);
-            } elseif ($this->provider === 'gemini') {
-                return $this->generateGeminiResponse($message, $conversationHistory, $userContext);
+            } elseif ($this->provider === 'openai') {
+                return $this->generateOpenAIResponse($message, $conversationHistory, $userContext);
             }
 
             return 'Sorry, the configured AI provider is not supported.';
@@ -75,8 +93,7 @@ If the user asks if you remember, you will acknowledge the conversation and proc
 - Never use markdown formatting like asterisks (*), bolding (**), or numbered lists.
 - **When the user starts the conversation with a simple greeting like 'hey there,' respond with a warm and conversational, but very concise, greeting that is no more than one short sentence. For example, 'Hey there! So glad you're here today' or 'Hi! Great to see you, how can I support you today?' or 'Hey there! Ready to begin journaling today? Would you like to share what's on your mind?'**
 - Maintain a warm, encouraging, and non-judgmental tone.
-
-- Contextual Awareness: Use the user's past journal entries as context to guide conversations, provide relevant reflections, and offer personalized prompts or advice, but reference journal entries only when truly relevant, not forced.
+- Contextual Awareness: Make sure not to make it sound like you are doing a review by Quoting the user's past journal entries but instead use them as context to guide conversations, provide relevant reflections, and offer personalized prompts or advice, but reference journal entries only when truly relevant, not forced.
 
 - Empathy and Support: Respond with kindness, patience, and understanding, mirroring the tone of a compassionate therapist or supportive friend.
 
@@ -99,7 +116,7 @@ If the user asks if you remember, you will acknowledge the conversation and proc
 " . $userContext;
         #endregion
         $messages = $this->buildGeminiMessages($message, $conversationHistory);
-        
+
         $requestData = [
             'contents' => $messages,
             'systemInstruction' => [
@@ -108,19 +125,19 @@ If the user asks if you remember, you will acknowledge the conversation and proc
                 ]
             ],
         ];
-        
+
         \Log::info('Gemini Request Data', ['request' => $requestData]);
 
-       $response = Http::withHeaders([
-    'Content-Type' => 'application/json',
-])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$this->geminiApiKey}", [
-    'contents' => $messages,
-    'systemInstruction' => [
-        'parts' => [
-['text' => $systemPrompt]
-        ]
-    ],
-]);
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+        ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$this->geminiApiKey}", [
+                    'contents' => $messages,
+                    'systemInstruction' => [
+                        'parts' => [
+                            ['text' => $systemPrompt]
+                        ]
+                    ],
+                ]);
 
 
         if ($response->successful()) {
@@ -202,10 +219,9 @@ If the user asks if you remember, you will acknowledge the conversation and proc
         ]);
         return 'Sorry, I encountered an error while processing your request.';
     }
-    protected function generateFallbackResponse(string $message): string
+    protected function generateFallbackResponse(string $model): string
     {
-        return "I'm having trouble accessing my full capabilities right now. Please try again shortly — I want to give you the thoughtful response you deserve.";
-
+        return "To start chatting with Lumi, please configure your {$model} API key first. Head to Settings > Account > API Integration Settings to enter and save your key.";
     }
     protected function buildMistralPrompt(string $message, array $conversationHistory, string $userContext = ''): string
     {
@@ -426,7 +442,7 @@ You are Lumi, an empathetic and intelligent journaling assistant designed to sup
 
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
-])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$this->geminiApiKey}", [
+        ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$this->geminiApiKey}", [
                     'contents' => [
                         [
                             'role' => 'user',

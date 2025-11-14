@@ -31,11 +31,11 @@ Route::middleware('auth')->group(function () {
     // Dashboard
 //    Route::get('/dashboard', [DashboardController::class, 'create'])->name('dashboard');
     Route::view('/dashboard', 'SecViews.dashboard')->name('dashboard');
-    
-   // Route::view('/entries/create', 'SecViews.newentry')->name('entries.create'); // Show form
+
+    // Route::view('/entries/create', 'SecViews.newentry')->name('entries.create'); // Show form
     Route::get('/entries/create', NewEntry::class)->name('entries.create'); // Show form
     // Entries
-   // Route::view('/entries', 'SecViews.history')->name('archive.entries');       // Show all entries (like history)
+    // Route::view('/entries', 'SecViews.history')->name('archive.entries');       // Show all entries (like history)
     Route::get('/entries', History::class)->name('archive.entries');       // Show all entries (like history)
 
 
@@ -70,7 +70,7 @@ Route::get('/blogs', function () {
 Route::get('/', function () {
     $products = ProductsController::fetchProducts();
     return view('landing-page', ['products' => $products]);
-});
+})->name('landingPage');
 // Route::get('/dashboard', function () {
 //     return view('entries.index');
 // });

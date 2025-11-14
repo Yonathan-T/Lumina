@@ -4,73 +4,91 @@
 
         {{-- Brand / Logo --}}
         <div class="flex items-center justify-between h-14 border-white/10 border-b px-4 sidebar-header">
-            <div class="flex items-center gap-2 font-semibold text-white">
-                <svg class="w-10 h-10 rotate-[-45deg]" fill="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                    <g id="SVGRepo_iconCarrier">
-                        <path d="M13,2l9,13.6L13,22ZM11,2,2,15.6,11,22Z"></path>
-                    </g>
-                </svg>
+            <a href="{{ route('landingPage') }}">
+                <div class="flex items-center gap-2 font-semibold text-white">
 
-                <span class="text-lg font-bold sidebar-label">Lumina</span>
-            </div>
-            <button id="sidebarCollapseToggle" class="hidden md:inline-flex items-center justify-center w-8 h-8 rounded-md border border-white/10 text-white/80 hover:text-white hover:bg-white/10 transition" data-title="Toggle sidebar" aria-label="Toggle sidebar" aria-expanded="false">
+                    <svg class="w-10 h-10 rotate-[-45deg]" fill="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                        <g id="SVGRepo_iconCarrier">
+                            <path d="M13,2l9,13.6L13,22ZM11,2,2,15.6,11,22Z"></path>
+                        </g>
+                    </svg>
+
+                    <span class="text-lg font-bold sidebar-label">Lumina</span>
+                </div>
+            </a>
+            <button id="sidebarCollapseToggle"
+                class="hidden md:inline-flex items-center justify-center w-8 h-8 rounded-md border border-white/10 text-white/80 hover:text-white hover:bg-white/10 transition"
+                data-title="Toggle sidebar" aria-label="Toggle sidebar" aria-expanded="false">
                 <!-- collapse icon (shown when expanded) -->
-                <svg class="icon-collapse w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                    <path fill-rule="evenodd" d="M8.53 11.47a.75.75 0 0 1 0 1.06l-3 3a.75.75 0 0 1-1.06-1.06L6.94 12 4.47 9.53A.75.75 0 1 1 5.53 8.47l3 3Zm8-2.94a.75.75 0 0 1 1.06 1.06L14.06 12l3.53 3.53a.75.75 0 1 1-1.06 1.06l-4-4a.75.75 0 0 1 0-1.06l4-4Z" clip-rule="evenodd" />
+                <svg class="icon-collapse w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M8.53 11.47a.75.75 0 0 1 0 1.06l-3 3a.75.75 0 0 1-1.06-1.06L6.94 12 4.47 9.53A.75.75 0 1 1 5.53 8.47l3 3Zm8-2.94a.75.75 0 0 1 1.06 1.06L14.06 12l3.53 3.53a.75.75 0 1 1-1.06 1.06l-4-4a.75.75 0 0 1 0-1.06l4-4Z"
+                        clip-rule="evenodd" />
                 </svg>
                 <!-- expand icon (shown when collapsed) -->
-                <svg class="icon-expand w-4 h-4 hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                    <path fill-rule="evenodd" d="M5.47 8.47a.75.75 0 0 1 1.06 0L10 11.94l3.47-3.47a.75.75 0 1 1 1.06 1.06l-4 4a.75.75 0 0 1-1.06 0l-4-4a.75.75 0 0 1 0-1.06Zm8 6a.75.75 0 0 1 1.06 0l3 3a.75.75 0 1 1-1.06 1.06L14.06 16.6l-2.47 2.47a.75.75 0 1 1-1.06-1.06l3-3Z" clip-rule="evenodd" />
+                <svg class="icon-expand w-4 h-4 hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M5.47 8.47a.75.75 0 0 1 1.06 0L10 11.94l3.47-3.47a.75.75 0 1 1 1.06 1.06l-4 4a.75.75 0 0 1-1.06 0l-4-4a.75.75 0 0 1 0-1.06Zm8 6a.75.75 0 0 1 1.06 0l3 3a.75.75 0 1 1-1.06 1.06L14.06 16.6l-2.47 2.47a.75.75 0 1 1-1.06-1.06l3-3Z"
+                        clip-rule="evenodd" />
                 </svg>
             </button>
         </div>
         {{-- Navigation --}}
         <nav class="flex-1 overflow-hidden p-4 space-y-2 text-sm text-gray-400">
             <a href="{{ route('dashboard') }}" wire:navigate
-                class="flex items-center gap-3 rounded-md px-3 py-2 min-h-[2.25rem] transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('dashboard') ? 'bg-blue-300/15 text-white' : '' }}" data-title="Dashboard">
+                class="flex items-center gap-3 rounded-md px-3 py-2 min-h-[2.25rem] transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('dashboard') ? 'bg-blue-300/15 text-white' : '' }}"
+                data-title="Dashboard">
                 <x-ri-dashboard-line class="w-5 h-5 shrink-0 sidebar-icon" />
                 <span class="sidebar-label">Dashboard</span>
             </a>
 
             <a href="{{ route('entries.create') }}" wire:navigate
-                class="flex items-center gap-3 rounded-md px-3 py-2 min-h-[2.25rem] transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('entries.create') ? 'bg-blue-300/15 text-white' : '' }}" data-title="New Entry">
+                class="flex items-center gap-3 rounded-md px-3 py-2 min-h-[2.25rem] transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('entries.create') ? 'bg-blue-300/15 text-white' : '' }}"
+                data-title="New Entry">
 
                 <x-iconpark-writingfluently-o class="w-5 h-5 shrink-0 sidebar-icon" />
                 <span class="sidebar-label">New Entry</span>
             </a>
 
             <a href="{{ route('archive.entries') }}" wire:navigate
-                class="flex items-center gap-3 rounded-md px-3 py-2 min-h-[2.25rem] transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('archive.entries') ? 'bg-blue-300/15 text-white' : '' }}" data-title="History">
+                class="flex items-center gap-3 rounded-md px-3 py-2 min-h-[2.25rem] transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('archive.entries') ? 'bg-blue-300/15 text-white' : '' }}"
+                data-title="History">
 
                 <x-heroicon-o-calendar-days class="w-5 h-5 shrink-0 sidebar-icon" />
                 <span class="sidebar-label">History</span>
             </a>
 
             <a href="{{ route('tags.index') }}" wire:navigate
-                class="flex items-center gap-3 rounded-md px-3 py-2 min-h-[2.25rem] transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('tags.index') ? 'bg-blue-300/15 text-white' : '' }}" data-title="Tags">
+                class="flex items-center gap-3 rounded-md px-3 py-2 min-h-[2.25rem] transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('tags.index') ? 'bg-blue-300/15 text-white' : '' }}"
+                data-title="Tags">
 
                 <x-heroicon-o-tag class="w-5 h-5 shrink-0 sidebar-icon" />
                 <span class="sidebar-label">Tags</span>
             </a>
 
             <a href="{{ route('chat.index') }}" wire:navigate
-                class="flex items-center gap-3 rounded-md px-3 py-2 min-h-[2.25rem] transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('chat.index') ? 'bg-blue-300/15 text-white' : '' }}" data-title="Chat">
+                class="flex items-center gap-3 rounded-md px-3 py-2 min-h-[2.25rem] transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('chat.index') ? 'bg-blue-300/15 text-white' : '' }}"
+                data-title="Chat">
 
                 <x-icon name="chatbubbles-outline" class="w-5 h-5 shrink-0 sidebar-icon" />
                 <span class="sidebar-label">Chat</span>
             </a>
             <a href="{{ route('insights.index') }}" wire:navigate
-                class="flex items-center gap-3 rounded-md px-3 py-2 min-h-[2.25rem] transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('insights.index') ? 'bg-blue-300/15 text-white' : '' }}" data-title="Insights">
+                class="flex items-center gap-3 rounded-md px-3 py-2 min-h-[2.25rem] transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('insights.index') ? 'bg-blue-300/15 text-white' : '' }}"
+                data-title="Insights">
 
                 <x-sui-graph-bar class="w-5 h-5 shrink-0 sidebar-icon" />
                 <span class="sidebar-label">Insights</span>
             </a>
 
             <a href="{{ route('settings.index') }}" wire:navigate
-                class="flex items-center gap-3 rounded-md px-3 py-2 min-h-[2.25rem] transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('settings.index') ? 'bg-blue-300/15 text-white' : 'text-gray-400' }}" data-title="Settings">
+                class="flex items-center gap-3 rounded-md px-3 py-2 min-h-[2.25rem] transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('settings.index') ? 'bg-blue-300/15 text-white' : 'text-gray-400' }}"
+                data-title="Settings">
 
                 <x-elemplus-setting class="w-5 h-5 shrink-0 sidebar-icon" />
                 <span class="sidebar-label">Settings</span>
@@ -80,7 +98,8 @@
         {{-- Upgrade Button --}}
         <div class="p-4">
             <a href="{{ route('pricing') }}" wire:navigate type="button"
-                class="z-222 h-10 px-4 py-2 w-full border border-white/10 hover:bg-blue-300/15 flex items-center rounded-md justify-center gap-2" data-title="Upgrade to Pro">
+                class="z-222 h-10 px-4 py-2 w-full border border-white/10 hover:bg-blue-300/15 flex items-center rounded-md justify-center gap-2"
+                data-title="Upgrade to Pro">
                 <x-icon name="badge-check" class="w-5 h-5 shrink-0 sidebar-icon" />
                 <span class="sidebar-label">Upgrade to Pro</span>
             </a>
