@@ -3,14 +3,18 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use App\Models\Entry;
 use App\Models\Tag;
 use Illuminate\Support\Str;
 
 class NewEntry extends Component
 {
+    use WithFileUploads;
+
     public $title = '';
     public $content = '';
+    public $banner;
     public $selectedTags = [];
     public $availableTags = [];
 
@@ -46,7 +50,8 @@ class NewEntry extends Component
         $this->validate([
             'title' => 'required|string|min:3|max:255',
             'content' => 'required|string|min:10',
-            'selectedTags' => 'array'
+            'selectedTags' => 'array',
+            'banner' => 'nullable|image|max:10240', // 10MB Max
         ]);
 
         preg_match_all('/(?<=\s|^)#([A-Za-z][\w]{1,30})/', $this->content, $matches);
@@ -57,10 +62,16 @@ class NewEntry extends Component
 
         $allTags = array_unique(array_merge($tagsFromContent, $tagsFromInput));
 
+        $bannerPath = null;
+        if ($this->banner) {
+            $bannerPath = $this->banner->store('banners', 'public');
+        }
+
         $entry = Entry::create([
             'title' => $this->title,
             'content' => trim($this->content),
             'user_id' => auth()->id(),
+            'banner_path' => $bannerPath,
         ]);
 
         foreach ($allTags as $tagName) {
@@ -216,6 +227,8 @@ class NewEntry extends Component
             'content.required' => 'No content? No story. Fill in the blanks, please! 🕳️',
             'content.string' => 'The content should be words, not wizardry. Use a string! 🔮',
             'content.min' => 'Give us more to work with! Content must be at least :min characters. 🧱',
+            'banner.image' => 'The file must be an image. 🖼️',
+            'banner.max' => 'The image is too large. Maximum size is 10MB. 📉',
         ];
 
     }

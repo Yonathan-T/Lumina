@@ -3,17 +3,22 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use App\Models\Entry;
 use App\Models\Tag;
 use Illuminate\Support\Str;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\ElevenLabsTTSService;
+use Illuminate\Support\Facades\Storage;
 
 class EditEntry extends Component
 {
+    use WithFileUploads;
+
     public Entry $entry;
     public $title;
     public $content;
+    public $banner;
     public $selectedTags = [];
     public $availableTags = [];
     public $newTag = '';
@@ -26,7 +31,8 @@ class EditEntry extends Component
     protected $rules = [
         'title' => 'required|string|min:3|max:255',
         'content' => 'required|string|min:10',
-        'selectedTags' => 'array'
+        'selectedTags' => 'array',
+        'banner' => 'nullable|image|max:10240', // 10MB Max
     ];
 
     public function mount(Entry $entry)
@@ -51,6 +57,7 @@ class EditEntry extends Component
         $this->title = $this->entry->title;
         $this->content = $this->entry->content;
         $this->selectedTags = $this->entry->tags->pluck('name')->toArray();
+        $this->banner = null;
         $this->tagError = null;
     }
 
@@ -65,10 +72,19 @@ class EditEntry extends Component
 
         $allTags = array_unique(array_merge($tagsFromContent, $tagsFromInput));
 
-        $this->entry->update([
+        $updateData = [
             'title' => $this->title,
             'content' => trim($this->content),
-        ]);
+        ];
+
+        if ($this->banner) {
+            if ($this->entry->banner_path) {
+                Storage::disk('public')->delete($this->entry->banner_path);
+            }
+            $updateData['banner_path'] = $this->banner->store('banners', 'public');
+        }
+
+        $this->entry->update($updateData);
 
         // tags should be synced so here we go
         $tagIds = [];
@@ -85,7 +101,17 @@ class EditEntry extends Component
         $this->entry->tags()->sync($tagIds);
 
         $this->isEditing = false;
+        $this->banner = null;
         session()->flash('message', 'Entry updated successfully!');
+    }
+
+    public function removeBanner()
+    {
+        if ($this->entry->banner_path) {
+            Storage::disk('public')->delete($this->entry->banner_path);
+            $this->entry->update(['banner_path' => null]);
+            session()->flash('message', 'Banner removed successfully!');
+        }
     }
 
     public function showDeleteConfirmation()
@@ -199,6 +225,8 @@ class EditEntry extends Component
             'content.required' => 'No content? No story. Fill in the blanks, please! 🕳️',
             'content.string' => 'The content should be words, not wizardry. Use a string! 🔮',
             'content.min' => 'Give us more to work with! Content must be at least :min characters. 🧱',
+            'banner.image' => 'The file must be an image. 🖼️',
+            'banner.max' => 'The image is too large. Maximum size is 10MB. 📉',
         ];
     }
 

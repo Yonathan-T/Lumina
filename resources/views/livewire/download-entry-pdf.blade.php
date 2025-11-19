@@ -105,6 +105,12 @@
 
 <body>
     <div class="header">
+        @if($entry->banner_path)
+            <div style="margin-bottom: 20px; text-align: center;">
+                <img src="{{ public_path('storage/' . $entry->banner_path) }}"
+                    style="max-width: 100%; max-height: 300px; border-radius: 8px;">
+            </div>
+        @endif
         <div class="logo">LUMINA</div>
         <h1>{{ $entry->title }}</h1>
         <div class="meta">

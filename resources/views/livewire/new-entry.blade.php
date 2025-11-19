@@ -13,12 +13,48 @@
         <form wire:submit.prevent="save">
             @csrf
             <div class="space-y-4">
+                <div class="relative group">
+                    @if ($banner)
+                        <div class="relative w-full h-64 rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                            <img src="{{ $banner->temporaryUrl() }}" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
+                            <button type="button" wire:click="$set('banner', null)"
+                                class="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-red-500/80 transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                            <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <label class="cursor-pointer bg-black/50 text-white px-4 py-2 rounded-lg hover:bg-white/20 backdrop-blur-sm text-sm font-medium flex items-center gap-2 transition-all">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    Change Cover
+                                    <input type="file" wire:model="banner" class="hidden" accept="image/*">
+                                </label>
+                            </div>
+                        </div>
+                    @else
+                        <label class="cursor-pointer group flex flex-col items-center justify-center w-full h-32 rounded-xl border-2 border-dashed border-white/10 hover:border-white/20 hover:bg-white/5 transition-all duration-200">
+                            <div class="flex flex-col items-center justify-center pt-5 pb-6 text-muted group-hover:text-white transition-colors">
+                                <svg class="w-8 h-8 mb-3 opacity-50 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <p class="text-sm font-medium">Add Cover Image</p>
+                            </div>
+                            <input type="file" wire:model="banner" class="hidden" accept="image/*">
+                        </label>
+                    @endif
+                    <x-form-error name="banner" />
+                </div>
+
                 <div>
                     <input type="text" wire:model="title"
                         class="flex h-10 w-full rounded-md px-3 py-2 bg-background text-2xl font-semibold placeholder:text-[rgb(65,74,90)] border-none focus:outline-none focus:ring-0"
                         placeholder="Title your entry" />
                     <x-form-error name="title" />
                 </div>
+
                 <textarea wire:model.defer="content"
                     class="flex w-full rounded-md border bg-background px-3 py-2 text-sm sm:min-h-[200px] md:min-h-[300px] lg:min-h-[400px] resize-none border-none  placeholder:text-[rgb(65,74,90)] focus:outline-none focus:ring-0"
                     placeholder="What's on your mind today!"></textarea>

@@ -69,6 +69,64 @@
                     <!-- Edit Mode -->
                     <form wire:submit.prevent="save">
                         <div class="space-y-6">
+
+                            <div class="mb-6 relative group">
+                                <label class="block text-sm font-medium mb-2 text-muted">Banner Image</label>
+                                @if ($banner)
+                                    <div class="relative w-full h-64 rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                                        <img src="{{ $banner->temporaryUrl() }}" class="w-full h-full object-cover">
+                                        <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
+                                        <button type="button" wire:click="$set('banner', null)"
+                                            class="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-red-500/80 transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                        </button>
+                                        <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <label class="cursor-pointer bg-black/50 text-white px-4 py-2 rounded-lg hover:bg-white/20 backdrop-blur-sm text-sm font-medium flex items-center gap-2 transition-all">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                </svg>
+                                                Change Cover
+                                                <input type="file" wire:model="banner" class="hidden" accept="image/*">
+                                            </label>
+                                        </div>
+                                    </div>
+                                @elseif($entry->banner_path)
+                                    <div class="relative w-full h-64 rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                                        <img src="{{ Storage::url($entry->banner_path) }}" class="w-full h-full object-cover">
+                                        <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
+                                        <button type="button" wire:click="removeBanner"
+                                            class="absolute top-4 right-4 bg-red-600/80 text-white p-2 rounded-full hover:bg-red-700 transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm"
+                                            title="Remove Banner">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                        </button>
+                                        <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <label class="cursor-pointer bg-black/50 text-white px-4 py-2 rounded-lg hover:bg-white/20 backdrop-blur-sm text-sm font-medium flex items-center gap-2 transition-all">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                </svg>
+                                                Change Cover
+                                                <input type="file" wire:model="banner" class="hidden" accept="image/*">
+                                            </label>
+                                        </div>
+                                    </div>
+                                @else
+                                    <label class="cursor-pointer group flex flex-col items-center justify-center w-full h-32 rounded-xl border-2 border-dashed border-white/10 hover:border-white/20 hover:bg-white/5 transition-all duration-200">
+                                        <div class="flex flex-col items-center justify-center pt-5 pb-6 text-muted group-hover:text-white transition-colors">
+                                            <svg class="w-8 h-8 mb-3 opacity-50 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                            </svg>
+                                            <p class="text-sm font-medium">Add Cover Image</p>
+                                        </div>
+                                        <input type="file" wire:model="banner" class="hidden" accept="image/*">
+                                    </label>
+                                @endif
+                                <x-form-error name="banner" />
+                            </div>
+
                             <div class="flex items-start justify-between mb-2">
                                 <div class="flex-1">
                                     <input type="text" wire:model="title"
@@ -131,6 +189,12 @@
                         </div>
                     </form>
                 @else
+
+                    @if($entry->banner_path)
+                        <div class="w-full h-64 rounded-lg overflow-hidden mb-6 border border-white/10">
+                            <img src="{{ Storage::url($entry->banner_path) }}" class="w-full h-full object-cover" alt="Entry Banner">
+                        </div>
+                    @endif
 
                     <div class="text-muted text-sm ml-4 whitespace-nowrap mt-1">
                         {{ $entry->created_at->format('M d, Y') }}

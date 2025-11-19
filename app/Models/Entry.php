@@ -13,6 +13,7 @@ class Entry extends Model
         "title",
         "content",
         'user_id',
+        'banner_path',
     ];
     public function tags()
     {
