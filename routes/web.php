@@ -20,6 +20,7 @@ use App\Livewire\NewEntry;
 use App\Livewire\Pricing;
 use App\Livewire\SettingsPanel;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\PasswordResetController;
 
@@ -31,11 +32,11 @@ Route::middleware('auth')->group(function () {
     // Dashboard
 //    Route::get('/dashboard', [DashboardController::class, 'create'])->name('dashboard');
     Route::view('/dashboard', 'SecViews.dashboard')->name('dashboard');
-    
-   // Route::view('/entries/create', 'SecViews.newentry')->name('entries.create'); // Show form
+
+    // Route::view('/entries/create', 'SecViews.newentry')->name('entries.create'); // Show form
     Route::get('/entries/create', NewEntry::class)->name('entries.create'); // Show form
     // Entries
-   // Route::view('/entries', 'SecViews.history')->name('archive.entries');       // Show all entries (like history)
+    // Route::view('/entries', 'SecViews.history')->name('archive.entries');       // Show all entries (like history)
     Route::get('/entries', History::class)->name('archive.entries');       // Show all entries (like history)
 
 
@@ -69,8 +70,28 @@ Route::get('/blogs', function () {
 })->name('blogs.index');
 Route::get('/', function () {
     $products = ProductsController::fetchProducts();
-    return view('landing-page', ['products' => $products]);
-});
+
+    // Use rememberForever so it stays until the webhook updates it
+    $stars = Cache::rememberForever('github_stars_v4', function () {
+        try {
+            $response = Http::withHeaders([
+                'User-Agent' => 'Lumina-App'
+            ])->get('https://api.github.com/repos/Yonathan-T/Lumina');
+            
+            if ($response->successful()) {
+                $count = $response->json()['stargazers_count'];
+                if ($count >= 1000) {
+                    return number_format($count / 1000, 1) . 'K+';
+                }
+                return $count;
+            }
+        } catch (\Exception $e) {
+            // Silent fail
+        }
+        return '23.5K+'; // Fallback
+    });
+    return view('landing-page', ['products' => $products, 'stars' => $stars]);
+})->name('landingPage');
 // Route::get('/dashboard', function () {
 //     return view('entries.index');
 // });

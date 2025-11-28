@@ -1,29 +1,76 @@
 <!--HERO PART -->
-<x-layout :showSidebar="false">
+<x-layout :showSidebar="false" :isLandingPage="true">
 
-  <section class="py-5 ">
+  <!-- Decorative blur patterns for landing page only -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div class="absolute -top-20 -right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/4 -left-32 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-1/4 -right-32 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-20 left-1/4 w-72 h-72 bg-pink-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/2 left-1/2 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl"></div>
+  </div>
+
+  <section class="py-6 relative z-10">
     <div class="mx-auto flex flex-col lg:flex-row justify-between rounded-xl  max-w-7xl px-4">
 
       <!-- Text Content Column -->
       <div class="flex-1 py-12 px-8 flex flex-col">
-        <div class="mb-7">
+        <div class="mb-7 relative">
+          <!-- BETA BADGE (floating just above the heading) -->
+          <div class="absolute -top-3 -left-10
+           flex items-center gap-1.5
+           bg-[#111]/95 backdrop-blur-sm text-yellow-400 text-[10px] font-bold uppercase tracking-wider
+           px-3 py-1 rounded-full
+           border border-yellow-600/40
+           shadow-xl
+           animate-bounce
+           whitespace-nowrap
+           cursor-pointer
+           hover:scale-110 transition-transform">
+            <div class="w-1.5 h-1.5 rounded-full bg-yellow-400
+             shadow-[0_0_8px_#facc15] animate-ping"></div>
+            <span>Beta Release</span>
+          </div>
+
           <h1 class="font-playfair text-4xl md:text-5xl lg:text-6xl font-bold leading-none">
             Your story deserves to be written.
           </h1>
 
-          <h2 class="mt-[24px] text-lg md:text-xl text-paper/80">
-            <span class="font-playfair italic">Reflect.</span>
-            <span class="mx-2">|</span>
-            <span class="font-playfair italic">Grow.</span>
-            <span class="mx-2">|</span>
-            <span class="font-playfair italic">Heal.</span>
+          <h2 class="mt-[24px] text-lg md:text-xl text-paper/80 flex items-center  gap-2">
+            <!-- Reflect -->
+            <span class="font-playfair italic relative overflow-hidden cursor-pointer group">
+              <span class="inline-block transition-transform duration-300 group-hover:scale-105 group-hover:text-white
+             before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent
+             before:translate-x-[-100%] before:skew-x-12 before:opacity-0
+             group-hover:before:animate-reflect-shine">
+                Reflect.
+              </span>
+            </span>
 
+            <span>|</span>
+
+            <!-- Grow -->
+            <span
+              class="font-playfair italic inline-block cursor-pointer transition-all duration-300 hover:scale-125 hover:text-green-400">
+              Grow.
+            </span>
+
+            <span>|</span>
+
+            <!-- Heal -->
+            <span
+              class="font-playfair italic inline-block cursor-pointer transition-all duration-500 hover:text-pink-400 hover:rotate-1 hover:scale-110 hover:drop-shadow-[0_0_8px_rgba(244,114,182,0.6)]">
+              Heal.
+            </span>
           </h2>
+
           <!--ANIMATion would be nice around here -->
-          <p class="mt-[24px]  max-w-md">
+          <p
+            class="mt-[24px] max-w-md text-paper/80 transition-all duration-1000 ease-out opacity-80 hover:opacity-100 hover:text-white hover:drop-shadow-[0_0_10px_rgba(255,255,200,0.3)]">
             A beautiful, private space for your thoughts, dreams, and reflections.
             Lumina helps you cultivate mindfulness and emotional clarity through journaling.
           </p>
+
 
         </div>
 
@@ -41,7 +88,7 @@
             <!-- <x-buttons href="/guide">Send me a guide</x-buttons> -->
           </div>
 
-          <p class="text-sm text-gray-300">We'll never share your Info. Your thoughts stay yours.</p>
+          <p class="mt-10 text-sm text-gray-500">We'll never share your Info. Your thoughts stay yours.</p>
         </div>
       </div>
 
@@ -100,7 +147,7 @@
     </div>
   </section>
   <!--BENEFITS -->
-  <section id="features" class="mt-5  py-12 "> <!-- Main container -->
+  <section id="features" class="mt-3  py-12 "> <!-- Main container -->
     <div class="text-center max-w-2xl mx-auto mb-6">
       <h2 class="font-playfair text-3xl md:text-4xl font-bold mb-6 tracking-wide">
         Why Lumina?
@@ -134,99 +181,393 @@
 
   <x-pricing-section :products="$products" />
 
-  <!-- 
-ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
-  <footer id="contact" class=" bg-white/5 border-t border-white/10 mt-20 py-12 px-16">
-    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
+  <!-- FAQ Section -->
+  <section class="py-20 px-4">
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center mb-12">
+        <h2 class="font-playfair text-3xl md:text-4xl font-bold mb-4 tracking-wide">
+          Frequently Asked Questions
+        </h2>
+        <p class="text-white/70 max-w-2xl mx-auto">
+          Everything you need to know about Lumina and how it can transform your journaling practice
+        </p>
+      </div>
 
-      <!-- Brand Column -->
-      <div class="space-y-4">
-        <div class="flex items-center gap-2">
-          <x-icons type="heart" />
-          <a href="/">
-            <span class="text-xl font-semibold text-[#7c6a54]">Lumina</span>
-          </a>
+      <div class="space-y-4" x-data="{ openFaq: null }">
+        <!-- FAQ Item 1 -->
+        <div
+          class="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden transition-all duration-300"
+          :class="openFaq === 1 ? 'shadow-lg' : ''">
+          <button @click="openFaq = openFaq === 1 ? null : 1"
+            class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
+            <span class="font-medium text-lg text-white">Is my data private?</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-transform duration-300"
+              :class="openFaq === 1 ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div x-show="openFaq === 1" x-collapse x-cloak>
+            <div class="px-6 pb-5 text-white/70">
+              Absolutely. Your entries are encrypted and never shared. We don't read your journals. Your privacy is our
+              top priority, and all data is stored securely with industry-standard encryption.
+            </div>
+          </div>
         </div>
-        <p class="text-white/60 text-sm"><x-icons type="leftQ" /> Your private space for mindful journaling <x-icons
-            type="rightQ" /></p>
-      </div>
 
-      <!-- Quick Links -->
-      <div>
-        <h3 class="font-medium mb-4 text-[#7c6a54]">Explore</h3>
-        <ul class="space-y-2">
-          <li class="group">
-            <a href="#" class="flex items-center text-white/60 hover:text-white transition">
-              <span class="hidden group-hover:inline-block mr-2">
-                <x-icons type="hashtag" />
-              </span>
-              Features
-            </a>
-          </li>
-          <li class="group">
-            <a href="#" class="flex items-center text-white/60 hover:text-white transition">
-              <span class="hidden group-hover:inline-block mr-2">
-                <x-icons type="hashtag" />
-              </span>
-              Pricing
-            </a>
-          </li>
-          <li class="group">
-            <a href="#" class="flex items-center text-white/60 hover:text-white transition">
-              <span class="hidden group-hover:inline-block mr-2">
-                <x-icons type="hashtag" />
-              </span>
-              Journal Prompts
-            </a>
-          </li>
+        <!-- FAQ Item 2 -->
+        <div
+          class="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden transition-all duration-300"
+          :class="openFaq === 2 ? 'shadow-lg' : ''">
+          <button @click="openFaq = openFaq === 2 ? null : 2"
+            class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
+            <span class="font-medium text-lg text-white">Can I cancel anytime?</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-transform duration-300"
+              :class="openFaq === 2 ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div x-show="openFaq === 2" x-collapse x-cloak>
+            <div class="px-6 pb-5 text-white/70">
+              Yes! Cancel with one click from your settings. No questions asked. You'll keep your free account and all
+              your entries, you just won't have access to premium features anymore.
+            </div>
+          </div>
+        </div>
 
-        </ul>
-      </div>
+        <!-- FAQ Item 3 -->
+        <div
+          class="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden transition-all duration-300"
+          :class="openFaq === 3 ? 'shadow-lg' : ''">
+          <button @click="openFaq = openFaq === 3 ? null : 3"
+            class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
+            <span class="font-medium text-lg text-white">What's the difference between Standard and Pro?</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-transform duration-300"
+              :class="openFaq === 3 ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div x-show="openFaq === 3" x-collapse x-cloak>
+            <div class="px-6 pb-5 text-white/70">
+              Pro adds unlimited entries, text-to-speech for listening to your journals, unlimited data exports, and
+              premium customization options. Standard is perfect for most daily journalers with 100 entries per month
+              and AI chat support.
+            </div>
+          </div>
+        </div>
 
-      <!-- Legal -->
-      <div>
-        <h3 class="font-medium mb-4 text-[#7c6a54]">Legal</h3>
-        <ul class="space-y-2">
-          <li class="group">
-            <a href="#" class="flex items-center text-white/60 hover:text-white transition">
-              <span class="hidden group-hover:inline-block mr-2">
-                <x-icons type="hashtag" />
-              </span>
-              Privacy Policy
-            </a>
-          </li>
-          <li class="group">
-            <a href="#" class="flex items-center text-white/60 hover:text-white transition">
-              <span class="hidden group-hover:inline-block mr-2">
-                <x-icons type="hashtag" />
-              </span>
-              Terms
-            </a>
-          </li>
-        </ul>
-      </div>
+        <!-- FAQ Item 4 -->
+        <div
+          class="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden transition-all duration-300"
+          :class="openFaq === 4 ? 'shadow-lg' : ''">
+          <button @click="openFaq = openFaq === 4 ? null : 4"
+            class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
+            <span class="font-medium text-lg text-white">How does the AI work?</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-transform duration-300"
+              :class="openFaq === 4 ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div x-show="openFaq === 4" x-collapse x-cloak>
+            <div class="px-6 pb-5 text-white/70">
+              Lumi, our AI assistant, reads your entries (with your permission) and provides thoughtful, context-aware
+              responses to help you reflect deeper. It remembers your previous conversations and journal themes to offer
+              personalized insights and prompts.
+            </div>
+          </div>
+        </div>
 
-      <!-- CTA & Social -->
-      <div class="space-y-4">
-        <h3 class="font-medium text-[#7c6a54]">Start Journaling</h3>
-        <a href="/auth/register" class="flex items-center space-x-2 hover:text-[#c6b78e] transition">
-          <span>Get Started</span>
-          <x-icons type="login" />
-        </a>
+        <!-- FAQ Item 5 -->
+        <div
+          class="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden transition-all duration-300"
+          :class="openFaq === 5 ? 'shadow-lg' : ''">
+          <button @click="openFaq = openFaq === 5 ? null : 5"
+            class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
+            <span class="font-medium text-lg text-white">Can I export my data?</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-transform duration-300"
+              :class="openFaq === 5 ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div x-show="openFaq === 5" x-collapse x-cloak>
+            <div class="px-6 pb-5 text-white/70">
+              Free users can manually copy their entries. Standard plan users get 4 full JSON exports per year, and Pro
+              users can export their data anytime with unlimited exports. Your data is always yours.
+            </div>
+          </div>
+        </div>
 
-      </div>
-      <div>
-        <h3 class="font-medium mb-4 text-[#7c6a54]">Follow us</h3>
-        <a href="https://t.me/+lEIft9tfqhwxNjU8">
-          <x-icons type="telegram" :logo="true" />
-        </a>
+        <!-- FAQ Item 6 -->
+        <div
+          class="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden transition-all duration-300"
+          :class="openFaq === 6 ? 'shadow-lg' : ''">
+          <button @click="openFaq = openFaq === 6 ? null : 6"
+            class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
+            <span class="font-medium text-lg text-white">What if I exceed my monthly entry limit?</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-transform duration-300"
+              :class="openFaq === 6 ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div x-show="openFaq === 6" x-collapse x-cloak>
+            <div class="px-6 pb-5 text-white/70">
+              You'll receive a friendly notification encouraging you to upgrade. Your existing entries are never locked
+              or deleted—you just won't be able to create new ones until the next month or you upgrade your plan.
+            </div>
+          </div>
+        </div>
+
+        <!-- FAQ Item 7 -->
+        <div
+          class="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden transition-all duration-300"
+          :class="openFaq === 7 ? 'shadow-lg' : ''">
+          <button @click="openFaq = openFaq === 7 ? null : 7"
+            class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
+            <span class="font-medium text-lg text-white">Is there a mobile app?</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-transform duration-300"
+              :class="openFaq === 7 ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div x-show="openFaq === 7" x-collapse x-cloak>
+            <div class="px-6 pb-5 text-white/70">
+              Not yet, but our web app works beautifully on mobile browsers and is fully responsive. You can add it to
+              your home screen for a native app-like experience. A dedicated native app is coming in 2025!
+            </div>
+          </div>
+        </div>
+
+        <!-- FAQ Item 8 -->
+        <div
+          class="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden transition-all duration-300"
+          :class="openFaq === 8 ? 'shadow-lg' : ''">
+          <button @click="openFaq = openFaq === 8 ? null : 8"
+            class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
+            <span class="font-medium text-lg text-white">Do you offer refunds?</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-transform duration-300"
+              :class="openFaq === 8 ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div x-show="openFaq === 8" x-collapse x-cloak>
+            <div class="px-6 pb-5 text-white/70">
+              Yes, we offer a 30-day money-back guarantee on all paid plans. If Lumina isn't right for you, just contact
+              support within 30 days of your purchase for a full refund.
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+  </section>
 
+  <!-- 
+ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
 
-    <!-- Copyright -->
-    <div class="max-w-7xl mx-auto pt-8 mt-8 border-t border-white/10 text-center text-white/40 text-sm">
-      © 2025 Lumina. All rights reserved.
+  <!-- Professional Footer -->
+  <footer id="contact" class="bg-gradient-to-b from-ink to-[#0a0c10] border-t border-white/10 mt-20">
+    <div class="max-w-7xl mx-auto px-6 lg:px-16">
+      <!-- Main Footer Content -->
+      <div class="py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
+
+        <!-- Brand Column -->
+        <div class="lg:col-span-2 space-y-6">
+          <div class="flex items-center gap-2">
+           <svg class="w-10 h-10 rotate-[-45deg] hover:rotate-[720deg] transition-all duration-500" fill="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                    <g id="SVGRepo_iconCarrier">
+                        <path d="M13,2l9,13.6L13,22ZM11,2,2,15.6,11,22Z"></path>
+                    </g>
+                </svg>
+            <a href="/">
+              <span class="text-2xl font-playfair font-bold text-[#7c6a54]">Lumina</span>
+            </a>
+          </div>
+          <p class="text-white/70 text-sm leading-relaxed max-w-sm">
+            <x-icons type="leftQ" class="inline" />
+            Your private sanctuary for mindful journaling. Reflect, grow, and heal through the power of written words.
+            <x-icons type="rightQ" class="inline" />
+          </p>
+
+          <!-- Social Links -->
+          <div id="#contact" class="flex items-center gap-4">
+            <a href="https://t.me/+lEIft9tfqhwxNjU8"
+              class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 flex items-center justify-center transition-all group">
+              <x-icons type="telegram" :logo="true" class="group-hover:scale-110 transition-transform hover:rotate-[360deg]" />
+            </a>
+                    <!-- GitHub Star Button -->
+<a href="https://github.com/Yonathan-T/Lumina" target="_blank"
+   class="group relative inline-flex items-center gap-6 px-6 py-3 bg-gradient-to-br from-gray-900 via-[#0d1117] to-gray-900 
+          rounded-2xl border border-white/10 backdrop-blur-xl shadow-2xl 
+          hover:shadow-yellow-500/30 hover:border-yellow-500/30 
+          transition-all duration-500 hover:scale-105 hover:-translate-y-2 
+          overflow-hidden cursor-pointer">
+
+  <!-- Background glow -->
+  <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+    <div class="absolute inset-0 bg-yellow-500/10 blur-3xl"></div>
+  </div>
+
+  <!-- Shine sweep -->
+  <div class="absolute inset-0 -translate-x-full group-hover:translate-x-full 
+              transition-transform duration-1000 ease-linear 
+              bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"></div>
+
+  <!-- GitHub Icon -->
+  <div class="z-10">
+    <x-icon name="github" class="w-8 h-8 text-gray-300 group-hover:text-white 
+                transition-all duration-500 group-hover:scale-110 group-hover:rotate-12" />
+  </div>
+
+  <!-- Text + Smart Animated Star -->
+  <div class="z-10 flex-1 text-left">
+    <p class="text-gray-400 text-xs font-medium tracking-wider uppercase mb-1 
+               group-hover:text-gray-200 transition-colors duration-400">
+      Star on GitHub
+    </p>
+
+    <div class="flex items-center gap-3">
+      <p class="text-2xl font-black tracking-tight text-white 
+                 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400
+                 group-hover:from-yellow-400 group-hover:to-yellow-300 
+                 transition-all duration-500">
+        {{ $stars }}
+      </p>
+
+      <div class="relative inline-block">
+        <svg class="w-5 h-5 text-yellow-400 fill-current origin-center
+                    transition-all duration-700 ease-out
+                    group-hover:w-11 group-hover:h-8
+                    group-hover:translate-x-6
+                    group-hover:rotate-[720deg]
+                    drop-shadow-[0_0_4px_rgba(250,204,21,0.3)]
+                    group-hover:drop-shadow-[0_0_16px_rgba(250,204,21,0.8)]"
+             viewBox="0 0 24 24">
+          <path d="M12 .587l3.668 7.431 8.332 1.209-6 5.854 1.416 8.262L12 19.897l-7.416 3.897 1.416-8.262-6-5.854 8.332-1.209z"/>
+        </svg>
+
+        <div class="absolute inset-0 scale-0 group-hover:scale-150 blur-xl bg-yellow-400 
+                    opacity-0 group-hover:opacity-60 transition-all duration-700 -z-10 pointer-events-none">
+        </div>
+      </div>
+    </div>
+  </div>
+</a>
+          </div>
+        </div>
+
+        <!-- Product Column -->
+        <div>
+          <h3 class="font-semibold mb-5 text-[#7c6a54] tracking-wide">Product</h3>
+          <ul class="space-y-3">
+            <li>
+              <a href="#features"
+                class="text-white/60 hover:text-white text-sm transition-colors flex items-center group">
+                <span class="w-0 group-hover:w-2 h-0.5 bg-[#7c6a54] mr-0 group-hover:mr-2 transition-all"></span>
+                Features
+              </a>
+            </li>
+            <li>
+              <a href="#pricing"
+                class="text-white/60 hover:text-white text-sm transition-colors flex items-center group">
+                <span class="w-0 group-hover:w-2 h-0.5 bg-[#7c6a54] mr-0 group-hover:mr-2 transition-all"></span>
+                Pricing
+              </a>
+            </li>
+            <li>
+              <a href="#testimonials"
+                class="text-white/60 hover:text-white text-sm transition-colors flex items-center group">
+                <span class="w-0 group-hover:w-2 h-0.5 bg-[#7c6a54] mr-0 group-hover:mr-2 transition-all"></span>
+                Testimonials
+              </a>
+            </li>
+            <li>
+              <a href="/auth/register"
+                class="text-white/60 hover:text-white text-sm transition-colors flex items-center group">
+                <span class="w-0 group-hover:w-2 h-0.5 bg-[#7c6a54] mr-0 group-hover:mr-2 transition-all"></span>
+                Get Started
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Resources Column -->
+        <div>
+          <h3 class="font-semibold mb-5 text-[#7c6a54] tracking-wide">Resources</h3>
+          <ul class="space-y-3">
+            <li>
+              <a href="#" class="text-white/60 hover:text-white text-sm transition-colors flex items-center group">
+                <span class="w-0 group-hover:w-2 h-0.5 bg-[#7c6a54] mr-0 group-hover:mr-2 transition-all"></span>
+                Journal Prompts
+              </a>
+            </li>
+            <li>
+              <a href="{{ route('blogs.index') }}"
+                class="text-white/60 hover:text-white text-sm transition-colors flex items-center group">
+                <span class="w-0 group-hover:w-2 h-0.5 bg-[#7c6a54] mr-0 group-hover:mr-2 transition-all"></span>
+                Blog
+              </a>
+            </li>
+
+          </ul>
+        </div>
+
+        <!-- Legal Column -->
+        <div>
+          <h3 class="font-semibold mb-5 text-[#7c6a54] tracking-wide">Legal</h3>
+          <ul class="space-y-3">
+            <li>
+              <a href="#" class="text-white/60 hover:text-white text-sm transition-colors flex items-center group">
+                <span class="w-0 group-hover:w-2 h-0.5 bg-[#7c6a54] mr-0 group-hover:mr-2 transition-all"></span>
+                Privacy Policy
+              </a>
+            </li>
+            <li>
+              <a href="#" class="text-white/60 hover:text-white text-sm transition-colors flex items-center group">
+                <span class="w-0 group-hover:w-2 h-0.5 bg-[#7c6a54] mr-0 group-hover:mr-2 transition-all"></span>
+                Terms of Service
+              </a>
+            </li>
+            <li>
+              <a href="#" class="text-white/60 hover:text-white text-sm transition-colors flex items-center group">
+                <span class="w-0 group-hover:w-2 h-0.5 bg-[#7c6a54] mr-0 group-hover:mr-2 transition-all"></span>
+                Cookie Policy
+              </a>
+            </li>
+            <li>
+              <a href="#" class="text-white/60 hover:text-white text-sm transition-colors flex items-center group">
+                <span class="w-0 group-hover:w-2 h-0.5 bg-[#7c6a54] mr-0 group-hover:mr-2 transition-all"></span>
+                Security
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Bottom Bar -->
+      <div class="py-8 border-t border-white/10">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+          <!-- Copyright -->
+          <div class="text-white/40 text-sm">
+            © {{ date('Y') }} Lumina. All rights reserved.
+          </div>
+
+          <!-- Additional Links -->
+          <div class="flex items-center gap-6 text-sm">
+            <a href="#" class="text-white/40 hover:text-white/70 transition-colors">Sitemap</a>
+            <a href="#" class="text-white/40 hover:text-white/70 transition-colors">Accessibility</a>
+            <a href="#" class="text-white/40 hover:text-white/70 transition-colors">Status</a>
+          </div>
+
+          <!-- Trust Badges / Certifications (Optional) -->
+          <div class="flex items-center gap-3">
+            <div class="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-white/60">
+              🔒 Encrypted
+            </div>
+
+          </div>
+        </div>
+      </div>
     </div>
   </footer>
 </x-layout>

@@ -17,7 +17,7 @@
     <div class="relative h-full flex flex-col bg-white/5 backdrop-blur-lg border border-white/10 rounded-xl p-6 transition-all duration-300 hover:bg-white/10">
         <!-- Popular Badge -->
         @if($popular)
-        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-medium px-3 py-1 rounded-full">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-400 to-teal-700 text-white text-xs font-medium px-3 py-1 rounded-full">
             Most Popular
         </div>
         @endif
@@ -71,7 +71,7 @@
             <a href="{{ $checkoutUrl }}" class="w-full">
                 <button class="w-full py-2.5 px-4 rounded-lg font-medium transition-all duration-200 
                     {{ $popular 
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-blue-500/30' 
+                        ? 'bg-gradient-to-r from-blue-400 to-teal-700 text-white hover:from-blue-500 hover:to-teal-600 shadow-lg hover:shadow-blue-500/30' 
                         : 'bg-white/5 text-white border border-white/10 hover:bg-white/10' }}">
                     {{ $buttonText }}
                 </button>

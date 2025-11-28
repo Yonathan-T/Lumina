@@ -1,6 +1,5 @@
 <div>
 
-
     <div class="bg-gradient-dark rounded-lg p-8 mb-8 shadow-2xl card-highlight">
         <h2 class="text-2xl font-bold mb-2 text-white">Appearance</h2>
         <p class="mb-6 text-muted">Customize how Lumina looks and feels</p>

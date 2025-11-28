@@ -12,13 +12,14 @@ class FetchBlogContent extends Command
     protected $signature = 'blogs:fetch';
     protected $description = 'Fetch latest blog content from RSS feeds';
 
-    private $rssSources = [
-        'Psychology Today' => 'https://www.psychologytoday.com/us/blog/feed',
-        'Mindful' => 'https://www.mindful.org/feed/',
-        'Headspace' => 'https://www.headspace.com/meditation-articles/feed',
-        'The Mighty' => 'https://themighty.com/feed/',
-        'Zen Habits' => 'https://zenhabits.net/feed/'
-    ];
+   private $rssSources = [
+    'Psychology Today' => 'https://www.psychologytoday.com/us/rss',
+    'Mindful' => 'https://www.mindful.org/feed/',
+    'Headspace' => 'https://www.headspace.com/blog/feed/',
+    'The Mighty' => 'https://themighty.com/feed/',
+    'Zen Habits' => 'https://zenhabits.net/feed/'
+];
+
 
     public function handle()
     {
@@ -228,33 +229,39 @@ class FetchBlogContent extends Command
             $html = $response->body();
             $this->info("Successfully fetched HTML content, length: " . strlen($html));
 
-            // Look for Open Graph image first
-            if (preg_match('/<meta\s+property="og:image"\s+content=["\']([^"\']+)["\']/i', $html, $matches)) {
-                $this->info("Found Open Graph image: " . $matches[1]);
-                return $matches[1];
-            }
+           // Look for Open Graph image first
+if (preg_match('/<meta\s+property="og:image"\s+content=["\']([^"\']+)["\']/i', $html, $matches)) {
+    return $matches[1];
+}
 
-            // Look for Twitter card image
-            if (preg_match('/<meta\s+name="twitter:image"\s+content=["\']([^"\']+)["\']/i', $html, $matches)) {
-                $this->info("Found Twitter card image: " . $matches[1]);
-                return $matches[1];
-            }
+// Look for Twitter card image
+if (preg_match('/<meta\s+name="twitter:image"\s+content=["\']([^"\']+)["\']/i', $html, $matches)) {
+    return $matches[1];
+}
 
-            // Look for the first large image in the article
-            if (preg_match('/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $html, $matches)) {
-                $imageUrl = $matches[1];
-                $this->info("Found first image in HTML: " . $imageUrl);
+// ✅ Look for Mindful.org featured image
+if (preg_match('/<figure[^>]*class=["\']article__featured["\'][^>]*>.*?<img[^>]+src=["\']([^"\']+)["\']/is', $html, $matches)) {
+    $imageUrl = $matches[1];
+    // Convert relative to absolute if needed
+    if (strpos($imageUrl, 'http') !== 0) {
+        $parsedUrl = parse_url($url);
+        $baseUrl = $parsedUrl['scheme'] . '://' . $parsedUrl['host'];
+        $imageUrl = rtrim($baseUrl, '/') . '/' . ltrim($imageUrl, '/');
+    }
+    return $imageUrl;
+}
 
-                // Make relative URLs absolute
-                if (strpos($imageUrl, 'http') !== 0) {
-                    $parsedUrl = parse_url($url);
-                    $baseUrl = $parsedUrl['scheme'] . '://' . $parsedUrl['host'];
-                    $imageUrl = rtrim($baseUrl, '/') . '/' . ltrim($imageUrl, '/');
-                    $this->info("Converted relative URL to absolute: " . $imageUrl);
-                }
+// Fallback: first image in HTML
+if (preg_match('/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $html, $matches)) {
+    $imageUrl = $matches[1];
+    if (strpos($imageUrl, 'http') !== 0) {
+        $parsedUrl = parse_url($url);
+        $baseUrl = $parsedUrl['scheme'] . '://' . $parsedUrl['host'];
+        $imageUrl = rtrim($baseUrl, '/') . '/' . ltrim($imageUrl, '/');
+    }
+    return $imageUrl;
+}
 
-                return $imageUrl;
-            }
 
             $this->info("No images found in HTML content");
             return null;

@@ -1,5 +1,9 @@
 <div>
-
+    <div class="bg-gradient-dark rounded-lg p-8 mb-8 shadow-2xl card-highlight">
+        {{-- <h2 class="text-2xl font-bold mb-2 text-white">Theme</h2>
+        <p class="mb-6 text-muted">Select your preferred theme for Lumina</p> --}}
+        @livewire('settings.api-integration')
+    </div>
     <div class="bg-gradient-dark rounded-lg p-8 mb-8 shadow-2xs card-highlight">
         <h2 class="text-2xl font-bold mb-2 text-white">Account Information</h2>
         <p class="mb-6 text-muted">Update your account details and personal information</p>

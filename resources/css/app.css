@@ -82,6 +82,15 @@
     animation: float 6s ease-in-out infinite;
   }
   [x-cloak] { display: none !important; }
+
+  .bg-gradient-dark {
+    background: linear-gradient(to bottom right, hsl(224, 71%, 4%), hsl(224, 65%, 5%));
+  }
+
+  .bg-dot-pattern {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
 }
 
 /* Font size slider styling */
@@ -129,33 +138,46 @@
 .slider:focus::-moz-range-thumb {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
 }
-.bg-gradient-dark {
-  background: linear-gradient(to bottom right, hsl(224, 71%, 4%), hsl(224, 65%, 5%));
-}
-/* .bg-gradient-light {
-  background: linear-gradient(to bottom right, hsl(224, 100%, 97%), hsl(224, 90%, 94%));
-} */
 
-.bg-dot-pattern {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+.bg-grid-pattern {
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   background-size: 20px 20px;
 }
 
-
-  .bg-grid-pattern {
-    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    background-size: 20px 20px;
+.bg-diagonal-lines {
+    background-image: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(255, 255, 255, 0.03) 10px,
+      rgba(255, 255, 255, 0.03) 20px
+    );
   }
-  .sidebar-gradient {
-  background: linear-gradient(to bottom, hsl(222 47% 10%), hsl(224 71% 4%));
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-}
 
-.blur-backdrop {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
+  .bg-circuit-pattern {
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 40px 40px, 40px 40px, 60px 60px, 80px 80px;
+  }
+
+  .bg-subtle-dots {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.05) 0.5px, transparent 0.5px);
+    background-size: 16px 16px;
+  }
+
+  .sidebar-gradient {
+    background: linear-gradient(to bottom, hsl(222 47% 10%), hsl(224 71% 4%));
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .blur-backdrop {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
 
   /*cards*/
   .card-highlight {
@@ -334,3 +356,62 @@
         font-size: 3rem;
     }
 }
+
+/* Sidebar collapse + mobile slide */
+.sidebar-collapsed #appSidebarContainer, .sc-init #appSidebarContainer { width: 4rem; }
+.sidebar-collapsed #sidebar, .sc-init #sidebar { width: 4rem; }
+.sidebar-collapsed #sidebar .sidebar-label, .sc-init #sidebar .sidebar-label { display: none; }
+.sidebar-collapsed #sidebar .sidebar-icon, .sc-init #sidebar .sidebar-icon { margin-right: 0; }
+.sidebar-collapsed #sidebar nav, .sc-init #sidebar nav { padding-left: 0.5rem; padding-right: 0.5rem; padding-top: 3.5rem; }
+.sidebar-collapsed #sidebar a, .sc-init #sidebar a { justify-content: center; }
+.sidebar-collapsed #sidebar .sidebar-header, .sc-init #sidebar .sidebar-header { padding-left: 0.5rem; padding-right: 0.5rem; }
+.sidebar-header { position: relative; }
+.sidebar-collapsed #sidebarCollapseToggle, .sc-init #sidebarCollapseToggle { position: absolute; right: auto; left: 50%; top: 66px; transform: translateX(-50%); background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); }
+/* Reduce layout jank on width animation */
+#appSidebarContainer { will-change: width; }
+
+/* Swap icons for collapsed/expanded states */
+body.sidebar-collapsed .icon-collapse { display: none; }
+body.sidebar-collapsed .icon-expand { display: inline; }
+
+/* Small screens: sidebar off-canvas by default, slide in when open */
+@media (max-width: 768px) {
+  #appSidebarContainer { transform: translateX(-100%); }
+  .sidebar-open #appSidebarContainer { transform: translateX(0); }
+}
+
+/* Layout offsets so only main scrolls while sidebar is fixed */
+.has-sidebar main { margin-left: 16rem; }
+.sidebar-collapsed.has-sidebar main { margin-left: 4rem; }
+html.sc-init body.has-sidebar main { margin-left: 4rem; }
+@media (max-width: 768px) {
+  .has-sidebar main { margin-left: 0; }
+}
+
+/* Chat docking and drawer */
+.chat-dock-pos { top: 7rem; left: 16rem; }
+.sidebar-collapsed .chat-dock-pos, .sc-init .chat-dock-pos { left: 4rem; }
+/* Show dock on mobile always, on desktop only when chat nav is collapsed */
+#chatDockBtn { display: none; }
+@media (max-width: 768px) { #chatDockBtn { display: flex; } }
+@media (min-width: 768px) { body.chat-nav-collapsed #chatDockBtn { display: flex; } }
+@media (max-width: 768px) {
+  #chatDockBtn { left: 0.75rem; top: 4rem; }
+}
+.chat-open #chatDrawer { transform: translateX(0); }
+
+/* Desktop: collapse chat navigation drawer */
+@media (min-width: 768px) {
+  body.chat-nav-collapsed #chatDrawer { width: 0 !important; border-width: 0; overflow: hidden; }
+  body.chat-nav-collapsed #chatDrawer > * { opacity: 0; pointer-events: none; }
+}
+
+/* Invisible scrollbar utility (keeps scroll, hides track) */
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { width: 0; height: 0; }
+
+/* Safe area padding for iOS */
+.safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0.75rem); }
+
+/* Hide dock while drawer open on mobile */
+.chat-open #chatDockBtn { display: none !important; }
