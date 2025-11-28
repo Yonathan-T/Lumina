@@ -36,18 +36,20 @@
     @if ($showNav)
 
         <x-navs>
-            <a href="/" class="ml-3 flex items-center gap-2">
-
-                <svg class="w-10 h-10 rotate-[-45deg]" fill="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                    <g id="SVGRepo_iconCarrier">
-                        <path d="M13,2l9,13.6L13,22ZM11,2,2,15.6,11,22Z"></path>
-                    </g>
+            <a href="/" class="ml-3 flex items-center gap-2 group relative">
+                <svg class="w-10 h-10 text-white 
+                                   transition-transform duration-700 ease-out 
+                                   group-hover:rotate-[720deg] 
+                                   -rotate-45" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13,2l9,13.6L13,22ZM11,2L2,15.6L11,22Z" />
                 </svg>
-                <p class="font-playfair font-bold text-xl">LUMINA</p>
 
+                <p class="font-playfair font-bold text-xl text-white 
+                                 transition-all duration-500 
+                                 group-hover:text-white/40 
+                                 group-hover:translate-x-1">
+                    LUMINA
+                </p>
             </a>
             <div class="space-x-6 font-bold">
                 <x-links href="#features" section="features">Features</x-links>
@@ -59,16 +61,16 @@
                 @auth
                     <a href="/dashboard"
                         class="
-                                                                                                                                        border border-white/25 rounded-lg px-3 py-2
-                                                                                                                                        bg-[#060b16] text-white font-semibold
-                                                                                                                                        shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
-                                                                                                                                        active:translate-y-[2px] 
-                                                                                                                                        active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
-                                                                                                                                        active:border-gray-600
-                                                                                                                                        transition-all duration-200 ease-in-out
-                                                                                                                                        select-none
-                                                                                                                                        inline-block
-                                                                                                                                    ">
+                                                                                                                                                                                                border border-white/25 rounded-lg px-3 py-2
+                                                                                                                                                                                                bg-[#060b16] text-white font-semibold
+                                                                                                                                                                                                shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
+                                                                                                                                                                                                active:translate-y-[2px] 
+                                                                                                                                                                                                active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
+                                                                                                                                                                                                active:border-gray-600
+                                                                                                                                                                                                transition-all duration-200 ease-in-out
+                                                                                                                                                                                                select-none
+                                                                                                                                                                                                inline-block
+                                                                                                                                                                                            ">
                         Dashboard
                     </a>
                 @endauth
@@ -76,16 +78,16 @@
 
                     <a href="/auth/register"
                         class="
-                                                                                                                                        border border-white/25 rounded-lg px-3 py-2
-                                                                                                                                        bg-[#060b16] text-white font-semibold
-                                                                                                                                        shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
-                                                                                                                                        active:translate-y-[2px] 
-                                                                                                                                        active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
-                                                                                                                                        active:border-gray-600
-                                                                                                                                        transition-all duration-200 ease-in-out
-                                                                                                                                        select-none
-                                                                                                                                        inline-block
-                                                                                                                                    ">
+                                                                                                                                                                                                border border-white/25 rounded-lg px-3 py-2
+                                                                                                                                                                                                bg-[#060b16] text-white font-semibold
+                                                                                                                                                                                                shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
+                                                                                                                                                                                                active:translate-y-[2px] 
+                                                                                                                                                                                                active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
+                                                                                                                                                                                                active:border-gray-600
+                                                                                                                                                                                                transition-all duration-200 ease-in-out
+                                                                                                                                                                                                select-none
+                                                                                                                                                                                                inline-block
+                                                                                                                                                                                            ">
                         Sign up
                     </a>
 

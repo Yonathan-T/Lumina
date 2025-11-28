@@ -19,8 +19,9 @@ Lumina is your personal digital diary and note-taking companion, built with Lara
 
 <!-- Add your own screenshots here -->
 
-![Dashboard](resources/images/hero-img.png)
-![Entry Example](resources/images/diary.png)
+![Landing Page](resources/images/LandingPageExample.png)
+![Entry Interface](resources/images/EntryExample.png)
+![AI Conversation](resources/images/conversationExample.png)
 
 ---
 

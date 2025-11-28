@@ -371,7 +371,14 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
         <!-- Brand Column -->
         <div class="lg:col-span-2 space-y-6">
           <div class="flex items-center gap-2">
-            <x-icons type="heart" />
+           <svg class="w-10 h-10 rotate-[-45deg] hover:rotate-[720deg] transition-all duration-500" fill="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                    <g id="SVGRepo_iconCarrier">
+                        <path d="M13,2l9,13.6L13,22ZM11,2,2,15.6,11,22Z"></path>
+                    </g>
+                </svg>
             <a href="/">
               <span class="text-2xl font-playfair font-bold text-[#7c6a54]">Lumina</span>
             </a>
@@ -386,9 +393,66 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
           <div id="#contact" class="flex items-center gap-4">
             <a href="https://t.me/+lEIft9tfqhwxNjU8"
               class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 flex items-center justify-center transition-all group">
-              <x-icons type="telegram" :logo="true" class="group-hover:scale-110 transition-transform" />
+              <x-icons type="telegram" :logo="true" class="group-hover:scale-110 transition-transform hover:rotate-[360deg]" />
             </a>
-            <!-- Add more social links as needed -->
+                    <!-- GitHub Star Button -->
+<a href="https://github.com/Yonathan-T/Lumina" target="_blank"
+   class="group relative inline-flex items-center gap-6 px-6 py-3 bg-gradient-to-br from-gray-900 via-[#0d1117] to-gray-900 
+          rounded-2xl border border-white/10 backdrop-blur-xl shadow-2xl 
+          hover:shadow-yellow-500/30 hover:border-yellow-500/30 
+          transition-all duration-500 hover:scale-105 hover:-translate-y-2 
+          overflow-hidden cursor-pointer">
+
+  <!-- Background glow -->
+  <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+    <div class="absolute inset-0 bg-yellow-500/10 blur-3xl"></div>
+  </div>
+
+  <!-- Shine sweep -->
+  <div class="absolute inset-0 -translate-x-full group-hover:translate-x-full 
+              transition-transform duration-1000 ease-linear 
+              bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"></div>
+
+  <!-- GitHub Icon -->
+  <div class="z-10">
+    <x-icon name="github" class="w-8 h-8 text-gray-300 group-hover:text-white 
+                transition-all duration-500 group-hover:scale-110 group-hover:rotate-12" />
+  </div>
+
+  <!-- Text + Smart Animated Star -->
+  <div class="z-10 flex-1 text-left">
+    <p class="text-gray-400 text-xs font-medium tracking-wider uppercase mb-1 
+               group-hover:text-gray-200 transition-colors duration-400">
+      Star on GitHub
+    </p>
+
+    <div class="flex items-center gap-3">
+      <p class="text-2xl font-black tracking-tight text-white 
+                 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400
+                 group-hover:from-yellow-400 group-hover:to-yellow-300 
+                 transition-all duration-500">
+        {{ $stars }}
+      </p>
+
+      <div class="relative inline-block">
+        <svg class="w-5 h-5 text-yellow-400 fill-current origin-center
+                    transition-all duration-700 ease-out
+                    group-hover:w-11 group-hover:h-8
+                    group-hover:translate-x-6
+                    group-hover:rotate-[720deg]
+                    drop-shadow-[0_0_4px_rgba(250,204,21,0.3)]
+                    group-hover:drop-shadow-[0_0_16px_rgba(250,204,21,0.8)]"
+             viewBox="0 0 24 24">
+          <path d="M12 .587l3.668 7.431 8.332 1.209-6 5.854 1.416 8.262L12 19.897l-7.416 3.897 1.416-8.262-6-5.854 8.332-1.209z"/>
+        </svg>
+
+        <div class="absolute inset-0 scale-0 group-hover:scale-150 blur-xl bg-yellow-400 
+                    opacity-0 group-hover:opacity-60 transition-all duration-700 -z-10 pointer-events-none">
+        </div>
+      </div>
+    </div>
+  </div>
+</a>
           </div>
         </div>
 
