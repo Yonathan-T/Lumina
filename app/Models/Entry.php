@@ -15,6 +15,11 @@ class Entry extends Model
         'user_id',
         'banner_path',
     ];
+
+    protected $casts = [
+        'content' => 'encrypted',
+        'title' => 'encrypted',
+    ];
     public function tags()
     {
         return $this->belongsToMany(Tag::class);

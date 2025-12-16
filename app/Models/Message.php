@@ -19,6 +19,7 @@ class Message extends Model
     protected $casts = [
         'is_ai_response' => 'boolean',
         'metadata' => 'array',
+        'content' => 'encrypted',
     ];
 
     // Add accessor for compatibility with ChatInterface
