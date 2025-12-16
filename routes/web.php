@@ -71,8 +71,8 @@ Route::get('/blogs', function () {
 Route::get('/', function () {
     $products = ProductsController::fetchProducts();
 
-    // Use rememberForever so it stays until the webhook updates it
-    $stars = Cache::rememberForever('github_stars_v4', function () {
+    // Use 1 hour cache (fallback to polling since webhook is tricky on localhost)
+    $stars = Cache::remember('github_stars_v4', 3600, function () {
         try {
             $response = Http::withHeaders([
                 'User-Agent' => 'Lumina-App'
@@ -88,7 +88,7 @@ Route::get('/', function () {
         } catch (\Exception $e) {
             // Silent fail
         }
-        return '23.5K+'; // Fallback
+        return '-'; // Fallback
     });
     return view('landing-page', ['products' => $products, 'stars' => $stars]);
 })->name('landingPage');
