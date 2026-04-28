@@ -5,7 +5,7 @@
             <p class="text-muted-foreground">Analyze your journaling patterns and habits</p>
         </div>
         <div class="relative">
-            <select wire:model.live="selectedPeriod"
+            <select wire:model.change="selectedPeriod"
                 class="bg-gradient-dark border border-white/20 text-white rounded-md px-3 py-2 text-sm">
                 <option value="week">This Week</option>
                 <option value="month">This Month</option>

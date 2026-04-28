@@ -10,7 +10,7 @@
 
 <form wire:submit="{{ $wireSubmit }}" class="flex items-center space-x-3">
     <div class="flex-1">
-        <textarea wire:model="{{ $wireModel }}" placeholder="{{ $placeholder }}"
+        <textarea wire:model.defer="{{ $wireModel }}" placeholder="{{ $placeholder }}"
             class="w-full bg-gray-700 border bg-gradient-dark rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent disabled:opacity-50 overflow-hidden resize-none max-h-[200px]"
             {{ $isDisabled || $isTyping ? 'disabled' : '' }}
             oninput="this.style.height='auto'; this.style.height=(this.scrollHeight)+'px';"

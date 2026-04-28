@@ -2,26 +2,39 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
 use App\Models\Entry;
-use Carbon\Carbon;
 use App\Services\StreakService;
+use Carbon\Carbon;
+use Livewire\Component;
 
 class Insights extends Component
 {
     public $weeklyData = [];
+
     public $weeklyLabels = [];
+
     public $tagData = [];
+
     public $streakData = [];
+
     public $totalWords = 0;
+
     public $avgLength = 0;
+
     public $mostReflectiveDay = null;
+
     public $longestStreak = 0;
+
     public $currentStreak = 0;
+
     public $selectedPeriod = 'week';
+
     public $streakLabels = [];
+
     public $streakMessage = '';
+
     public $totalWordsChange = 0;
+
     public $mostReflectiveDayEntries = 0;
 
     public function mount()
@@ -32,13 +45,6 @@ class Insights extends Component
     public function updatedSelectedPeriod()
     {
         $this->loadInsightsData();
-        \Log::info('Insights data updated', [
-            'period' => $this->selectedPeriod,
-            'weeklyData' => $this->weeklyData,
-            'weeklyLabels' => $this->weeklyLabels,
-            'dataCount' => count($this->weeklyData),
-            'labelsCount' => count($this->weeklyLabels)
-        ]);
         $this->dispatch('chart-data-updated', [
             'weeklyChart' => [
                 'labels' => $this->weeklyLabels,
@@ -54,6 +60,7 @@ class Insights extends Component
             ],
         ]);
     }
+
     private function loadInsightsData()
     {
         $this->loadWeeklyData();
@@ -85,6 +92,7 @@ class Insights extends Component
         $startOfWeek = Carbon::now()->startOfWeek();
         $endOfWeek = Carbon::now()->endOfWeek();
         $entries = Entry::where('user_id', auth()->id())
+            ->select(['created_at'])
             ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
             ->get();
 
@@ -102,6 +110,7 @@ class Insights extends Component
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now()->endOfMonth();
         $entries = Entry::where('user_id', auth()->id())
+            ->select(['created_at'])
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get();
 
@@ -122,6 +131,7 @@ class Insights extends Component
         $startOfYear = Carbon::now()->startOfYear();
         $endOfYear = Carbon::now()->endOfYear();
         $entries = Entry::where('user_id', auth()->id())
+            ->select(['created_at'])
             ->whereBetween('created_at', [$startOfYear, $endOfYear])
             ->get();
 
@@ -136,7 +146,9 @@ class Insights extends Component
 
     private function loadAllTimeData()
     {
-        $entries = Entry::where('user_id', auth()->id())->get();
+        $entries = Entry::where('user_id', auth()->id())
+            ->select(['created_at'])
+            ->get();
 
         $yearlyData = [];
         foreach ($entries as $entry) {
@@ -192,9 +204,9 @@ class Insights extends Component
         $this->currentStreak = StreakService::getCurrentStreak(auth()->id());
 
         $this->streakMessage = $this->currentStreak === 0
-            ? "Start your streak today!"
+            ? 'Start your streak today!'
             : ($this->currentStreak === 1
-                ? "First day of your streak!"
+                ? 'First day of your streak!'
                 : "Keep it going! {$this->currentStreak} days strong!");
     }
 
@@ -216,11 +228,18 @@ class Insights extends Component
                 $endDate = Carbon::now()->endOfYear();
                 break;
             case 'all':
-                $entries = Entry::where('user_id', auth()->id())->get();
+                $entries = Entry::where('user_id', auth()->id())
+                    ->select(['title', 'content'])
+                    ->get();
+
                 return $this->calculateEntryStats($entries);
         }
 
-        $entries = $query->whereBetween('created_at', [$startDate, $endDate])->get();
+        $entries = $query
+            ->select(['title', 'content'])
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->get();
+
         return $this->calculateEntryStats($entries);
     }
 
@@ -247,26 +266,32 @@ class Insights extends Component
                 break;
         }
 
-        $entries = $query->whereBetween('created_at', [$startDate, $endDate])->get();
+        $entries = $query
+            ->select(['title', 'content'])
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->get();
+
         return $this->calculateEntryStats($entries);
     }
 
     private function calculateEntryStats($entries)
     {
         $totalWords = $entries->sum(function ($entry) {
-            return str_word_count($entry->title . ' ' . $entry->content);
+            return str_word_count($entry->title.' '.$entry->content);
         });
 
         return [
             'totalWords' => $totalWords,
             'avgLength' => $entries->count() > 0 ? (int) ($totalWords / $entries->count()) : 0,
-            'entryCount' => $entries->count()
+            'entryCount' => $entries->count(),
         ];
     }
 
     private function getMostReflectiveDayData()
     {
-        $entries = Entry::where('user_id', auth()->id())->get();
+        $entries = Entry::where('user_id', auth()->id())
+            ->select(['created_at'])
+            ->get();
         $days = [
             'Monday' => 0,
             'Tuesday' => 0,
@@ -287,7 +312,7 @@ class Insights extends Component
 
         return [
             'day' => $mostReflectiveDay,
-            'entries' => $maxEntries
+            'entries' => $maxEntries,
         ];
     }
 
@@ -296,6 +321,7 @@ class Insights extends Component
         if ($previous == 0) {
             return $current > 0 ? $current : 0;
         }
+
         return $current - $previous;
     }
 
@@ -325,7 +351,7 @@ class Insights extends Component
             'previous_entries' => $previousData['entryCount'],
             'current_streak' => $this->currentStreak,
             'longest_streak' => $this->longestStreak,
-            'streak_message' => $this->streakMessage
+            'streak_message' => $this->streakMessage,
         ];
     }
 

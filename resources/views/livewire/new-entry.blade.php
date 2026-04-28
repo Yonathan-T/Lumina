@@ -49,7 +49,7 @@
                 </div>
 
                 <div>
-                    <input type="text" wire:model="title"
+                    <input type="text" wire:model.defer="title"
                         class="flex h-10 w-full rounded-md px-3 py-2 bg-background text-2xl font-semibold placeholder:text-[rgb(65,74,90)] border-none focus:outline-none focus:ring-0"
                         placeholder="Title your entry" />
                     <x-form-error name="title" />

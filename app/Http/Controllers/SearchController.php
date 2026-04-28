@@ -2,34 +2,33 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Entry;
 use App\Models\Tag;
-use Str;
+use App\Services\EntrySearchService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+
 class SearchController extends Controller
 {
-    public function search(Request $request)
+    public function search(Request $request, EntrySearchService $searchService)
     {
-        $query = $request->get('q', '');
+        $query = trim((string) $request->get('q', ''));
 
-        if (strlen($query) < 1) {
+        if (strlen($query) < 2) {
             return response()->json(['results' => []]);
         }
 
         $results = [];
+        $entryIds = $searchService->findMatchingEntryIds(auth()->id(), $query, 10);
 
-        // Search entries big brrr
         $entries = Entry::where('user_id', auth()->id())
-            ->where(function($q) use ($query) {
-                $q->where('title', 'LIKE', "%{$query}%")
-                  ->orWhere('content', 'LIKE', "%{$query}%")
-                  ->orWhereHas('tags', function ($tagQuery) use ($query) {
-                      $tagQuery->where('name', 'LIKE', "%{$query}%");
-                  });
-            })
+            ->whereIn('id', $entryIds)
             ->with('tags')
-            ->limit(10)
             ->get();
+
+        $entries = $entryIds
+            ->map(fn ($id) => $entries->firstWhere('id', $id))
+            ->filter();
 
         foreach ($entries as $entry) {
             $results[] = [
@@ -39,17 +38,17 @@ class SearchController extends Controller
                 'date' => $entry->created_at->format('M j, Y'),
                 'tags' => $entry->tags->pluck('name')->toArray(),
                 'type' => 'entry',
-                'url' => route('entries.show', $entry->id)
+                'url' => route('entries.show', $entry->id),
             ];
         }
 
         // and Search tags
         if ($request->get('include_tags')) {
             $tags = Tag::where('name', 'LIKE', "%{$query}%")
-                ->whereHas('entries', function($query) {
+                ->whereHas('entries', function ($query) {
                     $query->where('user_id', auth()->id());
                 })
-                ->withCount(['entries' => function($query) {
+                ->withCount(['entries' => function ($query) {
                     $query->where('user_id', auth()->id());
                 }])
                 ->limit(5)
@@ -63,7 +62,7 @@ class SearchController extends Controller
                     'date' => "{$tag->entries_count} entries",
                     'tags' => [$tag->name],
                     'type' => 'tag',
-                    'url' => route('tags.show', $tag->name)
+                    'url' => route('tags.index').'?tag='.urlencode($tag->name),
                 ];
             }
         }

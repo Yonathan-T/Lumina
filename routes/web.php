@@ -1,44 +1,38 @@
 <?php
 
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\EntryController;
-use App\Http\Controllers\TagController;
-use App\Http\Controllers\InsightController;
-use App\Http\Controllers\SettingController;
-use App\Http\Controllers\RegisteredUserController;
-use App\Http\Controllers\SessionController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\ChatController;
-use App\Http\Controllers\SearchController;
-use App\Http\Controllers\DataExportController;
-
-use App\Http\Controllers\ConfirmationController;
 use App\Http\Controllers\CheckoutController;
-use App\Http\Controllers\SocialLoginController;
+use App\Http\Controllers\ConfirmationController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DataExportController;
+use App\Http\Controllers\EntryController;
+use App\Http\Controllers\InsightController;
 use App\Http\Controllers\ProductsController;
-use App\Livewire\History;
-use App\Livewire\NewEntry;
+use App\Http\Controllers\RegisteredUserController;
+use App\Http\Controllers\SearchController;
+use App\Http\Controllers\SessionController;
+use App\Http\Controllers\SettingController;
+use App\Http\Controllers\SocialLoginController;
+use App\Http\Controllers\TagController;
 use App\Livewire\Pricing;
 use App\Livewire\SettingsPanel;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\PasswordResetController;
-
-
 
 // Protected Routes
 Route::middleware('auth')->group(function () {
 
     // Dashboard
-//    Route::get('/dashboard', [DashboardController::class, 'create'])->name('dashboard');
+    //    Route::get('/dashboard', [DashboardController::class, 'create'])->name('dashboard');
     Route::view('/dashboard', 'SecViews.dashboard')->name('dashboard');
 
     // Route::view('/entries/create', 'SecViews.newentry')->name('entries.create'); // Show form
-    Route::get('/entries/create', NewEntry::class)->name('entries.create'); // Show form
+    Route::view('/entries/create', 'SecViews.newentry')->name('entries.create'); // Show form
     // Entries
     // Route::view('/entries', 'SecViews.history')->name('archive.entries');       // Show all entries (like history)
-    Route::get('/entries', History::class)->name('archive.entries');       // Show all entries (like history)
-
+    Route::view('/entries', 'SecViews.history')->name('archive.entries');       // Show all entries (like history)
 
     // Route::get('/entries/create', [EntryController::class, 'create'])->name('entries.create'); // Show form
     Route::post('/entries', [EntryController::class, 'store'])->name('entries.store');        // Save entry
@@ -56,7 +50,7 @@ Route::middleware('auth')->group(function () {
 
     // Settings
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
-    //Route::get('/settings', SettingsPanel::class)->name('settings.index');
+    // Route::get('/settings', SettingsPanel::class)->name('settings.index');
 
     // Data Export Download
 
@@ -71,25 +65,28 @@ Route::get('/blogs', function () {
 Route::get('/', function () {
     $products = ProductsController::fetchProducts();
 
-    // Use rememberForever so it stays until the webhook updates it
-    $stars = Cache::rememberForever('github_stars_v4', function () {
+    // Use 1 hour cache (fallback to polling since webhook is tricky on localhost)
+    $stars = Cache::remember('github_stars_v4', 3600, function () {
         try {
             $response = Http::withHeaders([
-                'User-Agent' => 'Lumina-App'
+                'User-Agent' => 'Lumina-App',
             ])->get('https://api.github.com/repos/Yonathan-T/Lumina');
-            
+
             if ($response->successful()) {
                 $count = $response->json()['stargazers_count'];
                 if ($count >= 1000) {
-                    return number_format($count / 1000, 1) . 'K+';
+                    return number_format($count / 1000, 1).'K+';
                 }
+
                 return $count;
             }
         } catch (\Exception $e) {
             // Silent fail
         }
-        return '23.5K+'; // Fallback
+
+        return '-'; // Fallback
     });
+
     return view('landing-page', ['products' => $products, 'stars' => $stars]);
 })->name('landingPage');
 // Route::get('/dashboard', function () {
@@ -101,7 +98,6 @@ Route::post('/auth/register', [RegisteredUserController::class, 'store']);
 Route::get('/auth/login', [SessionController::class, 'create'])->name('login');
 Route::post('/auth/login', [SessionController::class, 'store']);
 Route::post('/auth/logout', [SessionController::class, 'destroy'])->name('logout');
-
 
 Route::get('/auth/{provider}/redirect', [SocialLoginController::class, 'redirectToProvider']);
 Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'handleProviderCallback']);

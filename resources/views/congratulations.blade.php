@@ -37,9 +37,9 @@
                 </p>
 
                 {{-- Single Action Button --}}
-                <a href="{{ url('/') }}"
+                <a href="{{ route('settings.index', ['tab' => 'subscription']) }}"
                     class="block w-full bg-gray-700 hover:bg-gray-600 text-white font-medium py-4 px-6 rounded-2xl transition-all duration-200 mb-6">
-                    Done
+                    View My Plan
                 </a>
 
                 <p class="text-sm text-gray-400">

@@ -2,34 +2,44 @@
 
 namespace App\Livewire\Dashboard;
 
-use Livewire\Component;
 use App\Models\Entry;
 use App\Models\Tag;
 use App\Models\User;
-use DB;
 use App\Services\StreakService;
 use App\Services\UserDataService;
+use DB;
 use Illuminate\Notifications\DatabaseNotification;
+use Livewire\Component;
 
 class DashboardStats extends Component
 {
     public $totalEntries;
+
     public $entriesFromLastWeek;
+
     public $recentEntries;
+
     public $loading = true;
+
     public $mostUsedTag;
+
     public $mostUsedTagCount;
+
     public $longestEntry;
+
     public $longestEntryCharCount;
+
     public $longestEntryDate;
+
     public $currentStreak;
+
     public $streakMessage;
 
     public $notifications;
-    public $unreadCount;
-    public $isModalOpen = false;
 
-    protected $userDataService;
+    public $unreadCount;
+
+    public $isModalOpen = false;
 
     public function getPollingIntervalProperty()
     {
@@ -45,40 +55,45 @@ class DashboardStats extends Component
 
     public function mount()
     {
-        $this->userDataService = app(UserDataService::class);
         $this->loadNotifications();
         $this->loadStats();
         $this->currentStreak = StreakService::getCurrentStreak(auth()->id());
         if ($this->currentStreak === 0) {
-            $this->streakMessage = "Start your streak today!";
+            $this->streakMessage = 'Start your streak today!';
         } elseif ($this->currentStreak === 1) {
-            $this->streakMessage = "First day of your streak!";
+            $this->streakMessage = 'First day of your streak!';
         } else {
-            $this->streakMessage = "Keep it going!";
+            $this->streakMessage = 'Keep it going!';
         }
     }
 
     public function loadStats()
     {
         $this->loading = true;
+        $userId = auth()->id();
+        $userDataService = app(UserDataService::class);
 
-        $this->totalEntries = Entry::where('user_id', auth()->id())->count();
+        $this->totalEntries = Entry::where('user_id', $userId)->count();
 
         $thisWeekStart = now()->startOfWeek();
         $thisWeekEnd = now()->endOfWeek();
-        $thisWeekEntries = Entry::whereBetween('created_at', [$thisWeekStart, $thisWeekEnd])->count();
+        $thisWeekEntries = Entry::where('user_id', $userId)
+            ->whereBetween('created_at', [$thisWeekStart, $thisWeekEnd])
+            ->count();
 
         $lastWeekStart = now()->subWeek()->startOfWeek();
         $lastWeekEnd = now()->subWeek()->endOfWeek();
-        $lastWeekEntries = Entry::whereBetween('created_at', [$lastWeekStart, $lastWeekEnd])->count();
+        $lastWeekEntries = Entry::where('user_id', $userId)
+            ->whereBetween('created_at', [$lastWeekStart, $lastWeekEnd])
+            ->count();
 
         $this->entriesFromLastWeek = $thisWeekEntries - $lastWeekEntries;
 
-        //Tag Section
+        // Tag Section
         $this->mostUsedTag = Tag::select('tags.*')
             ->join('entry_tag', 'tags.id', '=', 'entry_tag.tag_id')
             ->join('entries', 'entry_tag.entry_id', '=', 'entries.id')
-            ->where('entries.user_id', auth()->id())
+            ->where('entries.user_id', $userId)
             ->groupBy('tags.id')
             ->orderByRaw('COUNT(*) DESC')
             ->first();
@@ -87,26 +102,30 @@ class DashboardStats extends Component
             ? DB::table('entry_tag')
                 ->join('entries', 'entry_tag.entry_id', '=', 'entries.id')
                 ->where('entry_tag.tag_id', $this->mostUsedTag->id)
-                ->where('entries.user_id', auth()->id())
+                ->where('entries.user_id', $userId)
                 ->count()
             : 0;
 
         // longest entry sec
-        $entries = Entry::where('user_id', auth()->id())->get();
+        $entries = Entry::where('user_id', $userId)
+            ->select(['id', 'content', 'created_at'])
+            ->get();
 
         if ($entries->isEmpty()) {
             $this->longestEntry = null;
             $this->longestEntryCharCount = 0;
             $this->longestEntryDate = null;
+
             return;
         }
 
         $this->longestEntry = $entries
             ->map(function ($entry) {
                 $cleaned = preg_replace('/\s+/', '', $entry->content ?? '');
+
                 return [
                     'entry' => $entry,
-                    'char_count' => strlen($cleaned)
+                    'char_count' => strlen($cleaned),
                 ];
             })
             ->sortByDesc('char_count')
@@ -115,9 +134,8 @@ class DashboardStats extends Component
         $this->longestEntryCharCount = $this->longestEntry['char_count'];
         $this->longestEntryDate = $this->longestEntry['entry']->created_at->format('M d, Y');
 
-
-        //recent entry sec
-        $lastEntry = $this->userDataService->getLastEntry();
+        // recent entry sec
+        $lastEntry = $userDataService->getLastEntry();
         $this->recentEntries = $lastEntry ? collect([$lastEntry]) : collect();
         $this->loading = false;
     }
@@ -127,13 +145,12 @@ class DashboardStats extends Component
      */
     public function toggleNotificationsModal()
     {
-        $this->isModalOpen = !$this->isModalOpen;
+        $this->isModalOpen = ! $this->isModalOpen;
     }
 
     /**
      * Marks a specific notification as read.
      *
-     * @param  string $notificationId
      * @return void
      */
     public function markAsRead(string $notificationId)
@@ -156,7 +173,6 @@ class DashboardStats extends Component
     /**
      * Deletes a specific notification.
      *
-     * @param  string $notificationId
      * @return void
      */
     public function deleteNotification(string $notificationId)

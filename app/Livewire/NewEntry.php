@@ -2,33 +2,43 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
-use Livewire\WithFileUploads;
 use App\Models\Entry;
 use App\Models\Tag;
+use App\Services\EntrySearchService;
 use Illuminate\Support\Str;
+use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class NewEntry extends Component
 {
     use WithFileUploads;
 
     public $title = '';
+
     public $content = '';
+
     public $banner;
+
     public $selectedTags = [];
+
     public $availableTags = [];
 
     public $newTag = '';
+
     public $tagError = null;
 
     // Modal states
     public $showConfirmationModal = false;
+
     public $showQuickChatModal = false;
+
     public $savedEntry = null;
 
     // Quick chat properties
     public $quickChatMessages = [];
+
     public $quickChatInput = '';
+
     public $quickChatLoading = false;
 
     public function mount()
@@ -44,7 +54,6 @@ class NewEntry extends Component
     //     ]);
     // }
 
-
     public function save()
     {
         $this->validate([
@@ -57,8 +66,7 @@ class NewEntry extends Component
         preg_match_all('/(?<=\s|^)#([A-Za-z][\w]{1,30})/', $this->content, $matches);
         $tagsFromContent = array_map('strtolower', $matches[1]);
 
-        $tagsFromInput = array_map(fn($tag) => ltrim(strtolower($tag), '#'), $this->selectedTags);
-
+        $tagsFromInput = array_map(fn ($tag) => ltrim(strtolower($tag), '#'), $this->selectedTags);
 
         $allTags = array_unique(array_merge($tagsFromContent, $tagsFromInput));
 
@@ -75,15 +83,19 @@ class NewEntry extends Component
         ]);
 
         foreach ($allTags as $tagName) {
-            if (empty($tagName))
+            if (empty($tagName)) {
                 continue;
+            }
             $tag = Tag::firstOrCreate([
-                'slug' => Str::slug($tagName)
+                'slug' => Str::slug($tagName),
             ], [
-                'name' => $tagName
+                'name' => $tagName,
             ]);
             $entry->tags()->attach($tag->id);
         }
+
+        $entry->load('tags');
+        app(EntrySearchService::class)->updateEntryIndex($entry);
 
         // Store the saved entry for potential chat context
         $this->savedEntry = $entry;
@@ -99,15 +111,18 @@ class NewEntry extends Component
         $tag = trim($this->newTag);
 
         if ($tag === '') {
-            $this->tagError = "Tag cannot be empty.";
+            $this->tagError = 'Tag cannot be empty.';
+
             return;
         }
         if (preg_match('/\\s/', $tag)) {
-            $this->tagError = "Tags cannot contain spaces.";
+            $this->tagError = 'Tags cannot contain spaces.';
+
             return;
         }
         if (in_array(strtolower($tag), array_map('strtolower', $this->selectedTags))) {
-            $this->tagError = "You already added this tag.";
+            $this->tagError = 'You already added this tag.';
+
             return;
         }
 
@@ -137,8 +152,8 @@ class NewEntry extends Component
             [
                 'sender' => 'ai',
                 'content' => "I just read your entry about \"{$this->savedEntry->title}\". I'm here to help you reflect on it. What would you like to explore further?",
-                'timestamp' => now()->format('g:i A')
-            ]
+                'timestamp' => now()->format('g:i A'),
+            ],
         ];
         $this->quickChatInput = '';
     }
@@ -149,6 +164,7 @@ class NewEntry extends Component
     public function goToDashboard()
     {
         session()->flash('message', 'Entry created successfully!');
+
         return redirect()->route('dashboard');
     }
 
@@ -166,7 +182,7 @@ class NewEntry extends Component
         $this->quickChatMessages[] = [
             'sender' => 'user',
             'content' => $userMessage,
-            'timestamp' => now()->format('g:i A')
+            'timestamp' => now()->format('g:i A'),
         ];
 
         $this->quickChatInput = '';
@@ -178,25 +194,25 @@ class NewEntry extends Component
             $entryContext .= "Title: {$this->savedEntry->title}\n";
             $entryContext .= "Content: {$this->savedEntry->content}\n\n";
 
-            $prompt = $entryContext . "You are having a natural, supportive conversation about their journal entry. "
-                . "Respond as if you are a therapist by reading their entry and you are genuinely interested in their thoughts. "
-                . "Be warm, avoid generic responses, and ask specific and brilliant follow-up questions. "
-                . "The user mentioned: " . $userMessage;
+            $prompt = $entryContext.'You are having a natural, supportive conversation about their journal entry. '
+                .'Respond as if you are a therapist by reading their entry and you are genuinely interested in their thoughts. '
+                .'Be warm, avoid generic responses, and ask specific and brilliant follow-up questions. '
+                .'The user mentioned: '.$userMessage;
 
             $aiResponse = app(\App\Services\AiChatService::class)->generateResponse($prompt, null);
 
             $this->quickChatMessages[] = [
                 'sender' => 'ai',
                 'content' => $aiResponse,
-                'timestamp' => now()->format('g:i A')
+                'timestamp' => now()->format('g:i A'),
             ];
 
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Entry Quick Chat Error: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Entry Quick Chat Error: '.$e->getMessage());
             $this->quickChatMessages[] = [
                 'sender' => 'ai',
                 'content' => "I'm having trouble connecting right now. Please try again in a moment.",
-                'timestamp' => now()->format('g:i A')
+                'timestamp' => now()->format('g:i A'),
             ];
         } finally {
             $this->quickChatLoading = false;
@@ -213,6 +229,7 @@ class NewEntry extends Component
         $this->quickChatInput = '';
 
         session()->flash('message', 'Entry created successfully!');
+
         return redirect()->route('dashboard');
     }
 
@@ -235,10 +252,6 @@ class NewEntry extends Component
 
     public function render()
     {
-        return view('livewire.new-entry')->layout('components.layout', [
-                'showSidebar' => true,
-                'showNav' => false,
-                
-            ]);
+        return view('livewire.new-entry');
     }
 }

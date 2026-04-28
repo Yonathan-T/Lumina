@@ -117,7 +117,7 @@
 
             <!-- Messages Area -->
             @if ($activeSession)
-                <div wire:key="$activeSession['id']" class="flex-1 overflow-y-auto p-4 md:p-6 pb-28 md:pb-6 space-y-6"
+                <div wire:key="{{ $activeSession['id'] }}" class="flex-1 overflow-y-auto p-4 md:p-6 pb-28 md:pb-6 space-y-6"
                     id="messages-container">
                     @if ($isLoadingMessages)
                         <div class="flex items-center justify-center py-8">
@@ -264,21 +264,6 @@
             }
         });
 
-        // Handle async events
-        Livewire.on('create-session-async', (data) => {
-        });
-
-        Livewire.on('message-sent-async', (data) => {
-        });
-
-        Livewire.on('generate-ai-response', (data) => {
-        });
-
-        Livewire.on('session-selected', (data) => {
-        });
-
-        Livewire.on('delete-session-async', (data) => {
-        });
     });
 
     // Chat drawer toggle logic

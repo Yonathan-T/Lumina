@@ -10,7 +10,7 @@ class CheckoutController extends Controller
     public function handle(Request $request)
     {
         $priceId = $request->query('priceId', '');
-        $confirmationUrl = $request->getSchemeAndHttpHost() . '/confirmation?checkout_id={CHECKOUT_ID}';
+        $confirmationUrl = $request->getSchemeAndHttpHost().'/confirmation?checkout_id={CHECKOUT_ID}';
 
         $payload = [
             'product_price_id' => $priceId,
@@ -21,10 +21,11 @@ class CheckoutController extends Controller
         if (auth()->check()) {
             $payload['customer_email'] = auth()->user()->email;
             $payload['customer_name'] = auth()->user()->name;
+            $payload['external_customer_id'] = (string) auth()->id();
         }
 
         $result = Http::withHeaders([
-            'Authorization' => 'Bearer ' . env('POLAR_ACCESS_TOKEN'),
+            'Authorization' => 'Bearer '.env('POLAR_ACCESS_TOKEN'),
             'Content-Type' => 'application/json',
         ])->post('https://sandbox-api.polar.sh/v1/checkouts/custom/', $payload);
 

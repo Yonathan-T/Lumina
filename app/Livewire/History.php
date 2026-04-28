@@ -1,44 +1,42 @@
 <?php
 
 namespace App\Livewire;
-use App\Models\Entry;
-use Livewire\Component;
-use Livewire\WithPagination;
-use Livewire\Attributes\On;
-use App\Services\UserDataService;
+
 use App\Models\Conversation;
+use App\Models\Entry;
 use App\Models\Message;
 use App\Services\AiChatService;
+use App\Services\UserDataService;
+use Livewire\Component;
+use Livewire\WithPagination;
+
 class History extends Component
 {
     use WithPagination;
+
     public $sort = 'newest';
+
     public $queryString = ['sort'];
 
     public $userDataService;
 
     public ?string $isProcessing = null;
-public ?int $processingEntryId = null;
-   
+
+    public ?int $processingEntryId = null;
 
     public function Reflect($entryId)
     {
         $this->isProcessing = 'reflection';
         $this->processingEntryId = $entryId;
-        $this->dispatch('start-reflection-async', entryId: $entryId);
-    }
-
-    #[On('start-reflection-async')]
-    public function startReflectionAsync($entryId)
-    {
         try {
             $userDataService = app(UserDataService::class);
             $reflectionData = $userDataService->reflectOnEntry($entryId);
 
-            if (!$reflectionData) {
+            if (! $reflectionData) {
                 $this->isProcessing = null;
                 $this->processingEntryId = null;
                 $this->dispatch('notify', message: 'Entry not found', type: 'error');
+
                 return;
             }
 
@@ -75,12 +73,13 @@ public ?int $processingEntryId = null;
             return redirect()->route('chat.index', ['conversation' => $conversation->id]);
 
         } catch (\Exception $e) {
-            \Log::error('Reflection Error: ' . $e->getMessage());
+            \Log::error('Reflection Error: '.$e->getMessage());
             $this->isProcessing = null;
             $this->processingEntryId = null;
             $this->dispatch('notify', message: 'Unable to start reflection. Please try again.', type: 'error');
         }
     }
+
     public function updatingSort()
     {
         $this->resetPage();
@@ -112,35 +111,34 @@ public ?int $processingEntryId = null;
     //     ]);
     // }
     public function render()
-{
-    $query = Entry::with('tags')->where('user_id', auth()->id());
+    {
+        $query = Entry::with('tags:id,name')
+            ->select(['id', 'title', 'content', 'created_at', 'user_id'])
+            ->where('user_id', auth()->id());
 
-    match ($this->sort) {
-        'oldest'   => $query->oldest(),
-        'longest'  => $query->orderByRaw('LENGTH(content) DESC'),
-        'shortest' => $query->orderByRaw('LENGTH(content) ASC'),
-        default    => $query->latest(),
-    };
+        match ($this->sort) {
+            'oldest' => $query->oldest(),
+            'longest' => $query->orderByRaw('LENGTH(content) DESC'),
+            'shortest' => $query->orderByRaw('LENGTH(content) ASC'),
+            default => $query->latest(),
+        };
 
-    $recentEntries = $query->paginate(5)->withQueryString();
+        $recentEntries = $query->paginate(5)->withQueryString();
 
-    // PRE-PROCESS – runs once, not per Blade line
-    $recentEntries->getCollection()->transform(function ($entry) {
-        $plain = strip_tags($entry->content);
-        $entry->content_html = nl2br(e(\Str::limit($plain, 200)));
-        $entry->date_month   = $entry->created_at->format('M');
-        $entry->date_day     = $entry->created_at->format('d');
-        $entry->diff         = $entry->created_at->diffForHumans();
-        return $entry;
-    });
+        // PRE-PROCESS – runs once, not per Blade line
+        $recentEntries->getCollection()->transform(function ($entry) {
+            $plain = strip_tags($entry->content);
+            $entry->content_html = nl2br(e(\Str::limit($plain, 200)));
+            $entry->date_month = $entry->created_at->format('M');
+            $entry->date_day = $entry->created_at->format('d');
+            $entry->diff = $entry->created_at->diffForHumans();
 
-    // return view('livewire.history', compact('recentEntries'));
-     return view('livewire.history', [
-            'recentEntries' => $recentEntries
-        ])->layout('components.layout', [
-                'showSidebar' => true,
-                'showNav' => false,
-                
-            ]);
-}
+            return $entry;
+        });
+
+        // return view('livewire.history', compact('recentEntries'));
+        return view('livewire.history', [
+            'recentEntries' => $recentEntries,
+        ]);
+    }
 }

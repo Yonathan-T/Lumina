@@ -13,11 +13,15 @@ class FetchBlogContent extends Command
     protected $description = 'Fetch latest blog content from RSS feeds';
 
    private $rssSources = [
-    'Psychology Today' => 'https://www.psychologytoday.com/us/rss',
+    // 'Psychology Today' => 'https://www.psychologytoday.com/us/rss',
     'Mindful' => 'https://www.mindful.org/feed/',
-    'Headspace' => 'https://www.headspace.com/blog/feed/',
+    // 'Headspace' => 'https://www.headspace.com/blog/feed/',
     'The Mighty' => 'https://themighty.com/feed/',
-    'Zen Habits' => 'https://zenhabits.net/feed/'
+    // 'Zen Habits' => 'https://zenhabits.net/feed/'
+    'Tiny Buddha' => 'https://tinybuddha.com/feed/',
+    // 'WriteWell' => 'https://www.writewellcommunity.com/feed/',
+    'Becoming Minimalist' => 'https://www.becomingminimalist.com/feed/',
+    
 ];
 
 

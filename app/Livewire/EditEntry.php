@@ -2,30 +2,42 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
-use Livewire\WithFileUploads;
 use App\Models\Entry;
 use App\Models\Tag;
-use Illuminate\Support\Str;
-use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\ElevenLabsTTSService;
+use App\Services\EntrySearchService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class EditEntry extends Component
 {
     use WithFileUploads;
 
     public Entry $entry;
+
     public $title;
+
     public $content;
+
     public $banner;
+
     public $selectedTags = [];
+
     public $availableTags = [];
+
     public $newTag = '';
+
     public $tagError = null;
+
     public $isEditing = false;
+
     public $showDeleteModal = false;
+
     public $audioUrl = null;
+
     public $isGeneratingAudio = false;
 
     protected $rules = [
@@ -41,7 +53,7 @@ class EditEntry extends Component
         $this->title = $entry->title;
         $this->content = $entry->content;
         $this->selectedTags = $entry->tags->pluck('name')->toArray();
-        $this->availableTags = Tag::whereHas('entries', function($query) {
+        $this->availableTags = Tag::whereHas('entries', function ($query) {
             $query->where('user_id', auth()->id());
         })->get();
     }
@@ -68,7 +80,7 @@ class EditEntry extends Component
         preg_match_all('/(?<=\s|^)#([A-Za-z][\w]{1,30})/', $this->content, $matches);
         $tagsFromContent = array_map('strtolower', $matches[1]);
 
-        $tagsFromInput = array_map(fn($tag) => ltrim(strtolower($tag), '#'), $this->selectedTags);
+        $tagsFromInput = array_map(fn ($tag) => ltrim(strtolower($tag), '#'), $this->selectedTags);
 
         $allTags = array_unique(array_merge($tagsFromContent, $tagsFromInput));
 
@@ -89,16 +101,19 @@ class EditEntry extends Component
         // tags should be synced so here we go
         $tagIds = [];
         foreach ($allTags as $tagName) {
-            if (empty($tagName))
+            if (empty($tagName)) {
                 continue;
+            }
             $tag = Tag::firstOrCreate([
-                'slug' => Str::slug($tagName)
+                'slug' => Str::slug($tagName),
             ], [
-                'name' => $tagName
+                'name' => $tagName,
             ]);
             $tagIds[] = $tag->id;
         }
         $this->entry->tags()->sync($tagIds);
+        $this->entry->load('tags');
+        app(EntrySearchService::class)->updateEntryIndex($this->entry);
 
         $this->isEditing = false;
         $this->banner = null;
@@ -128,6 +143,7 @@ class EditEntry extends Component
     {
         $this->entry->delete();
         session()->flash('message', 'Entry deleted successfully!');
+
         return redirect()->route('archive.entries');
     }
 
@@ -136,15 +152,18 @@ class EditEntry extends Component
         $tag = trim($this->newTag);
 
         if ($tag === '') {
-            $this->tagError = "Tag cannot be empty.";
+            $this->tagError = 'Tag cannot be empty.';
+
             return;
         }
         if (preg_match('/\\s/', $tag)) {
-            $this->tagError = "Tags cannot contain spaces.";
+            $this->tagError = 'Tags cannot contain spaces.';
+
             return;
         }
         if (in_array(strtolower($tag), array_map('strtolower', $this->selectedTags))) {
-            $this->tagError = "You already added this tag.";
+            $this->tagError = 'You already added this tag.';
+
             return;
         }
 
@@ -166,20 +185,20 @@ class EditEntry extends Component
         try {
             // Refresh the entry to get the latest data with tags
             $entry = Entry::with('tags')->findOrFail($this->entry->id);
-            
+
             $pdf = Pdf::loadView('livewire.download-entry-pdf', [
-                'entry' => $entry
+                'entry' => $entry,
             ]);
 
-            $fileName = 'entry-' . Str::slug($entry->title) . '-' . date('Y-m-d') . '.pdf';
-            
+            $fileName = 'entry-'.Str::slug($entry->title).'-'.date('Y-m-d').'.pdf';
+
             return response()->streamDownload(function () use ($pdf) {
                 echo $pdf->output();
             }, $fileName);
 
         } catch (\Exception $e) {
-            \Log::error('PDF Generation Error: ' . $e->getMessage());
-            session()->flash('error', 'Failed to generate PDF: ' . $e->getMessage());
+            \Log::error('PDF Generation Error: '.$e->getMessage());
+            session()->flash('error', 'Failed to generate PDF: '.$e->getMessage());
         }
     }
 
@@ -189,31 +208,31 @@ class EditEntry extends Component
         $this->audioUrl = null;
 
         try {
-            $ttsService = new ElevenLabsTTSService();
-            
+            $ttsService = new ElevenLabsTTSService;
+
             // Combine title and content for reading
-            $textToRead = $this->entry->title . ". " . $this->entry->content;
-            
+            $textToRead = $this->entry->title.'. '.$this->entry->content;
+
             $this->audioUrl = $ttsService->generateAudio(
                 $textToRead,
-                'UgBBYS2sOqTuMpoF3BR0' 
+                'UgBBYS2sOqTuMpoF3BR0'
             );
 
-            if (!$this->audioUrl) {
+            if (! $this->audioUrl) {
                 session()->flash('error', 'Failed to generate audio. This might be due to quota limits or API issues. Please try again later or check your ElevenLabs account.');
             } else {
                 session()->flash('message', 'Audio generated successfully!');
             }
 
         } catch (\Exception $e) {
-            \Log::error('Audio Generation Error: ' . $e->getMessage());
-            session()->flash('error', 'Failed to generate audio: ' . $e->getMessage());
+            \Log::error('Audio Generation Error: '.$e->getMessage());
+            session()->flash('error', 'Failed to generate audio: '.$e->getMessage());
         }
 
         $this->isGeneratingAudio = false;
     }
 
-    //copy pasted same messages from the new-entry form error so maybe this needs to be component ?
+    // copy pasted same messages from the new-entry form error so maybe this needs to be component ?
     public function messages()
     {
         return [

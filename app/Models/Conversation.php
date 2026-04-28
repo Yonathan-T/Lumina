@@ -19,6 +19,7 @@ class Conversation extends Model
 
     protected $casts = [
         'last_activity' => 'datetime',
+        'title' => 'encrypted',
     ];
 
     public function user()

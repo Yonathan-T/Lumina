@@ -12,7 +12,7 @@
             <x-search-modal />
         </div>
         <div class="relative w-44 ml-auto">
-            <select wire:model.live="sort" class="flex h-10 w-full rounded-md border border-white/15 shadow-sm bg-background px-3 py-2 text-sm
+            <select wire:model.change="sort" class="flex h-10 w-full rounded-md border border-white/15 shadow-sm bg-background px-3 py-2 text-sm
                 text-white">
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
@@ -112,9 +112,3 @@
     </div>
 
 </div>
-<script>
-
-    document.addEventListener('DOMContentLoaded', () => {
-        new SearchModal('/search');
-    });
-</script>
