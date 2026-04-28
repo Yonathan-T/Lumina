@@ -1,4 +1,4 @@
-<div wire:poll.30s>
+<div wire:poll.visible.60s="refresh">
 
 
     <div class="flex flex-col gap-4 sm:flex-row">
@@ -105,14 +105,27 @@
 
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mt-5">
         <div
-            class="rounded-lg text-card-foreground shadow-2xs card-highlight border bg-gradient-to-br from-blue-500/5 to-blue-600/5 border-blue-500/20">
-            <div class="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
-                <h3 class="tracking-tight text-sm font-medium">Total Memos</h3>
-                <x-icon name="book-outline" class="w-4 h-4 text-blue-500" />
+            class="brand-panel rounded-lg text-card-foreground card-highlight">
+            <div class="relative p-6 flex flex-row items-center justify-between space-y-0 pb-3">
+                <div class="space-y-1">
+                    <h3 class="tracking-tight text-sm font-medium text-white/88">Total Memos</h3>
+                    <p class="text-[11px] uppercase tracking-[0.18em] text-white/35">Overview</p>
+                </div>
+                <div class="brand-chip flex h-9 w-9 items-center justify-center rounded-md">
+                    <x-icon name="book-outline" class="w-4 h-4 text-blue-300" />
+                </div>
             </div>
-            <div class="p-6 pt-0">
-                <div class="text-2xl font-bold">{{ $totalEntries }}</div>
-                <p class="text-xs text-muted font-inter">
+            <div class="relative p-6 pt-0">
+                <div class="text-[2rem] leading-none font-semibold tracking-tight text-white">{{ $totalEntries }}</div>
+                <div class="mt-4 flex items-center gap-2 text-xs font-inter text-white/55">
+                    <span class="brand-chip inline-flex h-6 w-6 items-center justify-center rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5 text-blue-300">
+                            <path fill-rule="evenodd"
+                                d="M12 2.25a.75.75 0 0 1 .75.75v10.19l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                    <span>
                     <!--there is a bug here 👀-->
                     @if($entriesFromLastWeek > 0)
                         +{{ $entriesFromLastWeek }} from last week
@@ -122,51 +135,85 @@
                         Same as last week
                     @endif
 
-                </p>
+                    </span>
+                </div>
             </div>
         </div>
         <div
-            class="rounded-lg border border-white/15 text-card-foreground shadow-sm card-highlight bg-gradient-to-br from-green-500/10 to-green-600/10 ">
-            <div class="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
-                <h3 class="tracking-tight text-sm font-medium">Most Used Tag</h3>
-                <x-icon name="tag" class="w-4 h-4 text-green-500" />
+            class="brand-panel rounded-lg text-card-foreground card-highlight">
+            <div class="relative p-6 flex flex-row items-center justify-between space-y-0 pb-3">
+                <div class="space-y-1">
+                    <h3 class="tracking-tight text-sm font-medium text-white/88">Most Used Tag</h3>
+                    <p class="text-[11px] uppercase tracking-[0.18em] text-white/35">Organization</p>
+                </div>
+                <div class="brand-chip flex h-9 w-9 items-center justify-center rounded-md">
+                    <x-icon name="tag" class="w-4 h-4 text-emerald-300" />
+                </div>
             </div>
-            <div class="p-6 pt-0">
-                <div class="text-2xl font-bold">{{ $mostUsedTag ? " # " . $mostUsedTag->name : 'No tags' }}</div>
-                <p class="text-xs text-muted font-inter">Used in {{ $mostUsedTagCount }} entries</p>
+            <div class="relative p-6 pt-0">
+                <div class="text-[2rem] leading-none font-semibold tracking-tight text-white">{{ $mostUsedTag ? '#' . $mostUsedTag->name : 'No tags' }}</div>
+                <div class="mt-4 flex items-center gap-2 text-xs font-inter text-white/55">
+                    <span class="brand-chip inline-flex h-6 w-6 items-center justify-center rounded-full">
+                        <x-icon name="tag" class="h-3.5 w-3.5 text-emerald-300" />
+                    </span>
+                    <span>Used in {{ $mostUsedTagCount }} entries</span>
+                </div>
             </div>
         </div>
 
 
 
         <div
-            class="rounded-lg border border-white/15 text-card-foreground shadow-sm card-highlight bg-gradient-to-br from-purple-500/10 to-purple-600/10 ">
-            <div class="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
-                <h3 class="tracking-tight text-sm font-medium">Longest Entry</h3>
-                <x-iconpark-writingfluently-o class="h-4 w-4 text-purple-500" />
+            class="brand-panel rounded-lg text-card-foreground card-highlight">
+            <div class="relative p-6 flex flex-row items-center justify-between space-y-0 pb-3">
+                <div class="space-y-1">
+                    <h3 class="tracking-tight text-sm font-medium text-white/88">Longest Entry</h3>
+                    <p class="text-[11px] uppercase tracking-[0.18em] text-white/35">Depth</p>
+                </div>
+                <div class="brand-chip flex h-9 w-9 items-center justify-center rounded-md">
+                    <x-iconpark-writingfluently-o class="h-4 w-4 text-violet-300" />
+                </div>
             </div>
-            <div class="p-6 pt-0">
+            <div class="relative p-6 pt-0">
                 @if(isset($longestEntryCharCount) && isset($longestEntryDate))
-                    <div class="text-2xl font-bold">{{ $longestEntryCharCount }}</div>
-                    <p class="text-xs text-muted font-inter">
-                        characters on {{ $longestEntryDate }}
-                    </p>
+                    <div class="text-[2rem] leading-none font-semibold tracking-tight text-white">{{ $longestEntryCharCount }}</div>
+                    <div class="mt-4 flex items-center gap-2 text-xs font-inter text-white/55">
+                        <span class="brand-chip inline-flex h-6 w-6 items-center justify-center rounded-full">
+                            <x-iconpark-writingfluently-o class="h-3.5 w-3.5 text-violet-300" />
+                        </span>
+                        <span>characters on {{ $longestEntryDate }}</span>
+                    </div>
                 @else
-                    <div class="text-2xl font-bold">0</div>
-                    <p class="text-xs text-muted font-inter">No entries</p>
+                    <div class="text-[2rem] leading-none font-semibold tracking-tight text-white">0</div>
+                    <div class="mt-4 flex items-center gap-2 text-xs font-inter text-white/55">
+                        <span class="brand-chip inline-flex h-6 w-6 items-center justify-center rounded-full">
+                            <x-iconpark-writingfluently-o class="h-3.5 w-3.5 text-violet-300" />
+                        </span>
+                        <span>No entries yet</span>
+                    </div>
                 @endif
             </div>
 
         </div>
         <div
-            class="rounded-lg border border-white/15 text-card-foreground shadow-sm card-highlight bg-gradient-to-br from-yellow-500/10 to-yellow-600/10 ">
-            <div class="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
-                <h3 class="tracking-tight text-sm font-medium">Daily Streak</h3>
-                <x-icon name="flash-outline" class="w-4 h-4 text-yellow-500" />
+            class="brand-panel rounded-lg text-card-foreground card-highlight">
+            <div class="relative p-6 flex flex-row items-center justify-between space-y-0 pb-3">
+                <div class="space-y-1">
+                    <h3 class="tracking-tight text-sm font-medium text-white/88">Daily Streak</h3>
+                    <p class="text-[11px] uppercase tracking-[0.18em] text-white/35">Consistency</p>
+                </div>
+                <div class="brand-chip flex h-9 w-9 items-center justify-center rounded-md">
+                    <x-icon name="flash-outline" class="w-4 h-4 text-amber-300" />
+                </div>
             </div>
-            <div class="p-6 pt-0">
-                <div class="text-2xl font-bold">{{ $currentStreak }}</div>
-                <p class="text-xs text-muted font-inter">{{ $streakMessage }}</p>
+            <div class="relative p-6 pt-0">
+                <div class="text-[2rem] leading-none font-semibold tracking-tight text-white">{{ $currentStreak }}</div>
+                <div class="mt-4 flex items-center gap-2 text-xs font-inter text-white/55">
+                    <span class="brand-chip inline-flex h-6 w-6 items-center justify-center rounded-full">
+                        <x-icon name="flash-outline" class="h-3.5 w-3.5 text-amber-300" />
+                    </span>
+                    <span>{{ $streakMessage }}</span>
+                </div>
             </div>
         </div>
     </div>

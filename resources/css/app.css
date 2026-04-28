@@ -155,6 +155,10 @@
     );
   }
 
+  .brand-page {
+    background: linear-gradient(to bottom right, hsl(224, 71%, 4%), hsl(224, 65%, 5%));
+  }
+
   .bg-circuit-pattern {
     background-image: 
       linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
@@ -204,6 +208,47 @@
   .card-highlight > * {
     position: relative;
     z-index: 2;
+  }
+
+  .brand-panel {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(194, 182, 142, 0.18);
+    background:
+      radial-gradient(circle at top left, rgba(194, 182, 142, 0.09), transparent 34%),
+      radial-gradient(circle at bottom right, rgba(96, 165, 250, 0.08), transparent 36%),
+      linear-gradient(180deg, rgba(24, 34, 50, 0.92), rgba(10, 15, 25, 0.96));
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .brand-panel::after {
+    content: "";
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(194, 182, 142, 0.28), transparent);
+    pointer-events: none;
+  }
+
+  .brand-chip {
+    border: 1px solid rgba(194, 182, 142, 0.16);
+    background: rgba(255, 255, 255, 0.045);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .brand-button {
+    border: 1px solid rgba(194, 182, 142, 0.18);
+    background: linear-gradient(180deg, rgba(194, 182, 142, 0.12), rgba(255, 255, 255, 0.04));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .brand-button:hover {
+    background: linear-gradient(180deg, rgba(194, 182, 142, 0.18), rgba(255, 255, 255, 0.06));
   }
 
 #tag-error-toast {

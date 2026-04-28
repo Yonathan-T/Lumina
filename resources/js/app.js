@@ -32,7 +32,7 @@ class SearchModal {
         this.searchUrl = searchUrl;
         this.options = {
             debounceMs: 300,
-            minQueryLength: 1,
+            minQueryLength: 2,
             ...options
         };
         
@@ -201,26 +201,16 @@ class SearchModal {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function initSearchModal() {
+    const searchModal = document.getElementById('searchModal');
+
+    if (!searchModal || searchModal.dataset.initialized === 'true') {
+        return;
+    }
+
+    searchModal.dataset.initialized = 'true';
     new SearchModal('/search');
-});
-
-
-
-// public/js/app.js (or wherever your main JS is)
-document.addEventListener('livewire:init', () => {
-    Livewire.hook('message.processed', (message, component) => {
-        // This hook runs after every Livewire AJAX request is processed
-        console.log('Livewire message processed. Component:', component.name, 'Message:', message);
-        console.log('Livewire message processed. Component Data:', component.name, 'Message:', message.response.serverMemo.data);
-        // You can also look into message.response.serverMemo.data to see component data
-    });
-
-    // Add a listener for the custom console-log event
-    Livewire.on('console-log', (message) => {
-        console.log('LIVEWIRE EVENT:', message);
-    });
-});
+}
 
 
 
@@ -238,16 +228,29 @@ self.addEventListener('notificationclick', event => {
     event.waitUntil(clients.openWindow(event.notification.data.url));
 });
 
-const profileButton = document.getElementById('profileButton');
-const profileMenu = document.getElementById('profileMenu');
-if(profileButton && profileMenu) {
+function initProfileMenu() {
+    const profileButton = document.getElementById('profileButton');
+    const profileMenu = document.getElementById('profileMenu');
+
+    if (!profileButton || !profileMenu || profileButton.dataset.initialized === 'true') {
+        return;
+    }
+
+    profileButton.dataset.initialized = 'true';
+
     profileButton.addEventListener('click', () => {
         profileMenu.classList.toggle('hidden');
     });
 }
 
-// Optional: Close when clicking outside
 document.addEventListener('click', (event) => {
+    const profileButton = document.getElementById('profileButton');
+    const profileMenu = document.getElementById('profileMenu');
+
+    if (!profileButton || !profileMenu) {
+        return;
+    }
+
     if (!profileButton.contains(event.target) && !profileMenu.contains(event.target)) {
         profileMenu.classList.add('hidden');
     }
@@ -270,45 +273,42 @@ window.dismissMessage = function(messageId) {
     }
 };
 
-// Auto-dismiss messages after 5 seconds
-document.addEventListener('DOMContentLoaded', function () {
+function initFlashMessages() {
     const successMessage = document.getElementById('success-message');
     const errorMessage = document.getElementById('error-message');
 
-    if (successMessage) {
+    if (successMessage && !successMessage.dataset.autoDismissed) {
+        successMessage.dataset.autoDismissed = 'true';
         setTimeout(() => {
             dismissMessage('success-message');
         }, 5000);
     }
 
-    if (errorMessage) {
+    if (errorMessage && !errorMessage.dataset.autoDismissed) {
+        errorMessage.dataset.autoDismissed = 'true';
         setTimeout(() => {
             dismissMessage('error-message');
         }, 5000);
     }
-});
+}
+
+function initPageUi() {
+    initSearchModal();
+    initProfileMenu();
+    initFlashMessages();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPageUi, { once: true });
+} else {
+    initPageUi();
+}
 
 // Also handle Livewire updates - messages might be added dynamically
 document.addEventListener('livewire:init', () => {
     Livewire.hook('message.processed', (message, component) => {
-        // Check for new messages after Livewire updates
-        setTimeout(() => {
-            const successMessage = document.getElementById('success-message');
-            const errorMessage = document.getElementById('error-message');
-
-            if (successMessage && !successMessage.dataset.autoDismissed) {
-                successMessage.dataset.autoDismissed = 'true';
-                setTimeout(() => {
-                    dismissMessage('success-message');
-                }, 5000);
-            }
-
-            if (errorMessage && !errorMessage.dataset.autoDismissed) {
-                errorMessage.dataset.autoDismissed = 'true';
-                setTimeout(() => {
-                    dismissMessage('error-message');
-                }, 5000);
-            }
-        }, 100);
+        setTimeout(initFlashMessages, 100);
     });
 });
+
+document.addEventListener('livewire:navigated', initPageUi);

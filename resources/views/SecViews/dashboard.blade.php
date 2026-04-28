@@ -78,28 +78,42 @@
 
     @push('scripts')
     <script>
-        // Show welcome modal if it's the first visit
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check if we should show the welcome modal
+        function initWelcomeModal() {
+            const modal = document.getElementById('welcomeModal');
+            if (!modal) {
+                return;
+            }
+
             const welcomeShown = localStorage.getItem('welcomeShown');
             const showWelcome = {{ session('show_welcome_modal') ? 'true' : 'false' }};
             
             if (showWelcome && !welcomeShown) {
-                document.getElementById('welcomeModal').style.display = 'flex';
+                modal.style.display = 'flex';
                 localStorage.setItem('welcomeShown', 'true');
             }
-        });
-
-        function closeWelcomeModal() {
-            document.getElementById('welcomeModal').style.display = 'none';
         }
 
-        // Close when clicking outside the modal content
-        document.getElementById('welcomeModal').addEventListener('click', function(e) {
-            if (e.target === this) {
+        function closeWelcomeModal() {
+            const modal = document.getElementById('welcomeModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('welcomeModal');
+            if (modal && e.target === modal) {
                 closeWelcomeModal();
             }
         });
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initWelcomeModal, { once: true });
+        } else {
+            initWelcomeModal();
+        }
+
+        document.addEventListener('livewire:navigated', initWelcomeModal);
     </script>
     @endpush
 </x-layout>

@@ -3,21 +3,23 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Danestves\LaravelPolar\Billable;
+use App\Models\Payment\PolarSubscription;
 use App\Notifications\CustomResetPassword;
+use App\Services\PolarBillingService;
 use App\Services\StreakService;
-use NotificationChannels\WebPush\HasPushSubscriptions;
+use Danestves\LaravelPolar\Billable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
-use App\Models\Payment\PolarSubscription;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use NotificationChannels\WebPush\HasPushSubscriptions;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasPushSubscriptions, Billable;
+    use Billable, HasFactory, HasPushSubscriptions, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -33,7 +35,7 @@ class User extends Authenticatable
         // --- CRITICAL POLAR WEBHOOK FIELDS ADDED BELOW ---
         'polar_customer_id',
         'is_subscribed',
-        'api_key'
+        'api_key',
         // ---
     ];
 
@@ -46,6 +48,7 @@ class User extends Authenticatable
     {
         return StreakService::getCurrentStreak($this);
     }
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -55,6 +58,41 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    protected function email(): Attribute
+    {
+        return Attribute::make(
+            set: fn ($value) => is_string($value) ? strtolower(trim($value)) : $value,
+        );
+    }
+
+    public static function normalizeEmailValue(?string $email): ?string
+    {
+        return is_string($email) ? strtolower(trim($email)) : null;
+    }
+
+    public static function normalizeStoredEmailRecord(?string $email): void
+    {
+        $normalizedEmail = static::normalizeEmailValue($email);
+
+        if (! $normalizedEmail) {
+            return;
+        }
+
+        $matches = static::query()
+            ->whereRaw('LOWER(email) = ?', [$normalizedEmail])
+            ->get(['id', 'email']);
+
+        if ($matches->count() !== 1) {
+            return;
+        }
+
+        $user = $matches->first();
+
+        if ($user && $user->email !== $normalizedEmail) {
+            $user->forceFill(['email' => $normalizedEmail])->save();
+        }
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -70,10 +108,12 @@ class User extends Authenticatable
             'is_subscribed' => 'boolean',
         ];
     }
+
     public function entries()
     {
         return $this->hasMany(Entry::class);
     }
+
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new CustomResetPassword($token));
@@ -86,9 +126,38 @@ class User extends Authenticatable
     {
         return $this->morphMany(PolarSubscription::class, 'billable');
     }
+
     public function latestSubscription(): MorphOne
     {
         return $this->morphOne(PolarSubscription::class, 'billable')->latestOfMany();
+    }
+
+    protected function qualifyingSubscriptionQuery(): MorphMany
+    {
+        return $this->subscriptions()
+            ->whereIn('status', ['active', 'trialing'])
+            ->where(function ($query) {
+                $query->where('current_period_end', '>', now())
+                    ->orWhere(function ($subQuery) {
+                        $subQuery->whereNull('current_period_end')
+                            ->where(function ($endQuery) {
+                                $endQuery->whereNull('ends_at')
+                                    ->orWhere('ends_at', '>', now());
+                            });
+                    });
+            });
+    }
+
+    protected function refreshBillingStateIfNeeded(): void
+    {
+        $hasLocalSubscription = $this->qualifyingSubscriptionQuery()->exists();
+
+        if ($hasLocalSubscription) {
+            return;
+        }
+
+        app(PolarBillingService::class)->syncUserState($this);
+        $this->unsetRelation('subscriptions');
     }
 
     /**
@@ -96,10 +165,9 @@ class User extends Authenticatable
      */
     public function hasActiveSubscription(): bool
     {
-        // Force fresh query to avoid stale cache
-        $subscription = $this->subscriptions()
-            ->where('status', 'active')
-            ->where('current_period_end', '>', now())
+        $this->refreshBillingStateIfNeeded();
+
+        $subscription = $this->qualifyingSubscriptionQuery()
             ->latest()
             ->first();
 
@@ -111,10 +179,10 @@ class User extends Authenticatable
      */
     public function hasPlan(string $planId): bool
     {
-        return $this->subscriptions()
-            ->where('status', 'active')
+        $this->refreshBillingStateIfNeeded();
+
+        return $this->qualifyingSubscriptionQuery()
             ->where('product_id', $planId)
-            ->where('current_period_end', '>', now())
             ->exists();
     }
 
@@ -123,14 +191,13 @@ class User extends Authenticatable
      */
     public function getCurrentPlan(): string
     {
-        // Force fresh query to avoid stale cache
-        $subscription = $this->subscriptions()
-            ->where('status', 'active')
-            ->where('current_period_end', '>', now())
+        $this->refreshBillingStateIfNeeded();
+
+        $subscription = $this->qualifyingSubscriptionQuery()
             ->latest()
             ->first();
 
-        if (!$subscription) {
+        if (! $subscription) {
             return 'free';
         }
 
@@ -179,6 +246,7 @@ class User extends Authenticatable
     public function getMonthlyEntryLimit(): int
     {
         $plan = $this->getCurrentPlan();
+
         return match ($plan) {
             'free' => 10,
             'standard' => 100,

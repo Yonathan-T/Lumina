@@ -2,21 +2,27 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
-use Livewire\Attributes\On;
 use App\Models\Blog;
-use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Livewire\Attributes\On;
+use Livewire\Component;
 
 class BlogLoader extends Component
 {
     public $blogs = [];
+
     public $isLoading = false;
+
     public $selectedCategory = '';
+
     public $selectedSource = '';
+
     public $categories = [];
+
     public $sources = [];
-    
+
     // UI state
     public $showPreview = true;
 
@@ -36,7 +42,7 @@ class BlogLoader extends Component
     public function mount()
     {
         $this->loadCachedData();
-        
+
         // Only trigger initial load if we have very little data
         if (count($this->blogs) < 4) {
             $this->isLoading = true;
@@ -46,19 +52,40 @@ class BlogLoader extends Component
 
     public function loadCachedData()
     {
-        $query = Blog::query();
-        
-        if ($this->selectedCategory) {
-            $query->where('category', $this->selectedCategory);
-        }
-        
-        if ($this->selectedSource) {
-            $query->where('source_name', $this->selectedSource);
-        }
-        
-        $this->blogs = $query->orderBy('published_at', 'desc')->take(12)->get()->toArray();
-        $this->categories = Blog::distinct('category')->whereNotNull('category')->pluck('category')->toArray();
-        $this->sources = Blog::distinct('source_name')->pluck('source_name')->toArray();
+        $this->blogs = Cache::remember('blogs:index:latest', 300, function () {
+            return Blog::query()
+                ->select([
+                    'id',
+                    'title',
+                    'description',
+                    'external_url',
+                    'source_name',
+                    'published_at',
+                    'category',
+                    'image_url',
+                ])
+                ->orderBy('published_at', 'desc')
+                ->take(24)
+                ->get()
+                ->toArray();
+        });
+
+        $this->categories = Cache::remember('blogs:index:categories', 300, function () {
+            return Blog::query()
+                ->whereNotNull('category')
+                ->orderBy('category')
+                ->distinct()
+                ->pluck('category')
+                ->toArray();
+        });
+
+        $this->sources = Cache::remember('blogs:index:sources', 300, function () {
+            return Blog::query()
+                ->orderBy('source_name')
+                ->distinct()
+                ->pluck('source_name')
+                ->toArray();
+        });
     }
 
     #[On('start-blog-loading')]
@@ -66,7 +93,7 @@ class BlogLoader extends Component
     {
         \Log::info('Async blog loading started');
         $this->isLoading = true;
-        
+
         // release session lock so UI remains responsive during long fetches
         if (session_id()) {
             session_write_close();
@@ -78,10 +105,13 @@ class BlogLoader extends Component
             try {
                 $this->parseRssFeed($sourceName, $rssUrl);
             } catch (\Exception $e) {
-                \Log::warning("RSS fetch failed for {$sourceName}: " . $e->getMessage());
+                \Log::warning("RSS fetch failed for {$sourceName}: ".$e->getMessage());
             }
         }
 
+        Cache::forget('blogs:index:latest');
+        Cache::forget('blogs:index:categories');
+        Cache::forget('blogs:index:sources');
         $this->loadCachedData();
         $this->isLoading = false;
         $this->showPreview = false;
@@ -92,22 +122,28 @@ class BlogLoader extends Component
     {
         try {
             $response = Http::withHeaders([
-                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
             ])->timeout(10)->get($rssUrl);
 
-            if (!$response->successful()) return;
+            if (! $response->successful()) {
+                return;
+            }
 
             $xml = simplexml_load_string($response->body());
-            if (!$xml || !isset($xml->channel->item)) return;
+            if (! $xml || ! isset($xml->channel->item)) {
+                return;
+            }
 
             $count = 0;
             foreach ($xml->channel->item as $item) {
-                if ($count >= 6) break; 
+                if ($count >= 6) {
+                    break;
+                }
                 $this->storeBlogItem($sourceName, $item, $rssUrl);
                 $count++;
             }
         } catch (\Exception $e) {
-            \Log::error("RSS parsing error: " . $e->getMessage());
+            \Log::error('RSS parsing error: '.$e->getMessage());
         }
     }
 
@@ -125,8 +161,8 @@ class BlogLoader extends Component
         $description = html_entity_decode($description);
 
         $imageUrl = $this->extractImageUrl($item, $externalUrl);
-        
-        if (!$imageUrl && isset($this->fallbackImages[$sourceName])) {
+
+        if (! $imageUrl && isset($this->fallbackImages[$sourceName])) {
             $imageUrl = $this->fallbackImages[$sourceName];
         }
 
@@ -137,10 +173,10 @@ class BlogLoader extends Component
             'source_name' => $sourceName,
             'source_url' => $sourceUrl,
             'published_at' => isset($item->pubDate) ? Carbon::parse((string) $item->pubDate) : now(),
-            'category' => $this->categorizeContent($title . ' ' . $description),
-            'tags' => [], 
+            'category' => $this->categorizeContent($title.' '.$description),
+            'tags' => [],
             'image_url' => $imageUrl,
-            'cached_at' => now()
+            'cached_at' => now(),
         ]);
     }
 
@@ -161,11 +197,11 @@ class BlogLoader extends Component
         if (preg_match('/<img[^>]+src=["\'](?P<src>[^"\']+)["\']/i', (string) $item->description, $matches)) {
             return $matches['src'];
         }
-        
+
         // Try content:encoded
         $namespaces = $item->getNamespaces(true);
         if (isset($namespaces['content'])) {
-            $contentEncoded = (string)$item->children($namespaces['content'])->encoded;
+            $contentEncoded = (string) $item->children($namespaces['content'])->encoded;
             if (preg_match('/<img[^>]+src=["\'](?P<src>[^"\']+)["\']/i', $contentEncoded, $matches)) {
                 return $matches['src'];
             }
@@ -177,23 +213,20 @@ class BlogLoader extends Component
     private function categorizeContent($content)
     {
         $content = strtolower($content);
-        if (str_contains($content, 'anxiety') || str_contains($content, 'stress')) return 'Anxiety & Stress';
-        if (str_contains($content, 'depression') || str_contains($content, 'mood')) return 'Depression & Mood';
-        if (str_contains($content, 'journal') || str_contains($content, 'writing')) return 'Journaling & Writing';
-        if (str_contains($content, 'mindful') || str_contains($content, 'meditation')) return 'Mindfulness & Meditation';
+        if (str_contains($content, 'anxiety') || str_contains($content, 'stress')) {
+            return 'Anxiety & Stress';
+        }
+        if (str_contains($content, 'depression') || str_contains($content, 'mood')) {
+            return 'Depression & Mood';
+        }
+        if (str_contains($content, 'journal') || str_contains($content, 'writing')) {
+            return 'Journaling & Writing';
+        }
+        if (str_contains($content, 'mindful') || str_contains($content, 'meditation')) {
+            return 'Mindfulness & Meditation';
+        }
+
         return 'Mental Wellness';
-    }
-
-    public function filterByCategory($category)
-    {
-        $this->selectedCategory = $category;
-        $this->loadCachedData();
-    }
-
-    public function filterBySource($source)
-    {
-        $this->selectedSource = $source;
-        $this->loadCachedData();
     }
 
     public function triggerFreshLoad()
@@ -201,7 +234,7 @@ class BlogLoader extends Component
         \Log::info('Manual fresh load started');
         $this->isLoading = true;
         $this->blogs = [];
-        
+
         // release session lock so UI remains responsive
         if (session_id()) {
             session_write_close();
@@ -212,10 +245,13 @@ class BlogLoader extends Component
             try {
                 $this->parseRssFeed($sourceName, $rssUrl);
             } catch (\Exception $e) {
-                \Log::warning("RSS fetch failed for {$sourceName}: " . $e->getMessage());
+                \Log::warning("RSS fetch failed for {$sourceName}: ".$e->getMessage());
             }
         }
 
+        Cache::forget('blogs:index:latest');
+        Cache::forget('blogs:index:categories');
+        Cache::forget('blogs:index:sources');
         $this->loadCachedData();
         $this->isLoading = false;
         \Log::info('Manual fresh load completed');

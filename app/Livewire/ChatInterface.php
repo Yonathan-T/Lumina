@@ -6,26 +6,33 @@ use App\Models\Conversation;
 use App\Models\Message;
 use App\Services\AiChatService;
 use Livewire\Component;
-use Livewire\Attributes\Lazy;
-use Livewire\Attributes\On;
 
 class ChatInterface extends Component
 {
     public $sessions = [];
+
     public $activeSession = null;
+
     public $messages = [];
+
     public $newMessage = '';
+
     public $isLoading = false;
+
     public $isTyping = false;
+
     public $isSwitchingSession = false;
+
     public $isLoadingMessages = false;
+
     public $optimisticMessageId = null;
+
     public $messagesLoaded = false;
 
     public function mount()
     {
         $this->loadSessions();
-        if (!empty($this->sessions)) {
+        if (! empty($this->sessions)) {
             $this->selectSession($this->sessions[0]['id']);
         }
     }
@@ -58,13 +65,6 @@ class ChatInterface extends Component
         $this->messagesLoaded = false;
 
         $this->activeSession = collect($this->sessions)->firstWhere('id', $sessionId);
-
-        $this->dispatch('session-selected', sessionId: $sessionId);
-    }
-
-    #[On('session-selected')]
-    public function loadSessionMessages($sessionId)
-    {
         $this->loadMessages($sessionId);
     }
 
@@ -79,7 +79,7 @@ class ChatInterface extends Component
                     'id' => $message->id,
                     'content' => $message->content,
                     'isAi' => $message->is_ai_response,
-                    'timestamp' => $message->created_at->format('g:i A'),// time stamp should use their systems time i think
+                    'timestamp' => $message->created_at->format('g:i A'), // time stamp should use their systems time i think
                 ];
             })->toArray();
 
@@ -93,9 +93,16 @@ class ChatInterface extends Component
 
     public function createNewSession()
     {
-        $tempId = 'temp_' . time();
+        $conversation = Conversation::create([
+            'user_id' => auth()->id(),
+            'title' => 'New Conversation',
+            'type' => 'general',
+            'message_count' => 0,
+            'last_activity' => now(),
+        ]);
+
         $newSession = [
-            'id' => $tempId,
+            'id' => $conversation->id,
             'title' => 'New Conversation',
             'lastActivity' => 'Just now',
             'messageCount' => 0,
@@ -105,31 +112,6 @@ class ChatInterface extends Component
         $this->sessions = array_merge([$newSession], $this->sessions);
         $this->activeSession = $newSession;
         $this->messages = [];
-
-        $this->dispatch('create-session-async', sessionData: $newSession);
-    }
-
-    #[On('create-session-async')]
-    public function createSessionAsync($sessionData)
-    {
-        $conversation = Conversation::create([
-            'user_id' => auth()->id(),
-            'title' => 'New Conversation',
-            'type' => 'general',
-            'message_count' => 0,
-            'last_activity' => now(),
-        ]);
-
-        foreach ($this->sessions as &$session) {
-            if ($session['id'] === $sessionData['id']) {
-                $session['id'] = $conversation->id;
-                break;
-            }
-        }
-
-        if ($this->activeSession && $this->activeSession['id'] === $sessionData['id']) {
-            $this->activeSession['id'] = $conversation->id;
-        }
     }
 
     public function sendMessage()
@@ -138,66 +120,35 @@ class ChatInterface extends Component
             return;
         }
 
-        if (!$this->activeSession) {
+        if (! $this->activeSession) {
             $this->createNewSession();
         }
 
-        $messageContent = $this->newMessage;
-        $this->optimisticMessageId = 'temp_' . time();
-
-        $this->messages[] = [
-            'id' => $this->optimisticMessageId,
-            'content' => $messageContent,
-            'isAi' => false,
-            'timestamp' => now()->format('g:i A'),
-            'isOptimistic' => true
-        ];
-
+        $messageContent = trim($this->newMessage);
         $this->isTyping = true;
         $this->newMessage = '';
 
-        $this->dispatch('messages-updated');
-        $this->dispatch('message-sent-async', [
-            'content' => $messageContent,
-            'sessionId' => $this->activeSession['id'],
-            'optimisticId' => $this->optimisticMessageId
-        ]);
-    }
-
-    #[On('message-sent-async')]
-    public function processSentMessage($data)
-    {
         $userMessage = Message::create([
-            'conversation_id' => $data['sessionId'],
-            'content' => $data['content'],
+            'conversation_id' => $this->activeSession['id'],
+            'content' => $messageContent,
             'is_ai_response' => false,
         ]);
 
-        foreach ($this->messages as &$message) {
-            if ($message['id'] === $data['optimisticId']) {
-                $message['id'] = $userMessage->id;
-                $message['timestamp'] = $userMessage->created_at->format('g:i A');
-                unset($message['isOptimistic']);
-                break;
-            }
-        }
-
-        $this->dispatch('generate-ai-response', [
-            'content' => $data['content'],
-            'sessionId' => $data['sessionId']
-        ]);
-    }
-
-    #[On('generate-ai-response')]
-    public function generateAiResponse($data)
-    {
         try {
-            $aiResponse = app(AiChatService::class)->generateResponse($data['content'], $data['sessionId']);
+            $this->messages[] = [
+                'id' => $userMessage->id,
+                'content' => $userMessage->content,
+                'isAi' => false,
+                'timestamp' => $userMessage->created_at->format('g:i A'),
+            ];
+            $this->dispatch('messages-updated');
+
+            $aiResponse = app(AiChatService::class)->generateResponse($messageContent, $this->activeSession['id']);
 
             $this->isTyping = false;
 
             $aiMessage = Message::create([
-                'conversation_id' => $data['sessionId'],
+                'conversation_id' => $this->activeSession['id'],
                 'content' => $aiResponse,
                 'is_ai_response' => true,
             ]);
@@ -210,16 +161,16 @@ class ChatInterface extends Component
             ];
 
             $this->dispatch('messages-updated');
-            $this->updateConversationMeta($data['sessionId'], $data['content']);
+            $this->updateConversationMeta($this->activeSession['id'], $messageContent);
 
         } catch (\Exception $e) {
             $this->isTyping = false;
             $this->messages[] = [
-                'id' => 'error_' . time(),
+                'id' => 'error_'.time(),
                 'content' => 'Sorry, I encountered an error. Please try again.',
                 'isAi' => true,
                 'timestamp' => now()->format('g:i A'),
-                'isError' => true
+                'isError' => true,
             ];
             $this->dispatch('messages-updated');
         }
@@ -228,8 +179,9 @@ class ChatInterface extends Component
     private function updateConversationMeta($sessionId, $userContent)
     {
         $conversation = Conversation::find($sessionId);
-        if (!$conversation)
+        if (! $conversation) {
             return;
+        }
 
         if ($conversation->title === 'New Conversation' && count($this->messages) >= 4) {
             $conversation->title = app(AiChatService::class)->generateTitleFromChat($userContent);
@@ -248,8 +200,6 @@ class ChatInterface extends Component
         $conversation->save();
     }
 
-
-
     public function deleteSession($sessionId)
     {
         // Find the session to see if it was the active one
@@ -267,13 +217,6 @@ class ChatInterface extends Component
             $this->activeSession = null;
             $this->messages = [];
         }
-    }
-
-    //nobody is using you bro
-    #[On('delete-session-async')]
-    public function deleteSessionAsync($sessionId)
-    {
-        Conversation::destroy($sessionId);
     }
 
     public function render()

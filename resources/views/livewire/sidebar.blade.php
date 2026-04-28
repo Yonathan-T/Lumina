@@ -1,3 +1,12 @@
+@php
+    $billing = app(\App\Services\PolarBillingService::class);
+    $resolvedCurrentPlan = $currentPlan ?? auth()->user()?->getCurrentPlan() ?? 'free';
+    $resolvedCurrentPlanMeta = $currentPlanMeta ?? $billing->getPlanMeta($resolvedCurrentPlan);
+    $resolvedNextPlan = array_key_exists('nextPlan', get_defined_vars())
+        ? $nextPlan
+        : $billing->resolveNextPlan($resolvedCurrentPlan);
+@endphp
+
 <div>
     <aside id="sidebar"
         class="fixed inset-y-0 left-0 z-40 w-64 flex flex-col sidebar-gradient border-r border-[#c2b68e] bg-white/5 transition-all duration-300 overflow-hidden">
@@ -40,14 +49,14 @@
         </div>
         {{-- Navigation --}}
         <nav class="flex-1 overflow-hidden p-4 space-y-2 text-sm text-gray-400">
-            <a href="{{ route('dashboard') }}" wire:navigate
+            <a href="{{ route('dashboard') }}" wire:navigate.hover
                 class="flex items-center gap-3 rounded-md px-3 py-2 min-h-[2.25rem] transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('dashboard') ? 'bg-blue-300/15 text-white' : '' }}"
                 data-title="Dashboard">
                 <x-ri-dashboard-line class="w-5 h-5 shrink-0 sidebar-icon" />
                 <span class="sidebar-label">Dashboard</span>
             </a>
 
-            <a href="{{ route('entries.create') }}" wire:navigate
+            <a href="{{ route('entries.create') }}" wire:navigate.hover
                 class="flex items-center gap-3 rounded-md px-3 py-2 min-h-[2.25rem] transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('entries.create') ? 'bg-blue-300/15 text-white' : '' }}"
                 data-title="New Entry">
 
@@ -55,7 +64,7 @@
                 <span class="sidebar-label">New Entry</span>
             </a>
 
-            <a href="{{ route('archive.entries') }}" wire:navigate
+            <a href="{{ route('archive.entries') }}" wire:navigate.hover
                 class="flex items-center gap-3 rounded-md px-3 py-2 min-h-[2.25rem] transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('archive.entries') ? 'bg-blue-300/15 text-white' : '' }}"
                 data-title="History">
 
@@ -63,7 +72,7 @@
                 <span class="sidebar-label">History</span>
             </a>
 
-            <a href="{{ route('tags.index') }}" wire:navigate
+            <a href="{{ route('tags.index') }}" wire:navigate.hover
                 class="flex items-center gap-3 rounded-md px-3 py-2 min-h-[2.25rem] transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('tags.index') ? 'bg-blue-300/15 text-white' : '' }}"
                 data-title="Tags">
 
@@ -71,14 +80,14 @@
                 <span class="sidebar-label">Tags</span>
             </a>
 
-            <a href="{{ route('chat.index') }}" wire:navigate
+            <a href="{{ route('chat.index') }}" wire:navigate.hover
                 class="flex items-center gap-3 rounded-md px-3 py-2 min-h-[2.25rem] transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('chat.index') ? 'bg-blue-300/15 text-white' : '' }}"
                 data-title="Chat">
 
                 <x-icon name="chatbubbles-outline" class="w-5 h-5 shrink-0 sidebar-icon" />
                 <span class="sidebar-label">Chat</span>
             </a>
-            <a href="{{ route('insights.index') }}" wire:navigate
+            <a href="{{ route('insights.index') }}" wire:navigate.hover
                 class="flex items-center gap-3 rounded-md px-3 py-2 min-h-[2.25rem] transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('insights.index') ? 'bg-blue-300/15 text-white' : '' }}"
                 data-title="Insights">
 
@@ -86,7 +95,7 @@
                 <span class="sidebar-label">Insights</span>
             </a>
 
-            <a href="{{ route('settings.index') }}" wire:navigate
+            <a href="{{ route('settings.index') }}" wire:navigate.hover
                 class="flex items-center gap-3 rounded-md px-3 py-2 min-h-[2.25rem] transition-colors hover:text-white hover:bg-blue-300/15 {{ request()->routeIs('settings.index') ? 'bg-blue-300/15 text-white' : 'text-gray-400' }}"
                 data-title="Settings">
 
@@ -96,12 +105,18 @@
         </nav>
 
         {{-- Upgrade Button --}}
+        @php
+            $sidebarCtaLabel = $resolvedNextPlan
+                ? 'Upgrade to ' . ($resolvedNextPlan['key'] === 'pro' ? 'Pro' : $resolvedNextPlan['name'])
+                : 'Manage Plan';
+        @endphp
+
         <div class="p-4">
-            <a href="{{ route('pricing') }}" wire:navigate type="button"
+            <a href="{{ $resolvedNextPlan['checkout_url'] ?? route('settings.index', ['tab' => 'subscription']) }}"
                 class="z-222 h-10 px-4 py-2 w-full border border-white/10 hover:bg-blue-300/15 flex items-center rounded-md justify-center gap-2"
-                data-title="Upgrade to Pro">
+                data-title="{{ $resolvedNextPlan ? 'Upgrade to ' . $resolvedNextPlan['name'] : 'Manage subscription' }}">
                 <x-icon name="badge-check" class="w-5 h-5 shrink-0 sidebar-icon" />
-                <span class="sidebar-label">Upgrade to Pro</span>
+                <span class="sidebar-label">{{ $sidebarCtaLabel }}</span>
             </a>
         </div>
         {{-- User Profile --}}
@@ -131,7 +146,7 @@
 
             <div class="flex flex-col sidebar-label">
                 <span class="text-sm font-medium">{{ $userName }}</span>
-                <span class="text-xs text-muted">Free Plan</span>
+                <span class="text-xs text-muted">{{ $resolvedCurrentPlanMeta['label'] ?? ucfirst($resolvedCurrentPlan) }} - {{ $resolvedCurrentPlanMeta['price'] ?? '$0/mo' }}</span>
             </div>
         </button>
         <div id="profileMenu"
@@ -150,24 +165,15 @@
                 <div class="flex flex-col">
                     <span class="font-medium text-white truncate">{{ $userName }}</span>
                     <span class="text-xs text-gray-300 truncate">{{ $userEmail }}</span>
+                    <span class="text-xs text-cyan-300/90 mt-1">{{ $resolvedCurrentPlanMeta['label'] ?? ucfirst($resolvedCurrentPlan) }} plan</span>
                 </div>
             </div>
             <ul class="py-2">
-
-                <li class="flex items-center px-4 py-2 hover:bg-blue-300/15 text-white transition-colors rounded-md">
-                    <div class="flex items-center gap-2">
-                        <x-icon name="moon" class="w-4 h-4" />
-                        <span>Dark Mode</span>
-                    </div>
-                    <div class="ml-auto">
-                        <x-toggle :model="'darkMode'" />
-                    </div>
-                </li>
                 <li>
-                    <a href="#"
+                    <a href="{{ $resolvedNextPlan['checkout_url'] ?? route('settings.index', ['tab' => 'subscription']) }}"
                         class="flex items-center gap-2 px-4 py-2 hover:bg-blue-300/15 text-white transition-colors rounded-md">
                         <x-icon name="sparkles" class="w-4 h-4" />
-                        Upgrade plan
+                        {{ $resolvedNextPlan ? $sidebarCtaLabel : 'Manage subscription' }}
                     </a>
                 </li>
                 <li>

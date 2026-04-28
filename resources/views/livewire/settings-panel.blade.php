@@ -4,7 +4,7 @@
             <h1 class="text-3xl font-bold tracking-tight">Settings</h1>
             <p class="text-muted">Manage your account settings and preferences.</p>
         </div>
-        <div x-data="{ tab: 'settings' }" class="mx-auto max-w-4xl mt-6 space-y-6">
+        <div x-data="{ tab: @js($activeTab) }" class="mx-auto max-w-4xl mt-6 space-y-6">
 
             <div class="border border-white/5 bg-white/5 rounded-lg">
                 <nav class="flex justify-evenly space-x-6 p-2">

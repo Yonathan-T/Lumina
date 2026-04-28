@@ -3,24 +3,29 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 
 class PasswordResetController extends Controller
 {
-
     public function showLinkRequestForm()
     {
-        //when implmenting the login forgot password feature, this will be the view for requesting a password reset link.also remember me token generation is good i think
+        // when implmenting the login forgot password feature, this will be the view for requesting a password reset link.also remember me token generation is good i think
         return view('auth.password.passwordRequest');
     }
 
     public function sendResetLinkEmail(Request $request)
     {
+        $normalizedEmail = User::normalizeEmailValue((string) $request->input('email'));
+        User::normalizeStoredEmailRecord($normalizedEmail);
+
+        $request->merge([
+            'email' => $normalizedEmail,
+        ]);
+
         $request->validate(['email' => 'required|email']);
 
         $response = Password::broker()->sendResetLink(
@@ -39,9 +44,15 @@ class PasswordResetController extends Controller
         );
     }
 
-
     public function reset(Request $request)
     {
+        $normalizedEmail = User::normalizeEmailValue((string) $request->input('email'));
+        User::normalizeStoredEmailRecord($normalizedEmail);
+
+        $request->merge([
+            'email' => $normalizedEmail,
+        ]);
+
         $request->validate([
             'token' => 'required',
             'email' => 'required|email',

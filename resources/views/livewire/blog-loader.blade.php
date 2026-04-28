@@ -1,4 +1,14 @@
-<div class="mt-10 min-h-screen">
+<div
+    class="mt-10 min-h-screen"
+    x-data="{
+        selectedCategory: '',
+        selectedSource: '',
+        matches(category, source) {
+            return (!this.selectedCategory || this.selectedCategory === category)
+                && (!this.selectedSource || this.selectedSource === source);
+        }
+    }"
+>
     <div class="container mx-auto px-4 py-8">
         {{-- Header Centered --}}
         <div class="mb-12 text-center">
@@ -8,7 +18,7 @@
 
         {{-- Filters Only --}}
         <div class="flex flex-wrap items-center justify-center mb-8 gap-4">
-            <select wire:change="filterByCategory($event.target.value)"
+            <select x-model="selectedCategory"
                 class="border border-white/15 text-white rounded-lg shadow-sm bg-background px-3 py-2 text-sm">
                 <option value="">All Categories</option>
                 @foreach($categories as $category)
@@ -16,7 +26,7 @@
                 @endforeach
             </select>
 
-            <select wire:change="filterBySource($event.target.value)"
+            <select x-model="selectedSource"
                 class="border border-white/15 text-white rounded-lg shadow-sm bg-background px-3 py-2 text-sm">
                 <option value="">All Sources</option>
                 @foreach($sources as $source)
@@ -37,6 +47,8 @@
                 <div class="grid gap-6 md:grid-cols-3 lg:grid-cols-4">
                     @foreach($blogs as $blog)
                         <article wire:key="blog-{{ $blog['id'] }}"
+                            x-show="matches(@js($blog['category'] ?? ''), @js($blog['source_name'] ?? ''))"
+                            x-cloak
                             class="bg-white/5 border border-white/10 rounded-xl overflow-hidden hover:border-white/20 transition-all group">
                             <div class="aspect-video overflow-hidden bg-gray-900 relative">
                                 @if($blog['image_url'])

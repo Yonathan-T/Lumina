@@ -1,4 +1,4 @@
-@props(['showSidebar' => false, 'showNav' => true, 'isLandingPage' => false])
+@props(['showSidebar' => false, 'showNav' => true, 'isLandingPage' => false, 'patternOnBody' => false])
 <!DOCTYPE html>
 <html lang="en">
 
@@ -28,26 +28,28 @@
     </script>
 </head>
 
-<body
-    style="background: linear-gradient(to bottom right, hsl(224, 71%, 4%), hsl(224, 65%, 5%)); background-image: linear-gradient(to bottom right, hsl(224, 71%, 4%), hsl(224, 65%, 5%)), radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px); background-size: auto, 20px 20px;"
-    class="bg-dot-pattern text-[#c3beb6] min-h-screen flex flex-col {{ $showSidebar ? 'has-sidebar' : '' }}">
+<body style="{{ $isLandingPage
+    ? 'background: linear-gradient(to bottom right, hsl(224, 71%, 4%), hsl(224, 65%, 5%)); background-image: linear-gradient(to bottom right, hsl(224, 71%, 4%), hsl(224, 65%, 5%)), radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px); background-size: auto, 20px 20px;'
+    : '' }}"
+    class="{{ $isLandingPage ? 'bg-dot-pattern' : 'brand-page' }} {{ (!$isLandingPage && $patternOnBody) ? 'bg-diagonal-lines' : '' }} text-[#c3beb6] min-h-screen flex flex-col {{ $showSidebar ? 'has-sidebar' : '' }}">
 
 
     @if ($showNav)
 
         <x-navs>
             <a href="/" class="ml-3 flex items-center gap-2 group relative">
-                <svg class="w-10 h-10 text-white 
-                                   transition-transform duration-700 ease-out 
-                                   group-hover:rotate-[720deg] 
-                                   -rotate-45" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg class="w-10 h-10 text-white
+                                                       transition-transform duration-700 ease-out
+                                                       group-hover:rotate-[720deg]
+                                                       -rotate-45" fill="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
                     <path d="M13,2l9,13.6L13,22ZM11,2L2,15.6L11,22Z" />
                 </svg>
 
-                <p class="font-playfair font-bold text-xl text-white 
-                                 transition-all duration-500 
-                                 group-hover:text-white/40 
-                                 group-hover:translate-x-1">
+                <p class="font-playfair font-bold text-xl text-white
+                                                     transition-all duration-500
+                                                     group-hover:text-white/40
+                                                     group-hover:translate-x-1">
                     LUMINA
                 </p>
             </a>
@@ -61,16 +63,16 @@
                 @auth
                     <a href="/dashboard"
                         class="
-                                                                                                                                                                                                border border-white/25 rounded-lg px-3 py-2
-                                                                                                                                                                                                bg-[#060b16] text-white font-semibold
-                                                                                                                                                                                                shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
-                                                                                                                                                                                                active:translate-y-[2px] 
-                                                                                                                                                                                                active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
-                                                                                                                                                                                                active:border-gray-600
-                                                                                                                                                                                                transition-all duration-200 ease-in-out
-                                                                                                                                                                                                select-none
-                                                                                                                                                                                                inline-block
-                                                                                                                                                                                            ">
+                                                                                                                                                                                                                                        border border-white/25 rounded-lg px-3 py-2
+                                                                                                                                                                                                                                        bg-[#060b16] text-white font-semibold
+                                                                                                                                                                                                                                        shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
+                                                                                                                                                                                                                                        active:translate-y-[2px]
+                                                                                                                                                                                                                                        active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
+                                                                                                                                                                                                                                        active:border-gray-600
+                                                                                                                                                                                                                                        transition-all duration-200 ease-in-out
+                                                                                                                                                                                                                                        select-none
+                                                                                                                                                                                                                                        inline-block
+                                                                                                                                                                                                                                    ">
                         Dashboard
                     </a>
                 @endauth
@@ -78,16 +80,16 @@
 
                     <a href="/auth/register"
                         class="
-                                                                                                                                                                                                border border-white/25 rounded-lg px-3 py-2
-                                                                                                                                                                                                bg-[#060b16] text-white font-semibold
-                                                                                                                                                                                                shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
-                                                                                                                                                                                                active:translate-y-[2px] 
-                                                                                                                                                                                                active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
-                                                                                                                                                                                                active:border-gray-600
-                                                                                                                                                                                                transition-all duration-200 ease-in-out
-                                                                                                                                                                                                select-none
-                                                                                                                                                                                                inline-block
-                                                                                                                                                                                            ">
+                                                                                                                                                                                                                                        border border-white/25 rounded-lg px-3 py-2
+                                                                                                                                                                                                                                        bg-[#060b16] text-white font-semibold
+                                                                                                                                                                                                                                        shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
+                                                                                                                                                                                                                                        active:translate-y-[2px]
+                                                                                                                                                                                                                                        active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
+                                                                                                                                                                                                                                        active:border-gray-600
+                                                                                                                                                                                                                                        transition-all duration-200 ease-in-out
+                                                                                                                                                                                                                                        select-none
+                                                                                                                                                                                                                                        inline-block
+                                                                                                                                                                                                                                    ">
                         Sign up
                     </a>
 
@@ -111,7 +113,7 @@
             </aside>
             <div id="sidebarBackdrop" class="md:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-30 hidden"></div>
             <main
-                class="{{ $isLandingPage ? '' : 'bg-diagonal-lines' }} flex-1 font-inter text-custom relative min-h-screen overflow-y-auto pt-12 md:pt-0">
+                class="flex-1 font-inter text-custom relative min-h-screen overflow-y-auto pt-12 md:pt-0 {{ (!$isLandingPage && !$patternOnBody) ? 'bg-diagonal-lines' : '' }}">
                 <button id="mobileSidebarToggle"
                     class="md:hidden fixed top-4 left-4 z-50 inline-flex items-center justify-center w-10 h-10 rounded-md border border-white/25 bg-[#0b1220]/80 backdrop-blur-sm text-white/90 hover:text-white hover:bg-[#0b1220]/95 transition">
                     <!-- simple hamburger -->
@@ -125,7 +127,7 @@
             </main>
         </div>
     @else
-        <main class="{{ $isLandingPage ? '' : 'bg-diagonal-lines' }} font-inter text-custom">
+        <main class="font-inter text-custom {{ (!$isLandingPage && !$patternOnBody) ? 'bg-diagonal-lines' : '' }}">
             {{ $slot }}
         </main>
     @endif
@@ -159,103 +161,126 @@
 
 </html>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Restore sidebar collapsed state
-        try {
-            const collapsed = localStorage.getItem('sidebar-collapsed') === '1';
-            if (collapsed) {
-                document.body.classList.add('sidebar-collapsed');
-            }
-            // Remove initial HTML flag now that body is set
-            document.documentElement.classList.remove('sc-init');
-        } catch (e) { }
-
-        const collapseBtn = document.getElementById('sidebarCollapseToggle');
-        if (collapseBtn) {
-            collapseBtn.addEventListener('click', function () {
-                document.body.classList.toggle('sidebar-collapsed');
-                try {
-                    const isCollapsed = document.body.classList.contains('sidebar-collapsed');
-                    localStorage.setItem('sidebar-collapsed', isCollapsed ? '1' : '0');
-                } catch (e) { }
-                updateSidebarTitles();
-            });
-        }
-
-        // Mobile toggle
-        const mobileToggle = document.getElementById('mobileSidebarToggle');
-        const mobileBackdrop = document.getElementById('sidebarBackdrop');
-        if (mobileToggle) {
-            mobileToggle.addEventListener('click', function () {
-                document.body.classList.toggle('sidebar-open');
-                const expanded = document.body.classList.contains('sidebar-open');
-                mobileToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-                if (mobileBackdrop) mobileBackdrop.classList.toggle('hidden', !expanded);
-            });
-        }
-        if (mobileBackdrop) {
-            mobileBackdrop.addEventListener('click', function () {
-                document.body.classList.remove('sidebar-open');
-                mobileToggle && mobileToggle.setAttribute('aria-expanded', 'false');
-                mobileBackdrop.classList.add('hidden');
-            });
-        }
-
-        // Close sidebar on route navigation in mobile (Livewire navigate)
-        window.addEventListener('popstate', function () {
-            document.body.classList.remove('sidebar-open');
-        });
+    (function () {
         function updateSidebarTitles() {
             const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+            const collapseBtn = document.getElementById('sidebarCollapseToggle');
+
             document.querySelectorAll('#sidebar [data-title]').forEach(function (el) {
                 el.title = isCollapsed ? el.getAttribute('data-title') : '';
             });
-            if (collapseBtn) {
-                collapseBtn.title = isCollapsed ? (collapseBtn.getAttribute('data-title') || 'Toggle sidebar') : '';
-                collapseBtn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
-                const iconCollapse = collapseBtn.querySelector('.icon-collapse');
-                const iconExpand = collapseBtn.querySelector('.icon-expand');
-                if (iconCollapse && iconExpand) {
-                    if (isCollapsed) { iconCollapse.classList.add('hidden'); iconExpand.classList.remove('hidden'); }
-                    else { iconCollapse.classList.remove('hidden'); iconExpand.classList.add('hidden'); }
+
+            if (!collapseBtn) {
+                return;
+            }
+
+            collapseBtn.title = isCollapsed ? (collapseBtn.getAttribute('data-title') || 'Toggle sidebar') : '';
+            collapseBtn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+
+            const iconCollapse = collapseBtn.querySelector('.icon-collapse');
+            const iconExpand = collapseBtn.querySelector('.icon-expand');
+
+            if (iconCollapse && iconExpand) {
+                if (isCollapsed) {
+                    iconCollapse.classList.add('hidden');
+                    iconExpand.classList.remove('hidden');
+                } else {
+                    iconCollapse.classList.remove('hidden');
+                    iconExpand.classList.add('hidden');
                 }
             }
         }
-        updateSidebarTitles();
-        const sections = document.querySelectorAll('section[id]');
-        const navLinks = document.querySelectorAll('a[data-section]');
 
         function highlightNav() {
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('a[data-section]');
+
+            if (!sections.length || !navLinks.length) {
+                return;
+            }
+
             let current = '';
 
             sections.forEach(section => {
-                const sectionTop = section.offsetTop;
-                const sectionHeight = section.clientHeight;
-
-                if (window.scrollY >= (sectionTop - 100)) {
+                if (window.scrollY >= (section.offsetTop - 100)) {
                     current = section.getAttribute('id');
                 }
             });
 
             navLinks.forEach(link => {
+                const underline = link.querySelector('span');
+
                 link.classList.remove('text-white');
                 link.classList.add('text-gray-400');
 
                 if (link.getAttribute('data-section') === current) {
                     link.classList.remove('text-gray-400');
                     link.classList.add('text-white');
-                    // Show the underline for active section
-                    link.querySelector('span').classList.add('scale-x-100');
-                    link.querySelector('span').classList.remove('scale-x-0');
+                    underline?.classList.add('scale-x-100');
+                    underline?.classList.remove('scale-x-0');
                 } else {
-                    // Ensure other links' underlines are hidden when not active
-                    link.querySelector('span').classList.remove('scale-x-100');
-                    link.querySelector('span').classList.add('scale-x-0');
+                    underline?.classList.remove('scale-x-100');
+                    underline?.classList.add('scale-x-0');
                 }
             });
         }
 
-        window.addEventListener('scroll', highlightNav);
-        highlightNav(); // Run once on page load
-    });
+        function initLayoutUi() {
+            try {
+                const collapsed = localStorage.getItem('sidebar-collapsed') === '1';
+                document.body.classList.toggle('sidebar-collapsed', collapsed);
+                document.documentElement.classList.remove('sc-init');
+            } catch (e) { }
+
+            document.body.classList.remove('sidebar-open');
+            updateSidebarTitles();
+            highlightNav();
+        }
+
+        if (!window.__luminaLayoutHandlersBound) {
+            window.__luminaLayoutHandlersBound = true;
+
+            document.addEventListener('click', function (event) {
+                const collapseBtn = event.target.closest('#sidebarCollapseToggle');
+                if (collapseBtn) {
+                    document.body.classList.toggle('sidebar-collapsed');
+                    try {
+                        const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+                        localStorage.setItem('sidebar-collapsed', isCollapsed ? '1' : '0');
+                    } catch (e) { }
+                    updateSidebarTitles();
+                    return;
+                }
+
+                const mobileToggle = event.target.closest('#mobileSidebarToggle');
+                if (mobileToggle) {
+                    document.body.classList.toggle('sidebar-open');
+                    const expanded = document.body.classList.contains('sidebar-open');
+                    mobileToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+                    document.getElementById('sidebarBackdrop')?.classList.toggle('hidden', !expanded);
+                    return;
+                }
+
+                const mobileBackdrop = event.target.closest('#sidebarBackdrop');
+                if (mobileBackdrop) {
+                    document.body.classList.remove('sidebar-open');
+                    document.getElementById('mobileSidebarToggle')?.setAttribute('aria-expanded', 'false');
+                    mobileBackdrop.classList.add('hidden');
+                }
+            });
+
+            window.addEventListener('popstate', function () {
+                document.body.classList.remove('sidebar-open');
+            });
+
+            window.addEventListener('scroll', highlightNav, { passive: true });
+            document.addEventListener('livewire:navigated', initLayoutUi);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initLayoutUi, { once: true });
+        } else {
+            initLayoutUi();
+        }
+    })();
 </script>
