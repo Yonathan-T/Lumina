@@ -22,7 +22,7 @@
         "laravel/framework": "^12.0",
         "laravel/socialite": "^5.23",
         "laravel/tinker": "^2.10.1",
-        "livewire/livewire": "^3.6",
+        "livewire/livewire": "4.0",
         "saade/blade-iconsax": "^1.2",
         "spatie/laravel-webhook-client": "^3.4",
         "standard-webhooks/standard-webhooks": "dev-main"

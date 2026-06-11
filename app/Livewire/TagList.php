@@ -24,10 +24,10 @@ class TagList extends Component
         }])->find($tagId);
         $this->selectedTagName = $tag?->name;
         $this->selectedTagCount = $tag?->entries_count;
-        $this->tagEntries = Entry::where('user_id', auth()->id())
-            ->whereHas('tags', function ($q) use ($tagId) {
-                $q->where('tags.id', $tagId);
-            })->latest()->get();
+        $this->tagEntries = $tag ? $tag->entries()
+            ->where('user_id', auth()->id())
+            ->latest()
+            ->get() : [];
     }
     public function updatingSort()
     {
