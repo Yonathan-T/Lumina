@@ -21,12 +21,6 @@ class NewEntry extends Component
 
     public $selectedTags = [];
 
-    public $availableTags = [];
-
-    public $newTag = '';
-
-    public $tagError = null;
-
     // Modal states
     public $showConfirmationModal = false;
 
@@ -40,19 +34,6 @@ class NewEntry extends Component
     public $quickChatInput = '';
 
     public $quickChatLoading = false;
-
-    public function mount()
-    {
-        $this->availableTags = Tag::whereHas('entries', function ($query) {
-            $query->where('user_id', auth()->id());
-        })->get();
-    }
-    // public function updatedTitle($value)
-    // {
-    //     $this->validate([
-    //         'title' => 'required|string|min:3|max:255',
-    //     ]);
-    // }
 
     public function save()
     {
@@ -95,7 +76,10 @@ class NewEntry extends Component
         }
 
         $entry->load('tags');
-        app(EntrySearchService::class)->updateEntryIndex($entry);
+
+        // Rebuild the search index after the response is flushed so saving feels
+        // instant — indexing can insert up to 500 token rows.
+        dispatch(fn () => app(EntrySearchService::class)->updateEntryIndex($entry))->afterResponse();
 
         // Store the saved entry for potential chat context
         $this->savedEntry = $entry;
@@ -104,39 +88,6 @@ class NewEntry extends Component
 
         // Show confirmation modal instead of redirecting immediately
         $this->showConfirmationModal = true;
-    }
-
-    public function addTag()
-    {
-        $tag = trim($this->newTag);
-
-        if ($tag === '') {
-            $this->tagError = 'Tag cannot be empty.';
-
-            return;
-        }
-        if (preg_match('/\\s/', $tag)) {
-            $this->tagError = 'Tags cannot contain spaces.';
-
-            return;
-        }
-        if (in_array(strtolower($tag), array_map('strtolower', $this->selectedTags))) {
-            $this->tagError = 'You already added this tag.';
-
-            return;
-        }
-
-        $this->selectedTags[] = $tag;
-        $this->newTag = '';
-        $this->tagError = null;
-    }
-
-    public function removeTag($tag)
-    {
-        $this->selectedTags = array_filter($this->selectedTags, function ($t) use ($tag) {
-            return strtolower($t) !== strtolower($tag);
-        });
-        $this->selectedTags = array_values($this->selectedTags);
     }
 
     /**
@@ -165,7 +116,7 @@ class NewEntry extends Component
     {
         session()->flash('message', 'Entry created successfully!');
 
-        return redirect()->route('dashboard');
+        $this->redirect(route('dashboard'), navigate: true);
     }
 
     /**
@@ -230,7 +181,7 @@ class NewEntry extends Component
 
         session()->flash('message', 'Entry created successfully!');
 
-        return redirect()->route('dashboard');
+        $this->redirect(route('dashboard'), navigate: true);
     }
 
     public function messages()

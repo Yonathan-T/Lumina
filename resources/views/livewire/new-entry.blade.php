@@ -13,38 +13,59 @@
         <form wire:submit.prevent="save">
             @csrf
             <div class="space-y-4">
-                <div class="relative group">
-                    @if ($banner)
-                        <div class="relative w-full h-64 rounded-xl overflow-hidden border border-white/10 shadow-2xl">
-                            <img src="{{ $banner->temporaryUrl() }}" class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
-                            <button type="button" wire:click="$set('banner', null)"
-                                class="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-red-500/80 transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </button>
-                            <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <label class="cursor-pointer bg-black/50 text-white px-4 py-2 rounded-lg hover:bg-white/20 backdrop-blur-sm text-sm font-medium flex items-center gap-2 transition-all">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                    </svg>
-                                    Change Cover
-                                    <input type="file" wire:model="banner" class="hidden" accept="image/*">
-                                </label>
-                            </div>
+                <div class="relative group" x-data="{
+                        preview: null,
+                        uploading: false,
+                        select(e) {
+                            const file = e.target.files[0];
+                            if (file) this.preview = URL.createObjectURL(file);
+                        },
+                        clear() { this.preview = null; $wire.set('banner', null); }
+                    }"
+                    x-on:livewire-upload-start="uploading = true"
+                    x-on:livewire-upload-finish="uploading = false"
+                    x-on:livewire-upload-error="uploading = false">
+
+                    {{-- Preview (shows instantly from the local file, before the upload finishes) --}}
+                    <div x-show="preview" x-cloak class="relative w-full h-64 rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                        <img :src="preview" class="w-full h-full object-cover" alt="Cover preview">
+                        <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
+
+                        {{-- background-upload indicator --}}
+                        <div x-show="uploading" x-cloak class="absolute inset-0 flex items-center justify-center gap-2 bg-black/50 text-white text-sm">
+                            <div class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                            Uploading…
                         </div>
-                    @else
-                        <label class="cursor-pointer group flex flex-col items-center justify-center w-full h-32 rounded-xl border-2 border-dashed border-white/10 hover:border-white/20 hover:bg-white/5 transition-all duration-200">
-                            <div class="flex flex-col items-center justify-center pt-5 pb-6 text-muted group-hover:text-white transition-colors">
-                                <svg class="w-8 h-8 mb-3 opacity-50 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                        <button type="button" x-on:click="clear()"
+                            class="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-red-500/80 transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                        <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <label class="cursor-pointer bg-black/50 text-white px-4 py-2 rounded-lg hover:bg-white/20 backdrop-blur-sm text-sm font-medium flex items-center gap-2 transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                 </svg>
-                                <p class="text-sm font-medium">Add Cover Image</p>
-                            </div>
-                            <input type="file" wire:model="banner" class="hidden" accept="image/*">
-                        </label>
-                    @endif
+                                Change Cover
+                                <input type="file" wire:model="banner" x-on:change="select($event)" class="hidden" accept="image/*">
+                            </label>
+                        </div>
+                    </div>
+
+                    {{-- Dropzone --}}
+                    <label x-show="!preview"
+                        class="cursor-pointer group flex flex-col items-center justify-center w-full h-32 rounded-xl border-2 border-dashed border-white/10 hover:border-white/20 hover:bg-white/5 transition-all duration-200">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6 text-muted group-hover:text-white transition-colors">
+                            <svg class="w-8 h-8 mb-3 opacity-50 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <p class="text-sm font-medium">Add Cover Image</p>
+                        </div>
+                        <input type="file" wire:model="banner" x-on:change="select($event)" class="hidden" accept="image/*">
+                    </label>
+
                     <x-form-error name="banner" />
                 </div>
 
@@ -60,23 +81,35 @@
                     placeholder="What's on your mind today!"></textarea>
                 <x-form-error name="content" />
 
-                <div class="space-y-2">
+                <div class="space-y-2" x-data="{
+                        tags: $wire.entangle('selectedTags'),
+                        newTag: '',
+                        error: null,
+                        add() {
+                            const t = this.newTag.trim();
+                            if (t === '') { this.error = 'Tag cannot be empty.'; return; }
+                            if (/\s/.test(t)) { this.error = 'Tags cannot contain spaces.'; return; }
+                            if (this.tags.map(x => x.toLowerCase()).includes(t.toLowerCase())) { this.error = 'You already added this tag.'; return; }
+                            this.tags.push(t);
+                            this.newTag = '';
+                            this.error = null;
+                        },
+                        remove(t) { this.tags = this.tags.filter(x => x.toLowerCase() !== t.toLowerCase()); }
+                    }">
                     <label class="block text-sm font-medium">Tags</label>
                     <div class="flex flex-wrap gap-2">
-                        @foreach($selectedTags as $tag)
-                            <span class="inline-flex items-center px-2 py-1 bg-background  rounded text-sm">
-                                {{ $tag }}
-                                <button type="button" wire:click="removeTag('{{ $tag }}')"
+                        <template x-for="tag in tags" :key="tag">
+                            <span class="inline-flex items-center px-2 py-1 bg-background rounded text-sm">
+                                <span x-text="tag"></span>
+                                <button type="button" x-on:click="remove(tag)"
                                     class="ml-1 text-red-white hover:rounded-lg hover:text-white/15">&times;</button>
                             </span>
-                        @endforeach
-                        <input wire:model.defer="newTag" wire:keydown.enter.prevent="addTag" id="tag-input-field"
+                        </template>
+                        <input x-model="newTag" x-on:keydown.enter.prevent="add()" id="tag-input-field"
                             class="flex h-10 rounded-md border border-input px-3 py-2 text-sm w-48 border-none bg-background placeholder:text-[rgb(65,74,90)] focus:outline-none focus:ring-0"
                             placeholder="Add a tag and press Enter" type="text">
                     </div>
-                    @if($tagError)
-                        <div class="text-red-500 text-sm mt-1">{{ $tagError }}</div>
-                    @endif
+                    <div x-show="error" x-cloak x-text="error" class="text-red-500 text-sm mt-1"></div>
                 </div>
 
                 <div class="flex justify-end gap-2">
