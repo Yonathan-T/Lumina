@@ -104,117 +104,65 @@
 
 
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mt-5">
-        <div
-            class="brand-panel rounded-lg text-card-foreground card-highlight">
-            <div class="relative p-6 flex flex-row items-center justify-between space-y-0 pb-3">
-                <div class="space-y-1">
-                    <h3 class="tracking-tight text-sm font-medium text-white/88">Total Memos</h3>
-                    <p class="text-[11px] uppercase tracking-[0.18em] text-white/35">Overview</p>
-                </div>
-                <div class="brand-chip flex h-9 w-9 items-center justify-center rounded-md">
-                    <x-icon name="book-outline" class="w-4 h-4 text-blue-300" />
+        {{-- Total Memos --}}
+        <div class="card-highlight rounded-lg border border-white/5 bg-gradient-dark p-6">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-medium text-gray-400">Total Memos</h3>
+                <div class="flex h-9 w-9 items-center justify-center rounded-md bg-white/5">
+                    <x-icon name="book-outline" class="h-4 w-4 text-blue-300" />
                 </div>
             </div>
-            <div class="relative p-6 pt-0">
-                <div class="text-[2rem] leading-none font-semibold tracking-tight text-white">{{ $totalEntries }}</div>
-                <div class="mt-4 flex items-center gap-2 text-xs font-inter text-white/55">
-                    <span class="brand-chip inline-flex h-6 w-6 items-center justify-center rounded-full">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5 text-blue-300">
-                            <path fill-rule="evenodd"
-                                d="M12 2.25a.75.75 0 0 1 .75.75v10.19l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Z"
-                                clip-rule="evenodd" />
-                        </svg>
-                    </span>
-                    <span>
-                    <!--there is a bug here 👀-->
-                    @if($entriesFromLastWeek > 0)
-                        +{{ $entriesFromLastWeek }} from last week
-                    @elseif($entriesFromLastWeek < 0)
-                        {{ abs($entriesFromLastWeek) }} less than last week
-                    @else
-                        Same as last week
-                    @endif
-
-                    </span>
-                </div>
-            </div>
-        </div>
-        <div
-            class="brand-panel rounded-lg text-card-foreground card-highlight">
-            <div class="relative p-6 flex flex-row items-center justify-between space-y-0 pb-3">
-                <div class="space-y-1">
-                    <h3 class="tracking-tight text-sm font-medium text-white/88">Most Used Tag</h3>
-                    <p class="text-[11px] uppercase tracking-[0.18em] text-white/35">Organization</p>
-                </div>
-                <div class="brand-chip flex h-9 w-9 items-center justify-center rounded-md">
-                    <x-icon name="tag" class="w-4 h-4 text-emerald-300" />
-                </div>
-            </div>
-            <div class="relative p-6 pt-0">
-                <div class="text-[2rem] leading-none font-semibold tracking-tight text-white">{{ $mostUsedTag ? '#' . $mostUsedTag->name : 'No tags' }}</div>
-                <div class="mt-4 flex items-center gap-2 text-xs font-inter text-white/55">
-                    <span class="brand-chip inline-flex h-6 w-6 items-center justify-center rounded-full">
-                        <x-icon name="tag" class="h-3.5 w-3.5 text-emerald-300" />
-                    </span>
-                    <span>Used in {{ $mostUsedTagCount }} entries</span>
-                </div>
-            </div>
+            <div class="mt-3 text-3xl font-bold tracking-tight text-white">{{ $totalEntries }}</div>
+            <p class="mt-1 text-xs text-gray-500">
+                @if($entriesFromLastWeek > 0)
+                    <span class="text-emerald-400">▲ {{ $entriesFromLastWeek }}</span> from last week
+                @elseif($entriesFromLastWeek < 0)
+                    <span class="text-rose-400">▼ {{ abs($entriesFromLastWeek) }}</span> less than last week
+                @else
+                    Same as last week
+                @endif
+            </p>
         </div>
 
-
-
-        <div
-            class="brand-panel rounded-lg text-card-foreground card-highlight">
-            <div class="relative p-6 flex flex-row items-center justify-between space-y-0 pb-3">
-                <div class="space-y-1">
-                    <h3 class="tracking-tight text-sm font-medium text-white/88">Longest Entry</h3>
-                    <p class="text-[11px] uppercase tracking-[0.18em] text-white/35">Depth</p>
+        {{-- Most Used Tag --}}
+        <div class="card-highlight rounded-lg border border-white/5 bg-gradient-dark p-6">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-medium text-gray-400">Most Used Tag</h3>
+                <div class="flex h-9 w-9 items-center justify-center rounded-md bg-white/5">
+                    <x-icon name="tag" class="h-4 w-4 text-emerald-300" />
                 </div>
-                <div class="brand-chip flex h-9 w-9 items-center justify-center rounded-md">
+            </div>
+            <div class="mt-3 text-3xl font-bold tracking-tight text-white">{{ $mostUsedTag ? '#' . $mostUsedTag->name : 'No tags' }}</div>
+            <p class="mt-1 text-xs text-gray-500">Used in {{ $mostUsedTagCount }} entries</p>
+        </div>
+
+        {{-- Longest Entry --}}
+        <div class="card-highlight rounded-lg border border-white/5 bg-gradient-dark p-6">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-medium text-gray-400">Longest Entry</h3>
+                <div class="flex h-9 w-9 items-center justify-center rounded-md bg-white/5">
                     <x-iconpark-writingfluently-o class="h-4 w-4 text-violet-300" />
                 </div>
             </div>
-            <div class="relative p-6 pt-0">
-                @if(isset($longestEntryCharCount) && isset($longestEntryDate))
-                    <div class="text-[2rem] leading-none font-semibold tracking-tight text-white">{{ $longestEntryCharCount }}</div>
-                    <div class="mt-4 flex items-center gap-2 text-xs font-inter text-white/55">
-                        <span class="brand-chip inline-flex h-6 w-6 items-center justify-center rounded-full">
-                            <x-iconpark-writingfluently-o class="h-3.5 w-3.5 text-violet-300" />
-                        </span>
-                        <span>characters on {{ $longestEntryDate }}</span>
-                    </div>
-                @else
-                    <div class="text-[2rem] leading-none font-semibold tracking-tight text-white">0</div>
-                    <div class="mt-4 flex items-center gap-2 text-xs font-inter text-white/55">
-                        <span class="brand-chip inline-flex h-6 w-6 items-center justify-center rounded-full">
-                            <x-iconpark-writingfluently-o class="h-3.5 w-3.5 text-violet-300" />
-                        </span>
-                        <span>No entries yet</span>
-                    </div>
-                @endif
-            </div>
-
+            @if(isset($longestEntryCharCount) && isset($longestEntryDate))
+                <div class="mt-3 text-3xl font-bold tracking-tight text-white">{{ $longestEntryCharCount }}</div>
+                <p class="mt-1 text-xs text-gray-500">characters on {{ $longestEntryDate }}</p>
+            @else
+                <div class="mt-3 text-3xl font-bold tracking-tight text-white">0</div>
+                <p class="mt-1 text-xs text-gray-500">No entries yet</p>
+            @endif
         </div>
-        <div
-            class="brand-panel rounded-lg text-card-foreground card-highlight">
-            <div class="relative p-6 flex flex-row items-center justify-between space-y-0 pb-3">
-                <div class="space-y-1">
-                    <h3 class="tracking-tight text-sm font-medium text-white/88">Daily Streak</h3>
-                    <p class="text-[11px] uppercase tracking-[0.18em] text-white/35">Consistency</p>
-                </div>
-                <div class="brand-chip flex h-9 w-9 items-center justify-center rounded-md">
-                    <x-icon name="flash-outline" class="w-4 h-4 text-amber-300" />
+
+        {{-- Daily Streak --}}
+        <div class="card-highlight rounded-lg border border-white/5 bg-gradient-dark p-6">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-medium text-gray-400">Daily Streak</h3>
+                <div class="flex h-9 w-9 items-center justify-center rounded-md bg-white/5">
+                    <x-icon name="flash-outline" class="h-4 w-4 text-amber-300" />
                 </div>
             </div>
-            <div class="relative p-6 pt-0">
-                <div class="text-[2rem] leading-none font-semibold tracking-tight text-white">{{ $currentStreak }}</div>
-                <div class="mt-4 flex items-center gap-2 text-xs font-inter text-white/55">
-                    <span class="brand-chip inline-flex h-6 w-6 items-center justify-center rounded-full">
-                        <x-icon name="flash-outline" class="h-3.5 w-3.5 text-amber-300" />
-                    </span>
-                    <span>{{ $streakMessage }}</span>
-                </div>
-            </div>
+            <div class="mt-3 text-3xl font-bold tracking-tight text-white">{{ $currentStreak }}</div>
+            <p class="mt-1 text-xs text-gray-500">{{ $streakMessage }}</p>
         </div>
     </div>
     <!-- AI-Powered Quick Actions -->
