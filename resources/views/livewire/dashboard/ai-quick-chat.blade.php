@@ -11,30 +11,28 @@
 
         <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1">
             <!-- Guided Reflection Card -->
-            <div class="group brand-panel rounded-lg card-highlight cursor-pointer transition-all duration-200 hover:border-[#c2b68e]/30"
+            <div class="group relative cursor-pointer overflow-hidden rounded-lg border border-white/10 bg-gradient-dark transition-all duration-200 hover:border-blue-400/40"
                 wire:click="startGuidedReflection" wire:loading.class="opacity-50 pointer-events-none"
                 wire:target="startGuidedReflection">
-                <div class="relative p-4 pb-3">
+                <div class="pointer-events-none absolute inset-0 bg-dot-pattern opacity-60"></div>
+                <div class="relative p-4">
                     <div class="flex items-start gap-3">
-                        <div class="brand-chip flex h-10 w-10 items-center justify-center rounded-md">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-md bg-blue-500/10">
                             <x-icon name="heart-handshake" class="h-5 w-5 text-blue-300" />
                         </div>
                         <div class="flex-1">
-                            <h3 class="text-lg font-semibold text-white/90">Start Guided Reflection</h3>
-                            <p class="text-sm text-white/55">AI-guided self-reflection session</p>
+                            <h3 class="text-lg font-semibold text-white">Start Guided Reflection</h3>
+                            <p class="text-sm text-gray-400">AI-guided self-reflection session</p>
                         </div>
-                        <span class="brand-chip inline-flex h-8 w-8 items-center justify-center rounded-full text-blue-300 transition-transform duration-200 group-hover:translate-x-0.5">
+                        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-blue-300 transition-transform duration-200 group-hover:translate-x-0.5">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
                                 <path fill-rule="evenodd" d="M3.25 10a.75.75 0 0 1 .75-.75h9.19L9.97 6.03a.75.75 0 1 1 1.06-1.06l4.5 4.5a.75.75 0 0 1 0 1.06l-4.5 4.5a.75.75 0 1 1-1.06-1.06l3.22-3.22H4A.75.75 0 0 1 3.25 10Z" clip-rule="evenodd" />
                             </svg>
                         </span>
                     </div>
-                </div>
-                <div class="relative px-4 pb-4 pt-0">
                     @if($isProcessing === 'guided-reflection')
-                        <div class="flex items-center gap-2 text-sm text-blue-500">
-                            <div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin">
-                            </div>
+                        <div class="mt-3 flex items-center gap-2 text-sm text-blue-400">
+                            <div class="h-4 w-4 animate-spin rounded-full border-2 border-blue-400 border-t-transparent"></div>
                             Starting reflection session...
                         </div>
                     @endif
@@ -42,30 +40,28 @@
             </div>
 
             <!-- Weekly Summary Card -->
-            <div class="group brand-panel rounded-lg card-highlight cursor-pointer transition-all duration-200 hover:border-[#c2b68e]/30"
+            <div class="group relative cursor-pointer overflow-hidden rounded-lg border border-white/10 bg-gradient-dark transition-all duration-200 hover:border-emerald-400/40"
                 wire:click="summarizePastWeek" wire:loading.class="opacity-50 pointer-events-none"
                 wire:target="summarizePastWeek">
-                <div class="relative p-4 pb-3">
+                <div class="pointer-events-none absolute inset-0 bg-dot-pattern opacity-60"></div>
+                <div class="relative p-4">
                     <div class="flex items-start gap-3">
-                        <div class="brand-chip flex h-10 w-10 items-center justify-center rounded-md">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-md bg-emerald-500/10">
                             <x-icon name="scroll-text" class="h-5 w-5 text-emerald-300" />
                         </div>
                         <div class="flex-1">
-                            <h3 class="text-lg font-semibold text-white/90">Weekly Summary</h3>
-                            <p class="text-sm text-white/55">Insights from recent entries</p>
+                            <h3 class="text-lg font-semibold text-white">Weekly Summary</h3>
+                            <p class="text-sm text-gray-400">Insights from recent entries</p>
                         </div>
-                        <span class="brand-chip inline-flex h-8 w-8 items-center justify-center rounded-full text-emerald-300 transition-transform duration-200 group-hover:translate-x-0.5">
+                        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-emerald-300 transition-transform duration-200 group-hover:translate-x-0.5">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
                                 <path fill-rule="evenodd" d="M3.25 10a.75.75 0 0 1 .75-.75h9.19L9.97 6.03a.75.75 0 1 1 1.06-1.06l4.5 4.5a.75.75 0 0 1 0 1.06l-4.5 4.5a.75.75 0 1 1-1.06-1.06l3.22-3.22H4A.75.75 0 0 1 3.25 10Z" clip-rule="evenodd" />
                             </svg>
                         </span>
                     </div>
-                </div>
-                <div class="relative px-4 pb-4 pt-0">
                     @if($isProcessing === 'weekly-summary')
-                        <div class="flex items-center gap-2 text-sm text-green-500">
-                            <div class="w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin">
-                            </div>
+                        <div class="mt-3 flex items-center gap-2 text-sm text-emerald-400">
+                            <div class="h-4 w-4 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent"></div>
                             Generating summary...
                         </div>
                     @endif
@@ -75,19 +71,20 @@
             <!-- Quick Chat Card -->
             @can('access-premium')
                 {{-- ✅ Premium users see and can click the card --}}
-                <div class="group brand-panel rounded-lg card-highlight cursor-pointer transition-all duration-200 hover:border-[#c2b68e]/30"
+                <div class="group relative cursor-pointer overflow-hidden rounded-lg border border-white/10 bg-gradient-dark transition-all duration-200 hover:border-violet-400/40"
                     wire:click="startQuickChat" wire:loading.class="opacity-50 pointer-events-none"
                     wire:target="startQuickChat">
-                    <div class="relative p-4 pb-3">
+                    <div class="pointer-events-none absolute inset-0 bg-dot-pattern opacity-60"></div>
+                    <div class="relative p-4">
                         <div class="flex items-start gap-3">
-                            <div class="brand-chip flex h-10 w-10 items-center justify-center rounded-md">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-md bg-violet-500/10">
                                 <x-icon name="flash-outline" class="h-5 w-5 text-violet-300" />
                             </div>
                             <div class="flex-1">
-                                <h3 class="text-lg font-semibold text-white/90">Quick Chat</h3>
-                                <p class="text-sm text-white/55">Private chat, not saved</p>
+                                <h3 class="text-lg font-semibold text-white">Quick Chat</h3>
+                                <p class="text-sm text-gray-400">Private chat, not saved</p>
                             </div>
-                            <span class="brand-chip inline-flex h-8 w-8 items-center justify-center rounded-full text-violet-300 transition-transform duration-200 group-hover:translate-x-0.5">
+                            <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-violet-300 transition-transform duration-200 group-hover:translate-x-0.5">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
                                     <path fill-rule="evenodd" d="M3.25 10a.75.75 0 0 1 .75-.75h9.19L9.97 6.03a.75.75 0 1 1 1.06-1.06l4.5 4.5a.75.75 0 0 1 0 1.06l-4.5 4.5a.75.75 0 1 1-1.06-1.06l3.22-3.22H4A.75.75 0 0 1 3.25 10Z" clip-rule="evenodd" />
                                 </svg>
@@ -97,51 +94,46 @@
                 </div>
             @else
                 {{-- 🔒 Free users see a locked state --}}
-                <div
-                    class="brand-panel rounded-lg card-highlight cursor-not-allowed opacity-75">
-                    <div class="relative p-4 pb-3">
+                <div class="relative cursor-not-allowed overflow-hidden rounded-lg border border-white/10 bg-gradient-dark opacity-75">
+                    <div class="pointer-events-none absolute inset-0 bg-dot-pattern opacity-60"></div>
+                    <div class="relative p-4">
                         <div class="flex items-start gap-3">
-                            <div class="brand-chip flex h-10 w-10 items-center justify-center rounded-md">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-md bg-violet-500/10">
                                 <x-icon name="lock" class="h-5 w-5 text-violet-300" />
                             </div>
                             <div class="flex-1">
-                                <h3 class="text-lg font-semibold text-white/90">Quick Chat</h3>
-                                <p class="text-sm text-white/55">Upgrade to unlock this feature</p>
+                                <h3 class="text-lg font-semibold text-white">Quick Chat</h3>
+                                <p class="text-sm text-gray-400">Upgrade to unlock this feature</p>
                             </div>
-                            <span class="brand-chip inline-flex h-8 items-center rounded-full px-3 text-[11px] uppercase tracking-[0.18em] text-white/55">Locked</span>
+                            <span class="inline-flex h-8 items-center rounded-full bg-white/5 px-3 text-[11px] uppercase tracking-[0.18em] text-gray-400">Locked</span>
                         </div>
                     </div>
-
-
                 </div>
             @endcan
 
-
             <!-- Review Memos Card -->
-            <div class="group brand-panel rounded-lg card-highlight cursor-pointer transition-all duration-200 hover:border-[#c2b68e]/30"
+            <div class="group relative cursor-pointer overflow-hidden rounded-lg border border-white/10 bg-gradient-dark transition-all duration-200 hover:border-amber-400/40"
                 wire:click="reviewPastMemos" wire:loading.class="opacity-50 pointer-events-none"
                 wire:target="reviewPastMemos">
-                <div class="relative p-4 pb-3">
+                <div class="pointer-events-none absolute inset-0 bg-dot-pattern opacity-60"></div>
+                <div class="relative p-4">
                     <div class="flex items-start gap-3">
-                        <div class="brand-chip flex h-10 w-10 items-center justify-center rounded-md">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-md bg-amber-500/10">
                             <x-icon name="scroll-text" class="h-5 w-5 text-amber-300" />
                         </div>
                         <div class="flex-1">
-                            <h3 class="text-lg font-semibold text-white/90">Review Past Memos</h3>
-                            <p class="text-sm text-white/55">Analyze patterns in your writing</p>
+                            <h3 class="text-lg font-semibold text-white">Review Past Memos</h3>
+                            <p class="text-sm text-gray-400">Analyze patterns in your writing</p>
                         </div>
-                        <span class="brand-chip inline-flex h-8 w-8 items-center justify-center rounded-full text-amber-300 transition-transform duration-200 group-hover:translate-x-0.5">
+                        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-amber-300 transition-transform duration-200 group-hover:translate-x-0.5">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
                                 <path fill-rule="evenodd" d="M3.25 10a.75.75 0 0 1 .75-.75h9.19L9.97 6.03a.75.75 0 1 1 1.06-1.06l4.5 4.5a.75.75 0 0 1 0 1.06l-4.5 4.5a.75.75 0 1 1-1.06-1.06l3.22-3.22H4A.75.75 0 0 1 3.25 10Z" clip-rule="evenodd" />
                             </svg>
                         </span>
                     </div>
-                </div>
-                <div class="relative px-4 pb-4 pt-0">
                     @if($isProcessing === 'review-memos')
-                        <div class="flex items-center gap-2 text-sm text-yellow-500">
-                            <div class="w-4 h-4 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin">
-                            </div>
+                        <div class="mt-3 flex items-center gap-2 text-sm text-amber-400">
+                            <div class="h-4 w-4 animate-spin rounded-full border-2 border-amber-400 border-t-transparent"></div>
                             Analyzing patterns...
                         </div>
                     @endif
@@ -150,20 +142,21 @@
         </div>
     </div>
 
-    <!-- Therapy Chat CTA -->
-    <div
-        class="brand-panel relative mt-12 rounded-lg light-gradient-card">
+    <!-- Therapy Chat CTA (featured) -->
+    <div class="group relative mt-12 overflow-hidden rounded-xl border border-blue-500/20 bg-gradient-dark">
+        <div class="pointer-events-none absolute inset-0 bg-circuit-pattern opacity-50"></div>
+        <div class="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-blue-500/10 blur-3xl"></div>
 
         <div class="relative p-6">
             <div class="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                 <div class="flex items-start gap-4">
-                    <div class="brand-chip flex h-12 w-12 items-center justify-center rounded-full">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/15 ring-1 ring-blue-400/20">
                         <x-icon name="brain" class="h-6 w-6 text-blue-300" />
                     </div>
                     <div class="max-w-2xl">
-                        <p class="text-[11px] uppercase tracking-[0.18em] text-white/35">Featured Session</p>
-                        <h3 class="mt-1 text-xl font-semibold text-white/90">Ready for a deeper conversation?</h3>
-                        <p class="mt-2 text-sm text-white/60">
+                        <p class="text-[11px] uppercase tracking-[0.18em] text-blue-300/70">Featured Session</p>
+                        <h3 class="mt-1 text-xl font-semibold text-white">Ready for a deeper conversation?</h3>
+                        <p class="mt-2 text-sm text-gray-400">
                             I've analyzed your recent entries and noticed some interesting patterns. Let's explore them
                             together.
                         </p>
@@ -172,14 +165,14 @@
 
                 <button wire:click="startTherapySession" wire:loading.class="opacity-50 pointer-events-none"
                     wire:target="startTherapySession"
-                    class="brand-button cursor-pointer inline-flex items-center justify-center gap-2 rounded-md px-4 py-3 text-sm font-medium text-white transition min-w-[220px]">
+                    class="inline-flex min-w-[220px] cursor-pointer items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-500">
                     @if($isProcessing === 'therapy-session')
                         <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                         <span>Starting session...</span>
                     @else
-                        <x-icon name="chatbubbles-outline" class="h-4 w-4 text-blue-300" />
+                        <x-icon name="chatbubbles-outline" class="h-4 w-4 text-blue-100" />
                         <span>Start Therapy Session</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4 text-blue-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4 text-blue-100">
                             <path fill-rule="evenodd" d="M3.25 10a.75.75 0 0 1 .75-.75h9.19L9.97 6.03a.75.75 0 1 1 1.06-1.06l4.5 4.5a.75.75 0 0 1 0 1.06l-4.5 4.5a.75.75 0 1 1-1.06-1.06l3.22-3.22H4A.75.75 0 0 1 3.25 10Z" clip-rule="evenodd" />
                         </svg>
                     @endif
