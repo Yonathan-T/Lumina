@@ -1,0 +1,28 @@
+# Keep the build context small and avoid leaking local state into the image.
+.git
+.gitignore
+.github
+
+# Local dependencies — rebuilt inside the image by the composer/node stages
+vendor
+node_modules
+
+# Local env & secrets — production env comes from the host's dashboard
+.env
+.env.*
+!.env.production.example
+
+# Build artifacts (Vite rebuilds these in the assets stage)
+public/build
+public/hot
+
+# Local SQLite database — production uses managed Postgres
+database/database.sqlite
+
+# Dev tooling / tests / IDE
+tests
+.phpunit.result.cache
+.idea
+.vscode
+storage/logs/*.log
+README.md

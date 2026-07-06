@@ -5,16 +5,25 @@
     'isDisabled' => false,
     'isTyping' => false,
     'submitIcon' => 'send',
-    'typingIcon' => 'stop'
+    'typingIcon' => 'stop',
+    'useClientSubmit' => false,
+    'formId' => null,
 ])
 
-<form wire:submit="{{ $wireSubmit }}" class="flex items-center space-x-3">
+<form
+    @if($useClientSubmit)
+        id="{{ $formId ?? 'chat-message-form' }}"
+        data-client-submit="true"
+    @else
+        wire:submit="{{ $wireSubmit }}"
+    @endif
+    class="flex items-center space-x-3">
     <div class="flex-1">
         <textarea wire:model.defer="{{ $wireModel }}" placeholder="{{ $placeholder }}"
             class="w-full bg-gray-700 border bg-gradient-dark rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent disabled:opacity-50 overflow-hidden resize-none max-h-[200px]"
             {{ $isDisabled || $isTyping ? 'disabled' : '' }}
             oninput="this.style.height='auto'; this.style.height=(this.scrollHeight)+'px';"
-            onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault(); this.closest('form').dispatchEvent(new Event('submit', {bubbles: true}));}"></textarea>
+            onkeydown="if(event.key==='Enter' && !event.ctrlKey && !event.metaKey){event.preventDefault(); this.closest('form').dispatchEvent(new Event('submit', {bubbles: true, cancelable: true}));}"></textarea>
     </div>
     <div>
         <button type="submit"

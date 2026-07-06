@@ -1,0 +1,126 @@
+# Render Blueprint for Lumina — https://render.com/docs/blueprint-spec
+#
+# One free web service (Docker) + one managed Postgres. The single container
+# runs nginx + php-fpm + scheduler + queue worker via supervisor, so we do NOT
+# need paid Background Worker / Cron Job services.
+#
+# Deploy: push this repo to GitHub, then Render Dashboard → New → Blueprint.
+# Fill the `sync: false` secrets in the dashboard after the first deploy.
+
+databases:
+  - name: lumina-db
+    plan: free              # NOTE: free Postgres is time-limited; upgrade for prod
+    databaseName: lumina
+    user: lumina
+
+services:
+  - type: web
+    name: lumina
+    runtime: docker
+    plan: free              # free web service sleeps after ~15 min idle
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /
+    envVars:
+      # --- Core Laravel ---
+      - key: APP_NAME
+        value: Lumina
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        sync: false         # generate with `php artisan key:generate --show`
+      - key: APP_URL
+        sync: false         # set to your Render URL, e.g. https://lumina.onrender.com
+
+      - key: LOG_CHANNEL
+        value: stderr       # so logs show up in Render's log stream
+
+      # --- Database (auto-wired from the managed Postgres above) ---
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: lumina-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: lumina-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: lumina-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: lumina-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: lumina-db
+          property: password
+
+      # --- Sessions / cache / queue (DB-backed, matches your .env) ---
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
+
+      # --- AI providers (fill in dashboard) ---
+      - key: AI_PROVIDER
+        value: huggingface
+      - key: HUGGINGFACE_API_KEY
+        sync: false
+      - key: HUGGINGFACE_MODEL
+        value: mistralai/Mixtral-8x7B-Instruct-v0.1
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+
+      # --- Mail (fill in dashboard) ---
+      - key: MAIL_MAILER
+        value: smtp
+      - key: MAIL_HOST
+        sync: false
+      - key: MAIL_PORT
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_FROM_ADDRESS
+        sync: false
+
+      # --- Integrations: ElevenLabs TTS, Polar billing, Socialite, WebPush ---
+      # Add whichever your build uses; left as secrets so nothing is committed.
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: POLAR_ACCESS_TOKEN
+        sync: false
+      - key: POLAR_WEBHOOK_SECRET
+        sync: false
+      - key: POLAR_STANDARD_PRODUCT_ID
+        sync: false
+      - key: POLAR_PRO_PRODUCT_ID
+        sync: false
+
+      # --- Social login (Socialite) ---
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+
+      # --- Web push (generate: php artisan webpush:vapid) ---
+      - key: VAPID_SUBJECT
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
