@@ -113,6 +113,7 @@ Route::get('password/reset/{token}', [PasswordResetController::class, 'showReset
 Route::post('password/reset', [PasswordResetController::class, 'reset'])->name('password.update');
 
 Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+Route::middleware('auth')->post('/chat/stream', [ChatController::class, 'stream'])->name('chat.stream');
 
 // //entries need middleware ofc.
 // Route::get('/entries',[EntryController::class ,'create']);

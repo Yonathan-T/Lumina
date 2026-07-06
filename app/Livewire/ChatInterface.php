@@ -4,7 +4,6 @@ namespace App\Livewire;
 
 use App\Models\Conversation;
 use App\Models\Message;
-use App\Services\AiChatService;
 use Livewire\Component;
 
 class ChatInterface extends Component
@@ -25,7 +24,6 @@ class ChatInterface extends Component
 
     public $isLoadingMessages = false;
 
-    public $optimisticMessageId = null;
 
     public $messagesLoaded = false;
 
@@ -79,7 +77,7 @@ class ChatInterface extends Component
                     'id' => $message->id,
                     'content' => $message->content,
                     'isAi' => $message->is_ai_response,
-                    'timestamp' => $message->created_at->format('g:i A'), // time stamp should use their systems time i think
+                    'createdAt' => $message->created_at->toIso8601String(),
                 ];
             })->toArray();
 
@@ -114,90 +112,57 @@ class ChatInterface extends Component
         $this->messages = [];
     }
 
-    public function sendMessage()
+    public function ensureSessionForMessage()
     {
-        if (empty(trim($this->newMessage))) {
-            return;
-        }
-
         if (! $this->activeSession) {
             $this->createNewSession();
         }
 
-        $messageContent = trim($this->newMessage);
-        $this->isTyping = true;
-        $this->newMessage = '';
+        return $this->activeSession['id'] ?? null;
+    }
 
-        $userMessage = Message::create([
-            'conversation_id' => $this->activeSession['id'],
-            'content' => $messageContent,
-            'is_ai_response' => false,
-        ]);
+    public function completeStreamingResponse($sessionId)
+    {
+        $this->isTyping = false;
+        $this->loadSessions();
 
-        try {
-            $this->messages[] = [
-                'id' => $userMessage->id,
-                'content' => $userMessage->content,
-                'isAi' => false,
-                'timestamp' => $userMessage->created_at->format('g:i A'),
-            ];
-            $this->dispatch('messages-updated');
+        $sessionId = (int) $sessionId;
+        $selectedSession = collect($this->sessions)->firstWhere('id', $sessionId);
 
-            $aiResponse = app(AiChatService::class)->generateResponse($messageContent, $this->activeSession['id']);
+        if ($selectedSession) {
+            $this->activeSession = $selectedSession;
+        }
 
-            $this->isTyping = false;
-
-            $aiMessage = Message::create([
-                'conversation_id' => $this->activeSession['id'],
-                'content' => $aiResponse,
-                'is_ai_response' => true,
-            ]);
-
-            $this->messages[] = [
-                'id' => $aiMessage->id,
-                'content' => $aiMessage->content,
-                'isAi' => true,
-                'timestamp' => $aiMessage->created_at->format('g:i A'),
-            ];
-
-            $this->dispatch('messages-updated');
-            $this->updateConversationMeta($this->activeSession['id'], $messageContent);
-
-        } catch (\Exception $e) {
-            $this->isTyping = false;
-            $this->messages[] = [
-                'id' => 'error_'.time(),
-                'content' => 'Sorry, I encountered an error. Please try again.',
-                'isAi' => true,
-                'timestamp' => now()->format('g:i A'),
-                'isError' => true,
-            ];
-            $this->dispatch('messages-updated');
+        if ($this->activeSession) {
+            $this->loadMessages($this->activeSession['id']);
         }
     }
 
-    private function updateConversationMeta($sessionId, $userContent)
+    public function failStreamingResponse($sessionId = null, $errorMessage = 'Sorry, I encountered an error. Please try again.')
     {
-        $conversation = Conversation::find($sessionId);
-        if (! $conversation) {
-            return;
-        }
+        $this->isTyping = false;
 
-        if ($conversation->title === 'New Conversation' && count($this->messages) >= 4) {
-            $conversation->title = app(AiChatService::class)->generateTitleFromChat($userContent);
-            $this->activeSession['title'] = $conversation->title;
+        if ($sessionId) {
+            $this->loadSessions();
 
-            foreach ($this->sessions as &$session) {
-                if ($session['id'] === $sessionId) {
-                    $session['title'] = $conversation->title;
-                    break;
-                }
+            $sessionId = (int) $sessionId;
+            $selectedSession = collect($this->sessions)->firstWhere('id', $sessionId);
+
+            if ($selectedSession) {
+                $this->activeSession = $selectedSession;
+                $this->loadMessages($sessionId);
             }
         }
 
-        $conversation->message_count = count($this->messages);
-        $conversation->last_activity = now();
-        $conversation->save();
+        $this->messages[] = [
+            'id' => 'error_'.time(),
+            'content' => $errorMessage,
+            'isAi' => true,
+            'createdAt' => now()->toIso8601String(),
+            'isError' => true,
+        ];
+
+        $this->dispatch('messages-updated');
     }
 
     public function deleteSession($sessionId)

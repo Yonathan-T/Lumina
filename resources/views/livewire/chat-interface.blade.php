@@ -1,4 +1,7 @@
-<div id="chatRoot" class="relative flex h-screen bg-gradient-dark gap-4 overflow-hidden">
+<div id="chatRoot" class="relative flex h-screen bg-gradient-dark gap-4 overflow-hidden"
+    data-stream-endpoint="{{ route('chat.stream') }}"
+    data-conversation-id="{{ $activeSession['id'] ?? '' }}"
+    data-user-initial="{{ substr(auth()->user()->name ?? 'U', 0, 1) }}">
     <!-- Dock button that attaches near main sidebar -->
     <button id="chatDockBtn"
         class="fixed chat-dock-pos z-50 hidden items-center justify-center w-10 h-10 rounded-full border border-white/20 bg-white/10 text-white hover:bg-white/20 transition"
@@ -117,75 +120,55 @@
 
             <!-- Messages Area -->
             @if ($activeSession)
-                <div wire:key="{{ $activeSession['id'] }}" class="flex-1 overflow-y-auto p-4 md:p-6 pb-28 md:pb-6 space-y-6"
-                    id="messages-container">
-                    @if ($isLoadingMessages)
-                        <div class="flex items-center justify-center py-8">
-                            <div class="flex items-center space-x-3">
-                                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                                <span class="text-gray-400 text-sm">Loading messages...</span>
-                            </div>
-                        </div>
-                    @else
-                        @forelse($messages as $message)
-                            <div
-                                class="flex items-start gap-4 {{ $message['isAi'] ? '' : 'flex-row-reverse' }} {{ isset($message['isOptimistic']) ? 'opacity-70' : '' }}">
-                                @if($message['isAi'])
-                                    <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                                        <x-icon name="flash-outline" class="w-4 h-4" />
-                                    </div>
-                                @else
-                                    <div class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
-                                        <span class="text-sm font-medium text-white">{{ substr(auth()->user()->name ?? 'U', 0, 1) }}</span>
-                                    </div>
-                                @endif
-
-                                <div class="max-w-[300px] md:max-w-[400px] lg:max-w-[500px]">
-                                    <div
-                                        class="rounded-2xl px-4 py-3 {{ $message['isAi'] ? 'bg-gray-800 text-gray-100' : 'bg-blue-600 text-white' }} {{ isset($message['isError']) ? 'bg-red-600' : '' }}">
-                                        <p class="text-sm leading-relaxed whitespace-pre-wrap break-words">{{ $message['content'] }}</p>
-                                    </div>
-                                    <div class="flex items-center gap-2 mt-2 {{ $message['isAi'] ? '' : 'justify-end' }}">
-                                        <p class="text-xs text-gray-500">{{ $message['timestamp'] }}</p>
-                                        @if(isset($message['isOptimistic']))
-                                            <div class="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
-                                        @endif
-                                    </div>
+                <div class="flex-1 overflow-y-auto p-4 md:p-6 pb-28 md:pb-6" id="messages-scroll">
+                    <div wire:key="messages-{{ $activeSession['id'] }}" class="space-y-6" id="messages-container">
+                        @if ($isLoadingMessages)
+                            <div class="flex items-center justify-center py-8">
+                                <div class="flex items-center space-x-3">
+                                    <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                                    <span class="text-gray-400 text-sm">Loading messages...</span>
                                 </div>
                             </div>
-                        @empty
-                            <div class="text-center text-gray-500 mt-16">
-                                <div class="mb-6">
-                                    <svg class="w-20 h-20 mx-auto text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
-                                        </path>
-                                    </svg>
-                                </div>
-                                <h3 class="text-xl font-medium mb-2 text-white">Start a conversation</h3>
-                                <p class="text-gray-400">Send a message to begin your therapy session</p>
-                            </div>
-                        @endforelse
-
-                        @if($isTyping)
-                            <div class="flex items-start gap-4">
-                                <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <x-icon name="flash-outline" class="w-4 h-4" />
-                                </div>
-                                <div class="bg-gray-800 rounded-2xl px-4 py-3">
-                                    <div class="flex items-center space-x-2">
-                                        <div class="flex space-x-1">
-                                            <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                                            <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.1s">
-                                            </div>
-                                            <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.2s">
-                                            </div>
+                        @else
+                            @forelse($messages as $message)
+                                <div class="flex items-start gap-4 {{ $message['isAi'] ? '' : 'flex-row-reverse' }}">
+                                    @if($message['isAi'])
+                                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <x-icon name="flash-outline" class="w-4 h-4" />
                                         </div>
+                                    @else
+                                        <div class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <span class="text-sm font-medium text-white">{{ substr(auth()->user()->name ?? 'U', 0, 1) }}</span>
+                                        </div>
+                                    @endif
+
+                                    <div class="max-w-[300px] md:max-w-[400px] lg:max-w-[500px]">
+                                        <div
+                                            class="rounded-2xl px-4 py-3 {{ $message['isAi'] ? 'bg-gray-800 text-gray-100' : 'bg-blue-600 text-white' }} {{ isset($message['isError']) ? 'bg-red-600' : '' }}">
+                                            <p class="text-sm leading-relaxed whitespace-pre-wrap break-words">{{ $message['content'] }}</p>
+                                        </div>
+                                    <div class="flex items-center gap-2 mt-2 {{ $message['isAi'] ? '' : 'justify-end' }}">
+                                        <p class="text-xs text-gray-500 message-timestamp" data-created-at="{{ $message['createdAt'] }}"></p>
+                                    </div>
                                     </div>
                                 </div>
-                            </div>
+                            @empty
+                                <div id="empty-chat-state" class="text-center text-gray-500 mt-16">
+                                    <div class="mb-6">
+                                        <svg class="w-20 h-20 mx-auto text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
+                                            </path>
+                                        </svg>
+                                    </div>
+                                    <h3 class="text-xl font-medium mb-2 text-white">Start a conversation</h3>
+                                    <p class="text-gray-400">Send a message to begin your therapy session</p>
+                                </div>
+                            @endforelse
                         @endif
-                    @endif
+                    </div>
+
+                    <div id="chat-pending-lane" wire:ignore class="space-y-6"></div>
                 </div>
             @else
                 <div class="flex items-center justify-center h-full text-center text-gray-500 py-8">
@@ -204,8 +187,8 @@
             <!-- Message Input -->
             <div
                 class="bg-gray-700/60 backdrop-blur border-t border-gray-600 rounded-b-lg bg-gradient-dark p-3 md:p-4 sticky bottom-0 z-10 safe-bottom">
-                <x-chat-form wire-submit="sendMessage" wire-model="newMessage" placeholder="Share your thoughts..."
-                    :is-typing="$isTyping" submit-icon="send" typing-icon="stop" />
+                <x-chat-form wire-model="newMessage" placeholder="Share your thoughts..."
+                    :is-typing="false" submit-icon="send" typing-icon="stop" :use-client-submit="true" />
             </div>
 
         @else
@@ -254,16 +237,445 @@
 
 <script>
     document.addEventListener('livewire:init', () => {
-        Livewire.on('messages-updated', () => {
-            const container = document.getElementById('messages-container');
-            if (container) {
-                // Use requestAnimationFrame to ensure DOM is updated
-                requestAnimationFrame(() => {
-                    container.scrollTop = container.scrollHeight;
-                });
-            }
-        });
+        let activeStreamController = null;
 
+        const scrollMessagesToBottom = () => {
+            const container = document.getElementById('messages-scroll');
+            if (!container) {
+                return;
+            }
+
+            requestAnimationFrame(() => {
+                container.scrollTop = container.scrollHeight;
+            });
+        };
+
+        const getCsrfToken = () => {
+            const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+            return match ? decodeURIComponent(match[1]) : '';
+        };
+
+        const getChatComponent = () => {
+            const root = document.getElementById('chatRoot');
+            if (!root) {
+                return null;
+            }
+
+            const wireElement = root.closest('[wire\\:id]');
+            if (!wireElement) {
+                return null;
+            }
+
+            return Livewire.find(wireElement.getAttribute('wire:id'));
+        };
+
+        const parseSseChunk = (buffer) => {
+            const events = [];
+            const segments = buffer.split('\n\n');
+            const remainder = segments.pop() ?? '';
+
+            for (const rawEvent of segments) {
+                if (!rawEvent.trim()) {
+                    continue;
+                }
+
+                let eventType = 'message';
+                const dataLines = [];
+
+                for (const line of rawEvent.split('\n')) {
+                    if (line.startsWith('event:')) {
+                        eventType = line.slice(6).trim();
+                    } else if (line.startsWith('data:')) {
+                        dataLines.push(line.slice(5).trim());
+                    }
+                }
+
+                if (dataLines.length === 0) {
+                    continue;
+                }
+
+                try {
+                    events.push({
+                        type: eventType,
+                        data: JSON.parse(dataLines.join('\n')),
+                    });
+                } catch (error) {
+                    console.error('Failed to parse stream event', error);
+                }
+            }
+
+            return { events, remainder };
+        };
+
+        const escapeHtml = (value) => {
+            const element = document.createElement('div');
+            element.textContent = value;
+            return element.innerHTML;
+        };
+
+        const formatMessageTime = (isoString = null) => {
+            const date = isoString ? new Date(isoString) : new Date();
+
+            if (Number.isNaN(date.getTime())) {
+                return '';
+            }
+
+            return date.toLocaleTimeString([], {
+                hour: 'numeric',
+                minute: '2-digit',
+            });
+        };
+
+        const refreshMessageTimestamps = () => {
+            document.querySelectorAll('.message-timestamp[data-created-at]').forEach((element) => {
+                const formatted = formatMessageTime(element.dataset.createdAt);
+
+                if (formatted) {
+                    element.textContent = formatted;
+                }
+            });
+        };
+
+        const setFormBusy = (busy) => {
+            const form = document.getElementById('chat-message-form');
+            const textarea = form?.querySelector('textarea');
+            const button = form?.querySelector('button[type="submit"]');
+
+            if (textarea) {
+                textarea.disabled = busy;
+            }
+
+            if (button) {
+                button.disabled = busy;
+            }
+        };
+
+        const syncEmptyChatState = () => {
+            const emptyState = document.getElementById('empty-chat-state');
+            const lane = document.getElementById('chat-pending-lane');
+
+            if (!emptyState) {
+                return;
+            }
+
+            if (lane && lane.children.length > 0) {
+                emptyState.classList.add('hidden');
+                return;
+            }
+
+            emptyState.classList.remove('hidden');
+        };
+
+        const clearPendingExchange = () => {
+            const lane = document.getElementById('chat-pending-lane');
+            if (lane) {
+                lane.innerHTML = '';
+            }
+
+            syncEmptyChatState();
+        };
+
+        const showPendingExchange = (message) => {
+            const lane = document.getElementById('chat-pending-lane');
+            const root = document.getElementById('chatRoot');
+
+            if (!lane || !root) {
+                return;
+            }
+
+            const userInitial = escapeHtml(root.dataset.userInitial || 'U');
+            const safeMessage = escapeHtml(message);
+            const createdAt = new Date().toISOString();
+
+            lane.innerHTML = `
+                <div class="flex items-start gap-4 flex-row-reverse">
+                    <div class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="text-sm font-medium text-white">${userInitial}</span>
+                    </div>
+                    <div class="max-w-[300px] md:max-w-[400px] lg:max-w-[500px]">
+                        <div class="rounded-2xl px-4 py-3 bg-blue-600 text-white">
+                            <p class="text-sm leading-relaxed whitespace-pre-wrap break-words">${safeMessage}</p>
+                        </div>
+                        <div class="flex items-center gap-2 mt-2 justify-end">
+                            <p class="text-xs text-gray-500 message-timestamp" data-created-at="${createdAt}"></p>
+                        </div>
+                    </div>
+                </div>
+                <div id="streaming-message" class="flex items-start gap-4">
+                    <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <div class="max-w-[300px] md:max-w-[400px] lg:max-w-[500px]">
+                        <div class="bg-gray-800 rounded-2xl px-4 py-3 min-h-[44px] flex items-center">
+                            <div id="streaming-message-dots" class="flex space-x-1">
+                                <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                                <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                                <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                            </div>
+                            <p id="streaming-message-content" class="hidden text-sm leading-relaxed whitespace-pre-wrap break-words text-gray-100"></p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            syncEmptyChatState();
+            refreshMessageTimestamps();
+            scrollMessagesToBottom();
+        };
+
+        const resetStreamingUi = () => {
+            const dots = document.getElementById('streaming-message-dots');
+            const content = document.getElementById('streaming-message-content');
+
+            if (dots) {
+                dots.classList.remove('hidden');
+            }
+
+            if (content) {
+                content.textContent = '';
+                content.classList.add('hidden');
+            }
+        };
+
+        const appendStreamingText = (text) => {
+            const contentEl = document.getElementById('streaming-message-content');
+            const dotsEl = document.getElementById('streaming-message-dots');
+
+            if (!contentEl || !text) {
+                return;
+            }
+
+            if (contentEl.classList.contains('hidden')) {
+                dotsEl?.classList.add('hidden');
+                contentEl.classList.remove('hidden');
+            }
+
+            contentEl.textContent += text;
+            scrollMessagesToBottom();
+        };
+
+        const finishStreaming = async (component, conversationId, failed = false, errorMessage = null) => {
+            setFormBusy(false);
+
+            if (failed) {
+                clearPendingExchange();
+                await component.call('failStreamingResponse', conversationId, errorMessage);
+                return;
+            }
+
+            await component.call('completeStreamingResponse', conversationId);
+            clearPendingExchange();
+        };
+
+        const startStreamingResponse = async ({ conversationId, message }) => {
+            const endpoint = document.getElementById('chatRoot')?.dataset.streamEndpoint;
+            const component = getChatComponent();
+
+            if (!endpoint || !component || !conversationId || !message) {
+                await finishStreaming(component, conversationId, true);
+                return;
+            }
+
+            if (activeStreamController) {
+                activeStreamController.abort();
+            }
+
+            activeStreamController = new AbortController();
+            let streamStarted = false;
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'text/event-stream',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-XSRF-TOKEN': getCsrfToken(),
+                    },
+                    credentials: 'same-origin',
+                    signal: activeStreamController.signal,
+                    body: JSON.stringify({
+                        conversation_id: conversationId,
+                        message: message,
+                    }),
+                });
+
+                resetStreamingUi();
+
+                if (!response.ok) {
+                    let errorMessage = 'Sorry, I encountered an error. Please try again.';
+
+                    try {
+                        const errorBody = await response.json();
+                        if (errorBody?.message) {
+                            errorMessage = errorBody.message;
+                        }
+                    } catch (error) {
+                        // Keep default error message.
+                    }
+
+                    activeStreamController = null;
+                    await finishStreaming(component, null, true, errorMessage);
+                    return;
+                }
+
+                const reader = response.body?.getReader();
+                if (!reader) {
+                    activeStreamController = null;
+                    await finishStreaming(component, null, true);
+                    return;
+                }
+
+                streamStarted = true;
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let receivedText = false;
+                let receivedDone = false;
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) {
+                        break;
+                    }
+
+                    buffer += decoder.decode(value, { stream: true });
+
+                    const parsed = parseSseChunk(buffer);
+                    buffer = parsed.remainder;
+
+                    for (const event of parsed.events) {
+                        if (event.type === 'chunk' && event.data?.text) {
+                            receivedText = true;
+                            appendStreamingText(event.data.text);
+                        } else if (event.type === 'done') {
+                            receivedDone = true;
+                            activeStreamController = null;
+                            await finishStreaming(
+                                component,
+                                event.data?.conversationId ?? conversationId
+                            );
+                            return;
+                        } else if (event.type === 'error') {
+                            activeStreamController = null;
+                            await finishStreaming(
+                                component,
+                                conversationId,
+                                true,
+                                event.data?.message ?? 'Sorry, I encountered an error. Please try again.'
+                            );
+                            return;
+                        }
+                    }
+                }
+
+                activeStreamController = null;
+
+                if (! receivedDone) {
+                    await finishStreaming(
+                        component,
+                        conversationId,
+                        true,
+                        receivedText
+                            ? 'The response was interrupted before it finished. Please try again.'
+                            : 'The response timed out. Please try again.'
+                    );
+                    return;
+                }
+
+                await finishStreaming(component, conversationId);
+            } catch (error) {
+                if (error?.name === 'AbortError') {
+                    clearPendingExchange();
+                    setFormBusy(false);
+                    return;
+                }
+
+                activeStreamController = null;
+                await finishStreaming(component, streamStarted ? conversationId : null, true);
+            }
+        };
+
+        const handleChatSubmit = async (event) => {
+            const form = event.target.closest('form[data-client-submit="true"]');
+            if (!form) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            const textarea = form.querySelector('textarea');
+            const message = textarea?.value.trim();
+
+            if (!message || textarea?.disabled) {
+                return;
+            }
+
+            const component = getChatComponent();
+            const root = document.getElementById('chatRoot');
+
+            if (!component || !root) {
+                return;
+            }
+
+            textarea.value = '';
+            textarea.style.height = 'auto';
+            setFormBusy(true);
+            showPendingExchange(message);
+
+            let conversationId = root.dataset.conversationId;
+
+            try {
+                if (!conversationId) {
+                    conversationId = await component.call('ensureSessionForMessage');
+
+                    if (conversationId) {
+                        root.dataset.conversationId = String(conversationId);
+                    }
+                }
+
+                if (!conversationId) {
+                    throw new Error('Unable to start conversation.');
+                }
+
+                await startStreamingResponse({
+                    conversationId: Number(conversationId),
+                    message,
+                });
+            } catch (error) {
+                await finishStreaming(
+                    component,
+                    conversationId ? Number(conversationId) : null,
+                    true,
+                    'Sorry, I encountered an error. Please try again.'
+                );
+            }
+        };
+
+        const bindChatForm = () => {
+            const form = document.getElementById('chat-message-form');
+            if (!form || form.dataset.bound === 'true') {
+                return;
+            }
+
+            form.dataset.bound = 'true';
+            form.addEventListener('submit', handleChatSubmit);
+        };
+
+        Livewire.on('messages-updated', () => {
+            scrollMessagesToBottom();
+            refreshMessageTimestamps();
+        });
+        bindChatForm();
+        refreshMessageTimestamps();
+
+        Livewire.hook('message.processed', () => {
+            bindChatForm();
+            syncEmptyChatState();
+            refreshMessageTimestamps();
+        });
     });
 
     // Chat drawer toggle logic
