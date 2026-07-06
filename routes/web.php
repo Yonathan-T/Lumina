@@ -47,6 +47,7 @@ Route::middleware('auth')->group(function () {
 
     // Insights
     Route::get('/insights', [InsightController::class, 'index'])->name('insights.index');
+    Route::get('/insights/day/{date}', [InsightController::class, 'day'])->name('insights.day');
 
     // Settings
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
