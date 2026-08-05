@@ -34,7 +34,8 @@ RUN composer install \
         --no-scripts \
         --no-interaction \
         --prefer-dist \
-        --optimize-autoloader
+        --optimize-autoloader \
+        --ignore-platform-req=php+
 
 
 ##########################################################################
