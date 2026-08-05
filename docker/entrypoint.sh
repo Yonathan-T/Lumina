@@ -36,12 +36,14 @@ php artisan storage:link --no-interaction || true
 
 # 6. Cache config/routes/views/events for production performance.
 echo "[entrypoint] Caching framework state..."
-php artisan config:cache --no-interaction
+php artisan config:cache --no-interaction || \
+    echo "[entrypoint] Skipping config cache."
 # route:cache fails if any route uses a closure (routes/web.php has a few).
 # Keep it non-fatal so a closure route never blocks the whole boot.
 php artisan route:cache  --no-interaction || \
     echo "[entrypoint] Skipping route cache (closure routes present)."
-php artisan view:cache   --no-interaction
+php artisan view:cache   --no-interaction || \
+    echo "[entrypoint] Skipping view cache."
 php artisan event:cache  --no-interaction || true
 
 echo "[entrypoint] Boot complete. Handing off to: $*"
