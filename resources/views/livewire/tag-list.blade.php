@@ -27,17 +27,27 @@
         @if($tagList->count() > 0)
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 @foreach ($tagList as $tag)
-                    <button wire:click="showTagEntries({{ $tag->id }})" @class([
-                        // Always apply these:
-                        'card-highlight inline-flex items-center gap-2 rounded-md text-sm font-medium transition-colors border-white/5 border h-10 px-4 py-2 justify-between w-full focus-visible:outline-hidden focus-visible:ring-ring ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2',
-                        // Default background:
-                        'bg-gradient-dark text-white hover:bg-gray-800' => $selectedTagId !== $tag->id,
-                        // Selected tag:
-                        'bg-white text-[rgb(15,23,42)]' => $selectedTagId === $tag->id,
-                    ])>
-                        <span class="font-medium">#{{ $tag->name }}</span>
+                    <button wire:click="showTagEntries({{ $tag->id }})"
+                        wire:loading.attr="disabled"
+                        wire:loading.class="opacity-60 cursor-wait"
+                        wire:target="showTagEntries"
+                        @class([
+                            // Always apply these:
+                            'card-highlight inline-flex items-center gap-2 rounded-md text-sm font-medium transition-colors border-white/5 border h-10 px-4 py-2 justify-between w-full focus-visible:outline-hidden focus-visible:ring-ring ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2',
+                            // Default background:
+                            'bg-gradient-dark text-white hover:bg-gray-800' => $selectedTagId !== $tag->id,
+                            // Selected tag:
+                            'bg-white text-[rgb(15,23,42)]' => $selectedTagId === $tag->id,
+                        ])>
+                        <span class="inline-flex items-center gap-1.5 font-medium truncate">
+                            <svg wire:loading wire:target="showTagEntries({{ $tag->id }})" class="animate-spin -ml-0.5 h-3.5 w-3.5 text-current inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                            </svg>
+                            <span>#{{ $tag->name }}</span>
+                        </span>
                         <span
-                            class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-rgb(15,23,42)text-white font-semibold">
+                            class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-rgb(15,23,42)text-white font-semibold shrink-0">
                             {{ $tag->entries_count }}
                         </span>
                     </button>
@@ -63,15 +73,32 @@
             </div>
         @endif
     </div>
+
+    {{-- Loading Feedback on Tag Selection --}}
+    <div wire:loading wire:target="showTagEntries" class="w-full max-w-6xl mx-auto mt-6 flex items-center justify-center py-4">
+        <svg class="animate-spin h-6 w-6 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+        </svg>
+    </div>
+
     @if($selectedTagId)
-        <div class="mt-8">
+        <div class="mt-8" wire:loading.class="opacity-50 pointer-events-none" wire:target="showTagEntries">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-bold">
                     Entries for #{{ $selectedTagName }}
                 </h2>
-                <p class="text-sm text-muted">
-                    {{ $tagEntries->count() }} entries
-                </p>
+                <div class="flex items-center gap-2">
+                    <span wire:loading wire:target="showTagEntries" class="inline-flex items-center text-xs text-muted">
+                        <svg class="animate-spin h-3.5 w-3.5 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                        </svg>
+                    </span>
+                    <p class="text-sm text-muted">
+                        {{ $tagEntries->count() }} entries
+                    </p>
+                </div>
             </div>
             @forelse($tagEntries as $entry)
                 <a href="{{ route('entries.show', $entry) }}" class="block">

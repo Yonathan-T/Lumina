@@ -13,12 +13,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('entry_tag', function (Blueprint $table) {
-            $table->id();
-            $table->foreignIdFor(Entry::class)->constrained()->cascadeOnDelete(); 
-            $table->foreignIdFor(Tag::class)->constrained()->cascadeOnDelete();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('entry_tag')) {
+            Schema::create('entry_tag', function (Blueprint $table) {
+                $table->id();
+                $table->foreignIdFor(Entry::class)->constrained()->cascadeOnDelete(); 
+                $table->foreignIdFor(Tag::class)->constrained()->cascadeOnDelete();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

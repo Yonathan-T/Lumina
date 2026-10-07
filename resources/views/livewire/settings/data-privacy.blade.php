@@ -118,14 +118,14 @@
     </div>
 
     <!-- Delete Account Card -->
-    <div class="bg-gradient-dark card-highlight rounded-lg overflow-hidden border border-red-500/20">
+    <div class="bg-gradient-dark card-highlight rounded-lg overflow-hidden border border-red-500/20" x-data="{ showDeleteConfirm: false }">
         <div class="p-6 border-b border-white/10 bg-red-500/5">
             <h3 class="text-xl font-semibold text-white">Danger Zone</h3>
             <p class="text-sm text-gray-400 mt-1">Permanently delete your account and all data</p>
         </div>
 
         <div class="p-6 bg-red-500/5">
-            <button type="button" wire:click="confirmDelete"
+            <button type="button" @click="showDeleteConfirm = !showDeleteConfirm"
                 class="w-full px-4 py-3 border border-red-500/30 hover:bg-red-300/15 rounded-lg transition-all duration-200 text-left flex items-center justify-between group">
                 <div class="flex items-center gap-3">
                     <div
@@ -147,26 +147,24 @@
                 </svg>
             </button>
 
-            @if ($showDeleteConfirm)
-                <div class="mt-4 bg-red-900/20 border border-red-500/30 p-4 rounded-lg">
-                    <div class="mb-2 font-bold text-red-400">⚠️ Are you absolutely sure?</div>
-                    <div class="text-gray-400 text-sm mb-4">
-                        This will permanently delete your account, all your journal entries, tags, conversations, and any
-                        other
-                        data. This action cannot be undone.
-                    </div>
-                    <div class="flex gap-2">
-                        <button type="button" wire:click="deleteAccount"
-                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
-                            Yes, Delete Everything
-                        </button>
-                        <button type="button" wire:click="$set('showDeleteConfirm', false)"
-                            class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
-                            Cancel
-                        </button>
-                    </div>
+            <div x-show="showDeleteConfirm" x-cloak class="mt-4 bg-red-900/20 border border-red-500/30 p-4 rounded-lg">
+                <div class="mb-2 font-bold text-red-400">⚠️ Are you absolutely sure?</div>
+                <div class="text-gray-400 text-sm mb-4">
+                    This will permanently delete your account, all your journal entries, tags, conversations, and any
+                    other
+                    data. This action cannot be undone.
                 </div>
-            @endif
+                <div class="flex gap-2">
+                    <button type="button" wire:click="deleteAccount" @click="showDeleteConfirm = false"
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                        Yes, Delete Everything
+                    </button>
+                    <button type="button" @click="showDeleteConfirm = false"
+                        class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+                        Cancel
+                    </button>
+                </div>
+            </div>
 
             <p class="text-xs text-gray-500 px-1 mt-3">
                 Once you delete your account, there is no going back. All your data will be permanently erased.

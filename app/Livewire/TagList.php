@@ -1,8 +1,9 @@
 <?php
 
 namespace App\Livewire;
-use App\Models\Tag;
+
 use App\Models\Entry;
+use App\Models\Tag;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -15,20 +16,17 @@ class TagList extends Component
     public $selectedTagName = null;
     public $selectedTagCount = null;
     public $selectedTagId = null;
-    public $tagEntries = [];
+
     public function showTagEntries($tagId)
     {
         $this->selectedTagId = $tagId;
-        $tag = Tag::withCount(['entries' => function($query) {
+        $tag = Tag::withCount(['entries' => function ($query) {
             $query->where('user_id', auth()->id());
         }])->find($tagId);
         $this->selectedTagName = $tag?->name;
         $this->selectedTagCount = $tag?->entries_count;
-        $this->tagEntries = $tag ? $tag->entries()
-            ->where('user_id', auth()->id())
-            ->latest()
-            ->get() : [];
     }
+
     public function updatingSort()
     {
         $this->resetPage();
@@ -36,11 +34,16 @@ class TagList extends Component
 
     public function render()
     {
-        $query = Tag::whereHas('entries', function($query) {
-            $query->where('user_id', auth()->id());
-        })->withCount(['entries' => function($query) {
-            $query->where('user_id', auth()->id());
-        }]);
+        $userId = auth()->id();
+
+        $query = Tag::query()
+            ->select(['tags.id', 'tags.name', 'tags.created_at'])
+            ->whereHas('entries', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->withCount(['entries' => function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            }]);
 
         switch ($this->sort) {
             case 'recent':
@@ -56,11 +59,27 @@ class TagList extends Component
 
         $tagList = $query->paginate(25);
 
+        $tagEntries = collect();
+        if ($this->selectedTagId) {
+            $tag = Tag::find($this->selectedTagId);
+            if ($tag && ! $this->selectedTagName) {
+                $this->selectedTagName = $tag->name;
+            }
+            $tagEntries = $tag ? $tag->entries()
+                ->where('user_id', $userId)
+                ->select(['entries.id', 'entries.title', 'entries.content', 'entries.created_at', 'entries.user_id'])
+                ->with(['tags:id,name'])
+                ->latest('entries.created_at')
+                ->get() : collect();
+        }
+
         return view('livewire.tag-list', [
             'tagList' => $tagList,
+            'tags' => $tagList,
+            'tagEntries' => $tagEntries,
             'selectedTagId' => $this->selectedTagId,
             'selectedTagName' => $this->selectedTagName,
-            'tagEntries' => $this->tagEntries,
+            'selectedTagCount' => $this->selectedTagCount,
         ]);
     }
 }

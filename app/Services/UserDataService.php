@@ -81,10 +81,10 @@ class UserDataService
         }
 
         $formattedEntries = $entries->map(function ($entry) {
-            $tags = $entry->tags->pluck('name')->join(', ');
-            $date = $entry->created_at->format('M j, Y');
-            $time = $entry->created_at->format('g:i A');
-            $fullDateTime = $entry->created_at->format('M j, Y \a\t g:i A');
+            $tags = ($entry->relationLoaded('tags') && $entry->tags) ? $entry->tags->pluck('name')->join(', ') : '';
+            $date = $entry->created_at ? $entry->created_at->format('M j, Y') : '';
+            $time = $entry->created_at ? $entry->created_at->format('g:i A') : '';
+            $fullDateTime = $entry->created_at ? $entry->created_at->format('M j, Y \a\t g:i A') : '';
 
             return "Entry from {$fullDateTime}" . ($tags ? " (Tags: {$tags})" : "") . ":\n" .
                 "Title: {$entry->title}\n" .
@@ -116,7 +116,7 @@ class UserDataService
     public function getAllEntriesForContext(): Collection
     {
         return Entry::where('user_id', Auth::id())
-            ->with('tags')
+            ->select(['id', 'title', 'content', 'created_at'])
             ->orderBy('created_at', 'desc')
             ->get();
     }

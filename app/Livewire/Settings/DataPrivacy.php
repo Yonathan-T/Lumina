@@ -14,7 +14,6 @@ use App\Mail\DataExportReady;
 class DataPrivacy extends Component
 {
     public $isExporting = false;
-    public $showDeleteConfirm = false;
 
     public function exportData()
     {
@@ -207,14 +206,8 @@ class DataPrivacy extends Component
     }
 }
 
-    public function confirmDelete()
-    {
-        $this->showDeleteConfirm = true;
-    }
-
     public function deleteAccount()
     {
-        $this->showDeleteConfirm = false;
         session()->flash('message', 'Account deletion is not yet implemented.');
     }
 

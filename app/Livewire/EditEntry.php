@@ -34,11 +34,11 @@ class EditEntry extends Component
 
     public $isEditing = false;
 
-    public $showDeleteModal = false;
-
     public $audioUrl = null;
 
     public $isGeneratingAudio = false;
+
+    public $showMissingElevenLabsModal = false;
 
     protected $rules = [
         'title' => 'required|string|min:3|max:255',
@@ -129,16 +129,6 @@ class EditEntry extends Component
         }
     }
 
-    public function showDeleteConfirmation()
-    {
-        $this->showDeleteModal = true;
-    }
-
-    public function hideDeleteConfirmation()
-    {
-        $this->showDeleteModal = false;
-    }
-
     public function confirmDelete()
     {
         $this->entry->delete();
@@ -204,22 +194,29 @@ class EditEntry extends Component
 
     public function generateAudio()
     {
+        $ttsService = new ElevenLabsTTSService;
+
+        if (! $ttsService->hasKey()) {
+            $this->showMissingElevenLabsModal = true;
+            session()->flash('error', 'Please add your ElevenLabs API key in Settings → Account to listen to entries. We do not provide a default voice key.');
+            return;
+        }
+
         $this->isGeneratingAudio = true;
         $this->audioUrl = null;
 
         try {
-            $ttsService = new ElevenLabsTTSService;
-
             // Combine title and content for reading
             $textToRead = $this->entry->title.'. '.$this->entry->content;
 
             $this->audioUrl = $ttsService->generateAudio(
                 $textToRead,
-                'UgBBYS2sOqTuMpoF3BR0'
+                '21m00Tcm4TlvDq8ikWAM'
             );
 
             if (! $this->audioUrl) {
-                session()->flash('error', 'Failed to generate audio. This might be due to quota limits or API issues. Please try again later or check your ElevenLabs account.');
+                $errorMsg = $ttsService->getLastError() ?: 'Failed to generate audio. This might be due to quota limits or API issues. Please check your ElevenLabs account.';
+                session()->flash('error', $errorMsg);
             } else {
                 session()->flash('message', 'Audio generated successfully!');
             }
@@ -227,9 +224,9 @@ class EditEntry extends Component
         } catch (\Exception $e) {
             \Log::error('Audio Generation Error: '.$e->getMessage());
             session()->flash('error', 'Failed to generate audio: '.$e->getMessage());
+        } finally {
+            $this->isGeneratingAudio = false;
         }
-
-        $this->isGeneratingAudio = false;
     }
 
     // copy pasted same messages from the new-entry form error so maybe this needs to be component ?

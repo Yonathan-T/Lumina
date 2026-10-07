@@ -1,19 +1,21 @@
-<div class="m-3 flex flex-col">
-    <div class="mt-3 flex flex-1 items-center justify-center">
-
+<div class="m-3 flex flex-col" x-data="{ showDeleteModal: false, showMissingVoiceKey: @entangle('showMissingElevenLabsModal') }">
+    {{-- Floating notification toast (sticky on top of the viewport regardless of scroll position) --}}
+    <div class="fixed top-6 right-6 z-50 flex flex-col gap-3 max-w-md w-full px-4 sm:px-0 pointer-events-none">
         @if (session('message'))
             <div id="success-message"
-                class="bg-gradient-dark card-highlight border border-white/10 Rounded-lg px-6 py-4 shadow-lg backdrop-blur-sm border border-green-500/20">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span class="font-medium text-white">{{ session('message') }}</span>
+                class="pointer-events-auto bg-[#0b1329]/95 card-highlight border border-green-500/30 rounded-xl px-5 py-4 shadow-2xl backdrop-blur-md transition-all duration-300">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0 text-green-400 mt-0.5">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <span class="text-sm font-medium text-white leading-snug">{{ session('message') }}</span>
                     </div>
                     <button onclick="dismissMessage('success-message')"
-                        class="text-gray-400 hover:text-white transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="text-gray-400 hover:text-white transition-colors p-1 rounded-md hover:bg-white/10 flex-shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -21,22 +23,23 @@
                 </div>
             </div>
         @endif
-
 
         @if (session('error'))
             <div id="error-message"
-                class="bg-gradient-dark card-highlight rounded-lg px-6 py-4 shadow-lg backdrop-blur-sm border border-red-500/20">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        <span class="font-medium text-white">{{ session('error') }}</span>
+                class="pointer-events-auto bg-[#1b0d13]/95 card-highlight rounded-xl px-5 py-4 shadow-2xl backdrop-blur-md border border-red-500/30 transition-all duration-300">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0 text-red-400 mt-0.5">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <span class="text-sm font-medium text-white leading-snug">{{ session('error') }}</span>
                     </div>
                     <button onclick="dismissMessage('error-message')"
-                        class="text-gray-400 hover:text-white transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="text-gray-400 hover:text-white transition-colors p-1 rounded-md hover:bg-white/10 flex-shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -44,8 +47,6 @@
                 </div>
             </div>
         @endif
-
-
     </div>
     <div class="w-full max-w-3xl mx-auto pt-8 mb-3">
         <a href="{{ route('archive.entries') }}"
@@ -216,11 +217,15 @@
                                 <div wire:loading.remove wire:target="generateAudio">
                                     <x-icon name="voice"
                                         class="w-5 h-5 text-gray-400 group-hover:text-purple-400 transition-colors" />
-
                                 </div>
                                 <div wire:loading wire:target="generateAudio">
-                                    <x-icon name="voice"
-                                        class="w-5 h-5 text-gray-400 group-hover:text-purple-400 transition-colors" />
+                                    <svg class="w-5 h-5 text-purple-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                            stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                        </path>
+                                    </svg>
                                 </div>
 
                                 {{-- Tooltip --}}
@@ -275,7 +280,7 @@
                                 </div>
                                 <div class="flex-1">
                                     <h4 class="text-sm font-medium text-white mb-1">Audio Reading</h4>
-                                    <audio controls class="w-full h-10 rounded-lg">
+                                    <audio controls autoplay class="w-full h-10 rounded-lg">
                                         <source src="{{ $audioUrl }}" type="audio/mpeg">
                                         Your browser does not support the audio element.
                                     </audio>
@@ -309,7 +314,7 @@
                             </svg>
                             Edit
                         </button>
-                        <button wire:click="showDeleteConfirmation"
+                        <button type="button" @click="showDeleteModal = true"
                             class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -323,13 +328,10 @@
             </div>
         </div>
     </div>
-</div>
 
-
-@if($showDeleteModal)
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <div x-show="showDeleteModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center" @keydown.escape.window="showDeleteModal = false">
         <!-- blur -->
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" wire:click="hideDeleteConfirmation"></div>
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="showDeleteModal = false"></div>
 
         <div
             class="relative bg-gradient-dark border border-[rgb(29,40,58)]/10 rounded-lg shadow-2xl p-8 max-w-md w-full mx-4 transform transition-all">
@@ -346,22 +348,53 @@
             <h3 class="text-xl font-bold text-center mb-2">Delete Entry</h3>
 
             <p class="text-muted text-center mb-8 leading-relaxed">
-                Are you sure you want to delete this entry"?
+                Are you sure you want to delete this entry?
                 <br><br>
                 This action cannot be undone and will permanently remove it from your journal.
             </p>
 
             <div class="flex gap-3">
-                <button wire:click="hideDeleteConfirmation"
+                <button type="button" @click="showDeleteModal = false"
                     class="flex-1 px-4 py-3 rounded-md text-sm font-medium text-white border border-white/10 hover:bg-[rgb(29,40,58)] transition-colors">
                     Cancel
                 </button>
-                <button wire:click="confirmDelete"
+                <button type="button" wire:click="confirmDelete" @click="showDeleteModal = false"
                     class="flex-1 px-4 py-3 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors">
                     Delete Entry
                 </button>
             </div>
         </div>
     </div>
-@endif
+
+    <div x-show="showMissingVoiceKey" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" @keydown.escape.window="showMissingVoiceKey = false">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showMissingVoiceKey = false"></div>
+
+        <div class="relative bg-gradient-dark border border-purple-500/30 rounded-xl shadow-2xl p-6 sm:p-8 max-w-md w-full mx-4 transform transition-all">
+            <div class="flex justify-center mb-5">
+                <div class="w-16 h-16 bg-purple-500/20 ring-1 ring-purple-500/30 rounded-2xl flex items-center justify-center">
+                    <x-icon name="voice" class="w-8 h-8 text-purple-400" />
+                </div>
+            </div>
+
+            <h3 class="text-xl font-bold text-center text-white mb-2">ElevenLabs API Key Required</h3>
+
+            <p class="text-gray-300 text-center mb-6 leading-relaxed text-sm">
+                To listen to your journal entries with AI voice narration, please add your own ElevenLabs API key. We operate on a Bring-Your-Own-Key model and do not provide a default voice key.
+            </p>
+
+            <div class="space-y-3">
+                <a href="{{ route('settings.index', ['tab' => 'account']) }}"
+                    class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 transition-colors shadow-lg shadow-purple-600/25">
+                    <span>Add Key in Settings</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                </a>
+                <button type="button" @click="showMissingVoiceKey = false"
+                    class="w-full px-4 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white border border-white/10 hover:bg-white/5 transition-colors">
+                    Maybe Later
+                </button>
+            </div>
+        </div>
+    </div>
 </div>

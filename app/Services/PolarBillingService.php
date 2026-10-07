@@ -14,30 +14,39 @@ class PolarBillingService
 {
     protected string $baseUrl = 'https://sandbox-api.polar.sh/v1';
 
+    protected ?array $memoizedNormalizedProducts = null;
+    protected ?string $memoizedProductsHash = null;
+
     public function fetchProducts(): array
     {
-        return Cache::remember('polar_products_v1', now()->addMinutes(15), function () {
+        return Cache::remember('polar_products_v1', now()->addHours(12), function () {
             $apiKey = env('POLAR_ACCESS_TOKEN');
 
             if (! $apiKey) {
                 return [];
             }
 
-            $response = Http::withToken($apiKey)->get($this->baseUrl.'/products', [
-                'is_archived' => false,
-            ]);
-
-            if (! $response->ok()) {
-                Log::warning('Unable to fetch Polar products.', [
-                    'status' => $response->status(),
+            try {
+                $response = $this->api()->get($this->baseUrl.'/products', [
+                    'is_archived' => false,
                 ]);
+
+                if (! $response->ok()) {
+                    Log::warning('Unable to fetch Polar products.', [
+                        'status' => $response->status(),
+                    ]);
+
+                    return [];
+                }
+
+                $data = $response->json();
+
+                return $data['items'] ?? [];
+            } catch (\Throwable $e) {
+                Log::warning('Exception fetching Polar products: '.$e->getMessage());
 
                 return [];
             }
-
-            $data = $response->json();
-
-            return $data['items'] ?? [];
         });
     }
 
@@ -75,9 +84,14 @@ class PolarBillingService
 
     public function normalizeProducts(array $products): array
     {
+        $hash = md5(serialize($products));
+        if ($this->memoizedProductsHash === $hash && $this->memoizedNormalizedProducts !== null) {
+            return $this->memoizedNormalizedProducts;
+        }
+
         $planOrder = ['free' => 0, 'standard' => 1, 'pro' => 2];
 
-        return collect($products)
+        $normalized = collect($products)
             ->map(function (array $product) {
                 $name = strtolower($product['name'] ?? '');
 
@@ -106,6 +120,17 @@ class PolarBillingService
             ->sortBy(fn (array $product) => $planOrder[$product['key']] ?? 99)
             ->values()
             ->all();
+
+        $this->memoizedProductsHash = $hash;
+        $this->memoizedNormalizedProducts = $normalized;
+
+        return $normalized;
+    }
+
+    public function clearNormalizedProductsMemo(): void
+    {
+        $this->memoizedNormalizedProducts = null;
+        $this->memoizedProductsHash = null;
     }
 
     public function resolveCurrentPlanProduct(string $currentPlan, ?array $products = null): ?array
@@ -185,34 +210,46 @@ class PolarBillingService
 
     protected function fetchCheckout(string $checkoutId): ?array
     {
-        $response = $this->api()->get($this->baseUrl.'/checkouts/'.$checkoutId);
+        try {
+            $response = $this->api()->get($this->baseUrl.'/checkouts/'.$checkoutId);
 
-        if (! $response->ok()) {
-            Log::warning('Unable to fetch Polar checkout session.', [
-                'checkout_id' => $checkoutId,
-                'status' => $response->status(),
-            ]);
+            if (! $response->ok()) {
+                Log::warning('Unable to fetch Polar checkout session.', [
+                    'checkout_id' => $checkoutId,
+                    'status' => $response->status(),
+                ]);
+
+                return null;
+            }
+
+            return $response->json();
+        } catch (\Throwable $e) {
+            Log::warning('Error fetching Polar checkout session: '.$e->getMessage(), ['checkout_id' => $checkoutId]);
 
             return null;
         }
-
-        return $response->json();
     }
 
     protected function fetchSubscription(string $subscriptionId): ?array
     {
-        $response = $this->api()->get($this->baseUrl.'/subscriptions/'.$subscriptionId);
+        try {
+            $response = $this->api()->get($this->baseUrl.'/subscriptions/'.$subscriptionId);
 
-        if (! $response->ok()) {
-            Log::warning('Unable to fetch Polar subscription.', [
-                'subscription_id' => $subscriptionId,
-                'status' => $response->status(),
-            ]);
+            if (! $response->ok()) {
+                Log::warning('Unable to fetch Polar subscription.', [
+                    'subscription_id' => $subscriptionId,
+                    'status' => $response->status(),
+                ]);
+
+                return null;
+            }
+
+            return $response->json();
+        } catch (\Throwable $e) {
+            Log::warning('Error fetching Polar subscription: '.$e->getMessage(), ['subscription_id' => $subscriptionId]);
 
             return null;
         }
-
-        return $response->json();
     }
 
     protected function performUserStateSync(User $user): bool
@@ -257,81 +294,105 @@ class PolarBillingService
 
     protected function fetchCustomerStateByExternalId(string $externalId): ?array
     {
-        $response = $this->api()->get($this->baseUrl.'/customers/external/'.$externalId.'/state');
+        try {
+            $response = $this->api()->get($this->baseUrl.'/customers/external/'.$externalId.'/state');
 
-        if ($response->status() === 404) {
+            if ($response->status() === 404) {
+                return null;
+            }
+
+            if (! $response->ok()) {
+                Log::warning('Unable to fetch Polar customer state by external ID.', [
+                    'external_id' => $externalId,
+                    'status' => $response->status(),
+                ]);
+
+                return null;
+            }
+
+            return $response->json();
+        } catch (\Throwable $e) {
+            Log::warning('Error fetching Polar customer state by external ID: '.$e->getMessage(), ['external_id' => $externalId]);
+
             return null;
         }
-
-        if (! $response->ok()) {
-            Log::warning('Unable to fetch Polar customer state by external ID.', [
-                'external_id' => $externalId,
-                'status' => $response->status(),
-            ]);
-
-            return null;
-        }
-
-        return $response->json();
     }
 
     protected function fetchCustomerStateById(string $customerId): ?array
     {
-        $response = $this->api()->get($this->baseUrl.'/customers/'.$customerId.'/state');
+        try {
+            $response = $this->api()->get($this->baseUrl.'/customers/'.$customerId.'/state');
 
-        if ($response->status() === 404) {
+            if ($response->status() === 404) {
+                return null;
+            }
+
+            if (! $response->ok()) {
+                Log::warning('Unable to fetch Polar customer state by customer ID.', [
+                    'customer_id' => $customerId,
+                    'status' => $response->status(),
+                ]);
+
+                return null;
+            }
+
+            return $response->json();
+        } catch (\Throwable $e) {
+            Log::warning('Error fetching Polar customer state by customer ID: '.$e->getMessage(), ['customer_id' => $customerId]);
+
             return null;
         }
-
-        if (! $response->ok()) {
-            Log::warning('Unable to fetch Polar customer state by customer ID.', [
-                'customer_id' => $customerId,
-                'status' => $response->status(),
-            ]);
-
-            return null;
-        }
-
-        return $response->json();
     }
 
     protected function findCustomerByEmail(string $email): ?array
     {
-        $response = $this->api()->get($this->baseUrl.'/customers', [
-            'email' => $email,
-            'limit' => 1,
-        ]);
-
-        if (! $response->ok()) {
-            Log::warning('Unable to lookup Polar customer by email.', [
+        try {
+            $response = $this->api()->get($this->baseUrl.'/customers', [
                 'email' => $email,
-                'status' => $response->status(),
+                'limit' => 1,
             ]);
+
+            if (! $response->ok()) {
+                Log::warning('Unable to lookup Polar customer by email.', [
+                    'email' => $email,
+                    'status' => $response->status(),
+                ]);
+
+                return null;
+            }
+
+            return data_get($response->json(), 'items.0');
+        } catch (\Throwable $e) {
+            Log::warning('Error looking up Polar customer by email: '.$e->getMessage(), ['email' => $email]);
 
             return null;
         }
-
-        return data_get($response->json(), 'items.0');
     }
 
     protected function fetchLatestActiveSubscription(string $customerId): ?array
     {
-        $response = $this->api()->get($this->baseUrl.'/subscriptions', [
-            'customer_id' => $customerId,
-            'active' => true,
-            'limit' => 1,
-        ]);
-
-        if (! $response->ok()) {
-            Log::warning('Unable to list Polar subscriptions for customer.', [
+        try {
+            $response = $this->api()->get($this->baseUrl.'/subscriptions', [
                 'customer_id' => $customerId,
-                'status' => $response->status(),
+                'active' => true,
+                'limit' => 1,
             ]);
+
+            if (! $response->ok()) {
+                Log::warning('Unable to list Polar subscriptions for customer.', [
+                    'customer_id' => $customerId,
+                    'status' => $response->status(),
+                ]);
+
+                return null;
+            }
+
+            return data_get($response->json(), 'items.0');
+        } catch (\Throwable $e) {
+            Log::warning('Error listing Polar subscriptions for customer: '.$e->getMessage(), ['customer_id' => $customerId]);
 
             return null;
         }
-
-        return data_get($response->json(), 'items.0');
     }
 
     protected function syncSubscriptionRecord(User $user, array $subscription, ?string $customerId = null): void
@@ -385,7 +446,9 @@ class PolarBillingService
 
     protected function api()
     {
-        return Http::withToken(env('POLAR_ACCESS_TOKEN'))
+        return Http::timeout(3.0)
+            ->connectTimeout(2.0)
+            ->withToken(env('POLAR_ACCESS_TOKEN'))
             ->acceptJson();
     }
 

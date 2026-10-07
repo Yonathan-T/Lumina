@@ -36,8 +36,32 @@ class User extends Authenticatable
         'polar_customer_id',
         'is_subscribed',
         'api_key',
+        'api_key_verified_at',
+        'api_key_tested_at',
+        'elevenlabs_api_key',
+        'elevenlabs_api_key_verified_at',
+        'elevenlabs_api_key_tested_at',
         // ---
     ];
+
+    public function hasElevenLabsKey(): bool
+    {
+        return !empty($this->elevenlabs_api_key);
+    }
+
+    public function getElevenLabsApiKey(): ?string
+    {
+        if (empty($this->elevenlabs_api_key)) {
+            return null;
+        }
+
+        try {
+            return \Illuminate\Support\Facades\Crypt::decryptString($this->elevenlabs_api_key);
+        } catch (\Exception $e) {
+            \Log::error('ElevenLabs API key decryption failed: '.$e->getMessage());
+            return null;
+        }
+    }
 
     public function hasEntryToday()
     {
@@ -148,16 +172,13 @@ class User extends Authenticatable
             });
     }
 
+    protected ?string $memoizedCurrentPlan = null;
+
     protected function refreshBillingStateIfNeeded(): void
     {
-        $hasLocalSubscription = $this->qualifyingSubscriptionQuery()->exists();
-
-        if ($hasLocalSubscription) {
-            return;
-        }
-
-        app(PolarBillingService::class)->syncUserState($this);
-        $this->unsetRelation('subscriptions');
+        // Rely on local subscription records maintained via webhooks and checkout completion.
+        // Synchronous remote sync on regular web requests blocks navigation.
+        return;
     }
 
     /**
@@ -191,6 +212,10 @@ class User extends Authenticatable
      */
     public function getCurrentPlan(): string
     {
+        if ($this->memoizedCurrentPlan !== null) {
+            return $this->memoizedCurrentPlan;
+        }
+
         $this->refreshBillingStateIfNeeded();
 
         $subscription = $this->qualifyingSubscriptionQuery()
@@ -198,22 +223,27 @@ class User extends Authenticatable
             ->first();
 
         if (! $subscription) {
-            return 'free';
+            return $this->memoizedCurrentPlan = 'free';
         }
 
         $productId = $subscription->product_id;
 
-        // Simple mapping using .env variables
-        if ($productId === env('POLAR_STANDARD_PRODUCT_ID')) {
-            return 'standard';
+        // Simple mapping using config and .env variables
+        if ($productId && $productId === config('services.polar.standard_product_id', env('POLAR_STANDARD_PRODUCT_ID'))) {
+            return $this->memoizedCurrentPlan = 'standard';
         }
 
-        if ($productId === env('POLAR_PRO_PRODUCT_ID')) {
-            return 'pro';
+        if ($productId && $productId === config('services.polar.pro_product_id', env('POLAR_PRO_PRODUCT_ID'))) {
+            return $this->memoizedCurrentPlan = 'pro';
         }
 
         // Default to standard if it's an active subscription but unknown product ID
-        return 'standard';
+        return $this->memoizedCurrentPlan = 'standard';
+    }
+
+    public function clearMemoizedPlan(): void
+    {
+        $this->memoizedCurrentPlan = null;
     }
 
     /**
