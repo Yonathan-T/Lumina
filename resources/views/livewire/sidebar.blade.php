@@ -30,7 +30,7 @@
             </a>
             <button id="sidebarCollapseToggle"
                 class="hidden md:inline-flex items-center justify-center w-8 h-8 rounded-md border border-white/10 text-white/80 hover:text-white hover:bg-white/10 transition"
-                data-title="Toggle sidebar" aria-label="Toggle sidebar" aria-expanded="false">
+                data-title="Toggle sidebar (Ctrl+B)" title="Toggle sidebar (Ctrl+B)" aria-label="Toggle sidebar (Ctrl+B)" aria-expanded="false">
                 <!-- collapse icon (shown when expanded) -->
                 <svg class="icon-collapse w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                     fill="currentColor">

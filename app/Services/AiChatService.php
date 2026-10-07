@@ -333,7 +333,7 @@ class AiChatService
 
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
-        ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$this->geminiApiKey}", $this->buildGeminiRequestPayload($messages, $systemPrompt));
+        ])->timeout(15)->connectTimeout(5)->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$this->geminiApiKey}", $this->buildGeminiRequestPayload($messages, $systemPrompt));
 
 
         if ($response->successful()) {

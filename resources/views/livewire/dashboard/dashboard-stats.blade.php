@@ -6,7 +6,7 @@
             <h1 class="font-inter text-3xl font-bold tracking-tight">Hey, {{ auth()->user()->name }}</h1>
             <p class="text-muted font-inter">Welcome back to your journal. How are you feeling today?</p>
         </div>
-        <div class="relative ml-auto mr-10" x-data="{ open: @entangle('isModalOpen') }" @click.outside="open = false">
+        <div class="relative ml-auto mr-10" x-data="{ open: false }" @click.outside="open = false">
             <button type="button" @click="open = ! open"
                 class="cursor-pointer p-2 rounded-full hover:bg-white/10 transition-colors">
                 <x-icon name="bell" class="w-8 w-8" />

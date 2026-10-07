@@ -7,6 +7,7 @@ use App\Models\Entry;
 use App\Models\Message;
 use App\Services\AiChatService;
 use App\Services\UserDataService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
@@ -41,36 +42,37 @@ class AiQuickChat extends Component
     }
 
     /**
-     * Start guided reflection - creates a conversation and redirects to chat
+     * Start guided reflection - creates a conversation rapidly and redirects to chat
      */
     public function startGuidedReflection()
     {
         $this->isProcessing = 'guided-reflection';
-        \Log::info('Starting guided reflection async');
+        Log::info('Starting guided reflection with fast handoff');
         try {
             $conversation = Conversation::create([
                 'user_id' => auth()->id(),
                 'title' => 'Guided Reflection',
                 'type' => 'reflection',
-                'message_count' => 0,
+                'message_count' => 1,
                 'last_activity' => now(),
             ]);
 
             $userDataService = app(UserDataService::class);
             $recentEntries = $userDataService->getRecentEntries(3);
-            $formattedEntries = $userDataService->formatEntriesForAI($recentEntries);
 
-            $prompt = "Based on recent entries, start a gentle reflection. Ask one thoughtful question. Keep it warm and brief.\n\n".$formattedEntries;
-
-            $aiResponse = app(AiChatService::class)->generateResponse($prompt, $conversation->id);
+            if ($recentEntries->isNotEmpty()) {
+                $latest = $recentEntries->first();
+                $titleSnippet = !empty($latest->title) ? " around \"{$latest->title}\"" : '';
+                $initialMessage = "Welcome to your guided reflection session. I'm Lumi, your personal reflection companion. Looking over your recent notes{$titleSnippet}, what thoughts or feelings feel most important for you to explore right now?";
+            } else {
+                $initialMessage = "Welcome to your guided reflection session. I'm Lumi, your personal reflection companion. Take a moment to pause and breathe. What's on your mind today that you'd like to reflect on together?";
+            }
 
             Message::create([
                 'conversation_id' => $conversation->id,
-                'content' => $aiResponse,
+                'content' => $initialMessage,
                 'is_ai_response' => true,
             ]);
-
-            $conversation->update(['message_count' => 1, 'last_activity' => now()]);
 
             $this->isProcessing = null;
 
@@ -84,19 +86,49 @@ class AiQuickChat extends Component
     }
 
     /**
-     * Generate weekly summary with TLDR and insights
+     * Generate or open weekly summary with TLDR and insights
      */
-    public function summarizePastWeek()
+    public function summarizePastWeek($sync = false)
     {
-        $this->summaryLoading = true;
-        $this->isProcessing = 'weekly-summary';
-        $this->weeklySummary = '';
         $this->showSummaryModal = true;
-        \Log::info('Starting weekly summary async');
+        $userId = auth()->id();
+        $cacheKey = "weekly_summary_{$userId}_" . now()->startOfWeek()->format('Y_m_d');
+
+        if (Cache::has($cacheKey)) {
+            $this->weeklySummary = Cache::get($cacheKey);
+            $this->summaryLoading = false;
+            return;
+        }
+
+        $this->weeklySummary = '';
+        $this->summaryLoading = true;
+
+        if ($sync) {
+            $this->loadWeeklySummary();
+        }
+    }
+
+    /**
+     * Deferred loader for weekly summary
+     */
+    public function loadWeeklySummary()
+    {
+        $userId = auth()->id();
+        $cacheKey = "weekly_summary_{$userId}_" . now()->startOfWeek()->format('Y_m_d');
+
+        if (Cache::has($cacheKey)) {
+            $this->weeklySummary = Cache::get($cacheKey);
+            $this->summaryLoading = false;
+            return;
+        }
+
+        $this->summaryLoading = true;
+        Log::info('Generating weekly summary asynchronously');
+
         try {
             $userDataService = app(UserDataService::class);
 
-            $entries = Entry::where('user_id', auth()->id())
+            $entries = Entry::where('user_id', $userId)
                 ->where('created_at', '>=', now()->subWeek())
                 ->select(['id', 'title', 'content', 'created_at'])
                 ->orderBy('created_at')
@@ -105,14 +137,11 @@ class AiQuickChat extends Component
             if ($entries->isEmpty()) {
                 $this->weeklySummary = "## No Entries This Week\n\nYou haven't written any journal entries in the past week. Consider starting a new entry to track your thoughts and experiences!";
                 $this->summaryLoading = false;
-                $this->isProcessing = null;
-
                 return;
             }
 
             $formattedEntries = $userDataService->formatEntriesForAI($entries);
 
-            $prompt = "Create a weekly summary with:\n1. **TLDR** (2-3 sentences)\n2. **Key Themes**\n3. **Patterns**\n4. **Insights**\n5. **Action Items** (3 suggestions)\n\nEntries:\n".$formattedEntries;
             $prompt = '
 Generate a **weekly summary** of the following journal entries in Markdown format.
 
@@ -143,12 +172,13 @@ Rules:
 - Do NOT ask questions.
 - Use proper Markdown spacing for readability.
 
-
-
- Entries to summarize:'.$formattedEntries;
+Entries to summarize:'.$formattedEntries;
 
             $summary = app(AiChatService::class)->generateResponse($prompt, null);
             $this->weeklySummary = $summary;
+
+            // Cache summary for 24 hours / weekly session
+            Cache::put($cacheKey, $summary, now()->addHours(24));
 
         } catch (\Exception $e) {
             Log::error('Weekly Summary Error: '.$e->getMessage());
@@ -224,43 +254,39 @@ Rules:
     }
 
     /**
-     * Review past memos - analyze patterns over broader timeframe
+     * Review past memos - analyze patterns over broader timeframe with fast handoff
      */
     public function reviewPastMemos()
     {
         $this->isProcessing = 'review-memos';
-        \Log::info('Starting review memos async');
+        Log::info('Starting review memos with fast handoff');
         try {
             $conversation = Conversation::create([
                 'user_id' => auth()->id(),
                 'title' => 'Memo Review & Analysis',
                 'type' => 'analysis',
-                'message_count' => 0,
+                'message_count' => 1,
                 'last_activity' => now(),
             ]);
 
             $userDataService = app(UserDataService::class);
+            $insights = $userDataService->getUserInsights();
+            $entriesCount = $insights['total_entries'] ?? 0;
+            $streak = $insights['current_streak'] ?? 0;
+            $topTag = $insights['most_used_tag'] ?? null;
 
-            $entries = $userDataService->getRecentEntries(15);
-
-            if ($entries->isEmpty()) {
-                $aiResponse = "I notice you don't have many entries to analyze yet. That's perfectly fine! As you continue journaling, I'll be able to provide deeper insights into your patterns and growth over time.";
+            if ($entriesCount > 0) {
+                $tagClause = ($topTag && $topTag !== 'None') ? " with top tag #{$topTag}" : '';
+                $initialMessage = "Welcome to your memo review and pattern analysis. Across your {$entriesCount} journal entries ({$streak} day streak{$tagClause}), I'm ready to help you analyze recurring themes, emotional patterns, and growth areas. What specific pattern or timeframe would you like to dive into first?";
             } else {
-                $formattedEntries = $userDataService->formatEntriesForAI($entries);
-                $insights = $userDataService->getUserInsights();
-
-                $prompt = "Analyze entries for:\n1. **Themes**\n2. **Emotional Patterns**\n3. **Growth Areas**\n4. **Triggers**\n5. **Strengths**\n6. **Recommendations**\n\nStats: {$insights['total_entries']} entries, {$insights['current_streak']} day streak, top tag: {$insights['most_used_tag']}\n\nEntries:\n".$formattedEntries;
-
-                $aiResponse = app(AiChatService::class)->generateResponse($prompt, $conversation->id);
+                $initialMessage = "I notice you don't have many entries to analyze yet. That's perfectly fine! As you continue journaling, I'll be able to provide deeper insights into your patterns and growth over time. Feel free to ask me anything about building a journaling habit!";
             }
 
             Message::create([
                 'conversation_id' => $conversation->id,
-                'content' => $aiResponse,
+                'content' => $initialMessage,
                 'is_ai_response' => true,
             ]);
-
-            $conversation->update(['message_count' => 1, 'last_activity' => now()]);
 
             $this->isProcessing = null;
 
@@ -274,40 +300,37 @@ Rules:
     }
 
     /**
-     * Start therapy session - personalized based on recent patterns
+     * Start therapy session - personalized based on recent patterns with fast handoff
      */
     public function startTherapySession()
     {
         $this->isProcessing = 'therapy-session';
-        \Log::info('Starting therapy session async');
+        Log::info('Starting therapy session with fast handoff');
         try {
             $conversation = Conversation::create([
                 'user_id' => auth()->id(),
                 'title' => 'Therapy Session',
                 'type' => 'therapy',
-                'message_count' => 0,
+                'message_count' => 1,
                 'last_activity' => now(),
             ]);
 
             $userDataService = app(UserDataService::class);
             $recentEntries = $userDataService->getRecentEntries(2);
 
-            if ($recentEntries->isEmpty()) {
-                $prompt = 'Start a warm therapeutic conversation. Ask one open question about what brought them here today.';
+            if ($recentEntries->isNotEmpty()) {
+                $latest = $recentEntries->first();
+                $titleSnippet = !empty($latest->title) ? " mentioning \"{$latest->title}\"" : '';
+                $initialMessage = "Welcome to your therapy session. I'm here to offer a safe, compassionate space to unpack whatever you're experiencing. Reflecting on your recent notes{$titleSnippet}, how are you feeling in this moment?";
             } else {
-                $formattedEntries = $userDataService->formatEntriesForAI($recentEntries);
-                $prompt = "Based on recent entries, start a therapeutic conversation. Reference experiences subtly, ask one thoughtful question. Be warm and supportive.\n\n".$formattedEntries;
+                $initialMessage = "Welcome to your therapy session. I'm here to offer a supportive, compassionate space for you. How are you feeling today, and what brought you here?";
             }
-
-            $aiResponse = app(AiChatService::class)->generateResponse($prompt, $conversation->id);
 
             Message::create([
                 'conversation_id' => $conversation->id,
-                'content' => $aiResponse,
+                'content' => $initialMessage,
                 'is_ai_response' => true,
             ]);
-
-            $conversation->update(['message_count' => 1, 'last_activity' => now()]);
 
             $this->isProcessing = null;
 
@@ -326,7 +349,7 @@ Rules:
     public function closeSummaryModal()
     {
         $this->showSummaryModal = false;
-        $this->weeklySummary = '';
+        $this->summaryLoading = false;
     }
 
     public function closeQuickChatModal()

@@ -39,8 +39,6 @@ class DashboardStats extends Component
 
     public $unreadCount;
 
-    public $isModalOpen = false;
-
     public function getPollingIntervalProperty()
     {
         return 30000; // 30 seconds
@@ -138,14 +136,6 @@ class DashboardStats extends Component
         $lastEntry = $userDataService->getLastEntry();
         $this->recentEntries = $lastEntry ? collect([$lastEntry]) : collect();
         $this->loading = false;
-    }
-
-    /**
-     * Toggles the notification modal.
-     */
-    public function toggleNotificationsModal()
-    {
-        $this->isModalOpen = ! $this->isModalOpen;
     }
 
     /**
