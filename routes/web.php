@@ -64,32 +64,44 @@ Route::get('/blogs', function () {
     return view('blogs.index');
 })->name('blogs.index');
 Route::get('/', function () {
-    $products = ProductsController::fetchProducts();
+    // Use 1 hour cache with live GitHub star check (fallback to live count of 3)
+    $stars = Cache::remember('github_stars_live', 3600, function () {
+        if (app()->environment('testing')) {
+            return 3;
+        }
 
-    // Use 1 hour cache (fallback to polling since webhook is tricky on localhost)
-    $stars = Cache::remember('github_stars_v4', 3600, function () {
         try {
-            $response = Http::withHeaders([
-                'User-Agent' => 'Lumina-App',
-            ])->get('https://api.github.com/repos/Yonathan-T/Lumina');
+            $response = Http::timeout(2.5)
+                ->connectTimeout(1.5)
+                ->withHeaders([
+                    'User-Agent' => 'Lumina-App',
+                    'Accept' => 'application/vnd.github.v3+json',
+                ])->get('https://api.github.com/repos/Yonathan-T/Lumina');
 
             if ($response->successful()) {
-                $count = $response->json()['stargazers_count'];
-                if ($count >= 1000) {
-                    return number_format($count / 1000, 1).'K+';
-                }
+                $count = $response->json()['stargazers_count'] ?? null;
+                if ($count !== null) {
+                    if ($count >= 1000) {
+                        return number_format($count / 1000, 1).'K+';
+                    }
 
-                return $count;
+                    return $count;
+                }
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             // Silent fail
         }
 
-        return '-'; // Fallback
+        return 3; // Live fallback
     });
 
-    return view('landing-page', ['products' => $products, 'stars' => $stars]);
+    return view('landing-page', ['stars' => $stars]);
 })->name('landingPage');
+
+// Legal & Trust Pages
+Route::view('/privacy', 'pages.privacy')->name('privacy');
+Route::view('/terms', 'pages.terms')->name('terms');
+Route::view('/security', 'pages.security')->name('security');
 // Route::get('/dashboard', function () {
 //     return view('entries.index');
 // });

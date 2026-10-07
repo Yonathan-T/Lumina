@@ -88,8 +88,72 @@
   }
 
   .bg-dot-pattern {
-    background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-    background-size: 20px 20px;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .bg-dot-matrix {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1.2px, transparent 1.2px);
+    background-size: 22px 22px;
+  }
+
+  /* Scanline subtle overlay */
+  .bg-scanlines {
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0),
+      rgba(255, 255, 255, 0) 50%,
+      rgba(0, 0, 0, 0.25) 50%,
+      rgba(0, 0, 0, 0.25)
+    );
+    background-size: 100% 4px;
+  }
+
+  /* Connecting Server Beam / Radar sweep animation */
+  @keyframes radar-scan {
+    0% {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+    15% {
+      opacity: 0.6;
+    }
+    85% {
+      opacity: 0.6;
+    }
+    100% {
+      transform: translateY(100vh);
+      opacity: 0;
+    }
+  }
+
+  .animate-radar-beam {
+    animation: radar-scan 7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    will-change: transform, opacity;
+  }
+
+  /* Subtly animated drifting dot grid */
+  @keyframes dot-drift {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: 20px 20px;
+    }
+  }
+
+  .animate-dot-drift {
+    animation: dot-drift 20s linear infinite;
+  }
+
+  .mask-radial-edges {
+    -webkit-mask-image: radial-gradient(circle at center, black 40%, rgba(0,0,0,0.4) 75%, transparent 100%);
+    mask-image: radial-gradient(circle at center, black 40%, rgba(0,0,0,0.4) 75%, transparent 100%);
+  }
+
+  .mask-edge-fade {
+    -webkit-mask-image: radial-gradient(ellipse 85% 85% at 50% 50%, black 30%, transparent 100%);
+    mask-image: radial-gradient(ellipse 85% 85% at 50% 50%, black 30%, transparent 100%);
   }
 }
 

@@ -1,16 +1,19 @@
 <!--HERO PART -->
 <x-layout :showSidebar="false" :isLandingPage="true">
 
-  <!-- Decorative blur patterns for landing page only -->
+  {{-- Clean Monochromatic Dot Matrix Background --}}
   <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
-    <div class="absolute -top-20 -right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
-    <div class="absolute top-1/4 -left-32 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl"></div>
-    <div class="absolute bottom-1/4 -right-32 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
-    <div class="absolute bottom-20 left-1/4 w-72 h-72 bg-pink-500/10 rounded-full blur-3xl"></div>
-    <div class="absolute top-1/2 left-1/2 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl"></div>
+    {{-- Minimal dot grid (faded toward edges) --}}
+    <div class="absolute inset-0 bg-dot-matrix mask-edge-fade opacity-75"></div>
+
+    {{-- Subtle scanline texture layer --}}
+    <div class="absolute inset-0 bg-scanlines opacity-12"></div>
+
+    {{-- Vignette gradient overlay --}}
+    <div class="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60"></div>
   </div>
 
-  <section class="py-6 relative z-10">
+  <section class="mt-8 md:mt-16 pt-12 md:pt-16 pb-12 relative z-10">
     <div class="mx-auto flex flex-col lg:flex-row justify-between rounded-xl  max-w-7xl px-4">
 
       <!-- Text Content Column -->
@@ -77,7 +80,7 @@
 
         <div class="mt-auto">
           <div class="flex space-x-3 mb-6">
-            <x-buttons href="/auth/login" class="flex items-center card-highlight">
+            <x-buttons href="/auth/login" wire:navigate.hover class="flex items-center card-highlight">
               Start Writing Today
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 class="w-4 h-4 ml-2">
@@ -179,7 +182,7 @@
   </div>
   <x-testimonials />
 
-  <x-pricing-section :products="$products" />
+  {{-- <x-pricing-section :products="$products" /> --}}
 
   <!-- FAQ Section -->
   <section class="py-20 px-4">
@@ -467,13 +470,13 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
                 Features
               </a>
             </li>
-            <li>
+            {{-- <li>
               <a href="#pricing"
                 class="text-white/60 hover:text-white text-sm transition-colors flex items-center group">
                 <span class="w-0 group-hover:w-2 h-0.5 bg-[#7c6a54] mr-0 group-hover:mr-2 transition-all"></span>
                 Pricing
               </a>
-            </li>
+            </li> --}}
             <li>
               <a href="#testimonials"
                 class="text-white/60 hover:text-white text-sm transition-colors flex items-center group">
@@ -482,7 +485,7 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
               </a>
             </li>
             <li>
-              <a href="/auth/register"
+              <a href="/auth/register" wire:navigate.hover
                 class="text-white/60 hover:text-white text-sm transition-colors flex items-center group">
                 <span class="w-0 group-hover:w-2 h-0.5 bg-[#7c6a54] mr-0 group-hover:mr-2 transition-all"></span>
                 Get Started
@@ -517,25 +520,22 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
           <h3 class="font-semibold mb-5 text-[#7c6a54] tracking-wide">Legal</h3>
           <ul class="space-y-3">
             <li>
-              <a href="#" class="text-white/60 hover:text-white text-sm transition-colors flex items-center group">
+              <a href="{{ route('privacy') }}" wire:navigate.hover
+                class="text-white/60 hover:text-white text-sm transition-colors flex items-center group">
                 <span class="w-0 group-hover:w-2 h-0.5 bg-[#7c6a54] mr-0 group-hover:mr-2 transition-all"></span>
                 Privacy Policy
               </a>
             </li>
             <li>
-              <a href="#" class="text-white/60 hover:text-white text-sm transition-colors flex items-center group">
+              <a href="{{ route('terms') }}" wire:navigate.hover
+                class="text-white/60 hover:text-white text-sm transition-colors flex items-center group">
                 <span class="w-0 group-hover:w-2 h-0.5 bg-[#7c6a54] mr-0 group-hover:mr-2 transition-all"></span>
                 Terms of Service
               </a>
             </li>
             <li>
-              <a href="#" class="text-white/60 hover:text-white text-sm transition-colors flex items-center group">
-                <span class="w-0 group-hover:w-2 h-0.5 bg-[#7c6a54] mr-0 group-hover:mr-2 transition-all"></span>
-                Cookie Policy
-              </a>
-            </li>
-            <li>
-              <a href="#" class="text-white/60 hover:text-white text-sm transition-colors flex items-center group">
+              <a href="{{ route('security') }}" wire:navigate.hover
+                class="text-white/60 hover:text-white text-sm transition-colors flex items-center group">
                 <span class="w-0 group-hover:w-2 h-0.5 bg-[#7c6a54] mr-0 group-hover:mr-2 transition-all"></span>
                 Security
               </a>
@@ -546,25 +546,10 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
 
       <!-- Bottom Bar -->
       <div class="py-8 border-t border-white/10">
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex justify-center items-center">
           <!-- Copyright -->
           <div class="text-white/40 text-sm">
             © {{ date('Y') }} Lumina. All rights reserved.
-          </div>
-
-          <!-- Additional Links -->
-          <div class="flex items-center gap-6 text-sm">
-            <a href="#" class="text-white/40 hover:text-white/70 transition-colors">Sitemap</a>
-            <a href="#" class="text-white/40 hover:text-white/70 transition-colors">Accessibility</a>
-            <a href="#" class="text-white/40 hover:text-white/70 transition-colors">Status</a>
-          </div>
-
-          <!-- Trust Badges / Certifications (Optional) -->
-          <div class="flex items-center gap-3">
-            <div class="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-white/60">
-              🔒 Encrypted
-            </div>
-
           </div>
         </div>
       </div>

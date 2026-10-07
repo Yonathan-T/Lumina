@@ -7,11 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lumina</title>
     <link rel="icon" type="image/svg+xml" href="/lumiicon.svg">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&family=Poppins:wght@400;500;600;700&family=Lora:wght@400;500;600&family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Crimson+Text:wght@400;600&family=Merriweather:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Ubuntu:wght@400;500;700&display=swap"
         rel="stylesheet">
@@ -28,16 +28,13 @@
     </script>
 </head>
 
-<body style="{{ $isLandingPage
-    ? 'background: linear-gradient(to bottom right, hsl(224, 71%, 4%), hsl(224, 65%, 5%)); background-image: linear-gradient(to bottom right, hsl(224, 71%, 4%), hsl(224, 65%, 5%)), radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px); background-size: auto, 20px 20px;'
-    : '' }}"
-    class="{{ $isLandingPage ? 'bg-dot-pattern' : 'brand-page' }} {{ (!$isLandingPage && $patternOnBody) ? 'bg-diagonal-lines' : '' }} text-[#c3beb6] min-h-screen flex flex-col {{ $showSidebar ? 'has-sidebar' : '' }}">
+<body class="brand-page {{ (!$isLandingPage && ($patternOnBody || !$showSidebar)) ? 'bg-diagonal-lines' : '' }} text-[#c3beb6] min-h-screen flex flex-col {{ $showSidebar ? 'has-sidebar' : '' }}">
 
 
     @if ($showNav)
 
         <x-navs>
-            <a href="/" class="ml-3 flex items-center gap-2 group relative">
+            <a href="/" wire:navigate.hover class="ml-3 flex items-center gap-2 group relative">
                 <svg class="w-10 h-10 text-white
                                                        transition-transform duration-700 ease-out
                                                        group-hover:rotate-[720deg]
@@ -55,13 +52,14 @@
             </a>
             <div class="space-x-6 font-bold">
                 <x-links href="#features" section="features">Features</x-links>
-                <x-links href="#pricing" section="pricing">Pricing</x-links>
-                <x-links :href="route('blogs.index')" :active="request()->routeIs('blogs.*')">Blogs</x-links>
+                {{-- <x-links href="#pricing" section="pricing">Pricing</x-links> --}}
+                <x-links :href="route('blogs.index')" :active="request()->routeIs('blogs.*')" wire:navigate.hover>Blogs</x-links>
                 <x-links href="#contact" section="contact">Contact</x-links>
             </div>
             <div>
                 @auth
                     <a href="/dashboard"
+                        wire:navigate.hover
                         class="
                                                                                                                                                                                                                                         border border-white/25 rounded-lg px-3 py-2
                                                                                                                                                                                                                                         bg-[#060b16] text-white font-semibold
@@ -77,8 +75,13 @@
                     </a>
                 @endauth
                 @guest
-
+                    <a href="/auth/login"
+                        wire:navigate.hover
+                        class="text-sm font-semibold text-white/80 hover:text-white mr-4 transition-colors">
+                        Sign in
+                    </a>
                     <a href="/auth/register"
+                        wire:navigate.hover
                         class="
                                                                                                                                                                                                                                         border border-white/25 rounded-lg px-3 py-2
                                                                                                                                                                                                                                         bg-[#060b16] text-white font-semibold
@@ -127,7 +130,7 @@
             </main>
         </div>
     @else
-        <main class="font-inter text-custom {{ (!$isLandingPage && !$patternOnBody) ? 'bg-diagonal-lines' : '' }}">
+        <main class="flex-1 font-inter text-custom {{ (!$isLandingPage && !$patternOnBody && $showSidebar) ? 'bg-diagonal-lines' : '' }}">
             {{ $slot }}
         </main>
     @endif
@@ -266,6 +269,33 @@
                     document.body.classList.remove('sidebar-open');
                     document.getElementById('mobileSidebarToggle')?.setAttribute('aria-expanded', 'false');
                     mobileBackdrop.classList.add('hidden');
+                }
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'b') {
+                    const activeEl = document.activeElement;
+                    const isInput = activeEl && (
+                        activeEl.tagName === 'INPUT' ||
+                        activeEl.tagName === 'TEXTAREA' ||
+                        activeEl.isContentEditable
+                    );
+
+                    // If user is inside an input/textarea/editor, allow standard behavior
+                    if (!isInput) {
+                        event.preventDefault();
+                        const toggleBtn = document.getElementById('sidebarCollapseToggle');
+                        if (toggleBtn) {
+                            toggleBtn.click();
+                        } else if (document.body.classList.contains('has-sidebar')) {
+                            document.body.classList.toggle('sidebar-collapsed');
+                            try {
+                                const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+                                localStorage.setItem('sidebar-collapsed', isCollapsed ? '1' : '0');
+                            } catch (e) { }
+                            updateSidebarTitles();
+                        }
+                    }
                 }
             });
 
