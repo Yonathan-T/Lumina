@@ -2,44 +2,32 @@
     data-stream-endpoint="{{ route('chat.stream') }}"
     data-conversation-id="{{ $activeSession['id'] ?? '' }}"
     data-user-initial="{{ substr(auth()->user()->name ?? 'U', 0, 1) }}">
-    <!-- Dock button that attaches near main sidebar -->
-    <button id="chatDockBtn"
-        class="fixed chat-dock-pos z-50 hidden items-center justify-center w-10 h-10 rounded-full border border-white/20 bg-white/10 text-white hover:bg-white/20 transition"
-        aria-label="Toggle chat sessions">
-        <x-icon name="message" class="w-5 h-5" />
-    </button>
-
     <!-- Chat Drawer / Sidebar -->
     <div id="chatDrawer"
         class="fixed md:static inset-y-0 md:inset-auto left-0 z-50 w-80 bg-gradient-dark sidebar-gradient rounded-none md:rounded-lg border border-gray-700 flex flex-col transform -translate-x-full md:translate-x-0 transition-all duration-300">
         <!-- Header -->
         <div class="p-4 border-b border-gray-700 flex items-center justify-between gap-2">
             <button wire:click="createNewSession"
-                class="cursor-pointer flex-1 flex items-center justify-center gap-2 bg-gradient-dark  text-white rounded-lg px-4 py-2.5 transition-colors">
+                class="cursor-pointer flex-1 flex items-center justify-center gap-2 bg-gradient-dark text-white rounded-lg px-4 py-2.5 transition-colors border border-white/10 hover:bg-blue-300/15">
                 <x-icon name="message" class="w-5 h-5" />
                 New Chat
             </button>
             <div class="flex items-center gap-1">
-                <!-- Collapse/expand chat nav (desktop) -->
+                <!-- Minimize chat conversations (desktop) -->
                 <button id="chatNavToggle"
-                    class="hidden md:inline-flex items-center justify-center w-9 h-9 rounded-md border border-white/10 text-white/80 hover:text-white hover:bg-white/10 transition"
-                    aria-label="Toggle chat navigation" aria-expanded="true">
-                    <svg class="icon-collapse w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                        fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M8.53 11.47a.75.75 0 0 1 0 1.06l-3 3a.75.75 0 0 1-1.06-1.06L6.94 12 4.47 9.53A.75.75 0 1 1 5.53 8.47l3 3Zm8-2.94a.75.75 0 0 1 1.06 1.06L14.06 12l3.53 3.53a.75.75 0 1 1-1.06 1.06l-4-4a.75.75 0 0 1 0-1.06l4-4Z"
-                            clip-rule="evenodd" />
-                    </svg>
-                    <svg class="icon-expand w-4 h-4 hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                        fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M5.47 8.47a.75.75 0 0 1 1.06 0L10 11.94l3.47-3.47a.75.75 0 1 1 1.06 1.06l-4 4a.75.75 0 0 1-1.06 0l-4-4a.75.75 0 0 1 0-1.06Zm8 6a.75.75 0 0 1 1.06 0l3 3a.75.75 0 1 1-1.06 1.06L14.06 16.6l-2.47 2.47a.75.75 0 1 1-1.06-1.06l3-3Z"
-                            clip-rule="evenodd" />
+                    type="button"
+                    class="hidden md:inline-flex items-center justify-center w-8 h-8 rounded-md border border-white/10 text-white/80 hover:text-white hover:bg-blue-300/15 transition cursor-pointer"
+                    aria-label="Minimize conversations" title="Minimize conversations">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 17l-5-5 5-5" />
+                        <path d="M11 17l-5-5 5-5" />
                     </svg>
                 </button>
                 <!-- Close drawer (mobile/overlay) -->
                 <button id="chatDrawerClose"
-                    class="ml-auto p-2 text-gray-400 hover:text-white transition-colors md:hidden">
+                    type="button"
+                    class="ml-auto p-2 text-gray-400 hover:text-white transition-colors md:hidden cursor-pointer"
+                    aria-label="Close drawer">
                     <x-icon name="panel-right-open" class="w-5 h-5" />
                 </button>
             </div>
@@ -95,19 +83,31 @@
     <div id="chatBackdrop" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 hidden md:hidden"></div>
 
     <!-- Main Chat Area -->
-    <div class="flex-1 flex flex-col sidebar-gradient border border-gray-700 rounded-lg">
+    <div id="mainChatArea" class="relative flex-1 flex flex-col sidebar-gradient border border-gray-700 rounded-lg overflow-hidden transition-all duration-300">
+        <!-- Slim pull-out tab attached to the main chat section -->
+        <button id="chatDockBtn"
+            type="button"
+            class="chat-dock-tab absolute left-0 top-3.5 z-30 flex items-center justify-center gap-1.5 h-8 px-2.5 rounded-r-md border border-l-0 border-white/15 bg-[#0f111a]/95 hover:bg-blue-300/15 text-white/90 hover:text-white shadow-[0_4px_16px_rgba(0,0,0,0.6)] backdrop-blur-md cursor-pointer transition-all duration-300 select-none group"
+            aria-label="Open conversations"
+            title="Open conversations">
+            <svg class="w-3.5 h-3.5 text-white/80 group-hover:text-white transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 17l-5-5 5-5" />
+                <path d="M11 17l-5-5 5-5" />
+            </svg>
+            <span class="text-xs font-medium text-white/80 group-hover:text-white hidden sm:inline">Conversations</span>
+        </button>
+
         @if($activeSession)
             <!-- Chat Header -->
             <div class="bg-gradient-dark border-b border-gray-700 p-4 rounded-t-lg sticky top-0 z-10">
-                <div class="flex items-center gap-3">
-                    <div class="p-2 rounded-full bg-blue-600">
-                        <x-icon name="brain" class=" w-6 h-6" />
+                <div class="chat-header-inner flex items-center gap-3 transition-all duration-300">
+                    <div class="p-2 rounded-full bg-blue-600 shrink-0">
+                        <x-icon name="brain" class="w-6 h-6" />
                     </div>
-                    <div>
-                        <h3 class="text-lg font-semibold text-white">{{ $activeSession['title'] }}</h3>
+                    <div class="min-w-0">
+                        <h3 class="text-lg font-semibold text-white truncate">{{ $activeSession['title'] }}</h3>
                         <p class="text-sm text-gray-400">AI-powered reflection and insights</p>
                     </div>
-
                 </div>
                 <!--
                                                                      <div class=" flex  items center gap-2 justify-end">
@@ -686,6 +686,14 @@
         const drawerClose = document.getElementById('chatDrawerClose');
         const navToggle = document.getElementById('chatNavToggle');
 
+        // Restore saved preference on load
+        try {
+            if (localStorage.getItem('chat-nav-collapsed') === '1' && window.innerWidth >= 768) {
+                document.body.classList.add('chat-nav-collapsed');
+                document.documentElement.classList.add('chat-nav-collapsed');
+            }
+        } catch (e) {}
+
         function setOpen(open) {
             if (!drawer) return;
             if (open) {
@@ -697,11 +705,31 @@
             }
         }
 
+        // Desktop nav collapse
+        function setNavCollapsed(collapsed) {
+            if (collapsed) {
+                document.body.classList.add('chat-nav-collapsed');
+                document.documentElement.classList.add('chat-nav-collapsed');
+                try { localStorage.setItem('chat-nav-collapsed', '1'); } catch (e) {}
+                if (navToggle) {
+                    navToggle.setAttribute('aria-expanded', 'false');
+                }
+            } else {
+                document.body.classList.remove('chat-nav-collapsed');
+                document.documentElement.classList.remove('chat-nav-collapsed');
+                try { localStorage.setItem('chat-nav-collapsed', '0'); } catch (e) {}
+                if (navToggle) {
+                    navToggle.setAttribute('aria-expanded', 'true');
+                }
+            }
+        }
+
         if (dockBtn) {
-            dockBtn.addEventListener('click', () => {
+            dockBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 const isDesktop = window.matchMedia('(min-width: 768px)').matches;
                 if (isDesktop) {
-                    // On desktop, dock button restores the nav
+                    // On desktop, slim tab pulls out the conversations
                     setNavCollapsed(false);
                 } else {
                     // On mobile, dock toggles the drawer
@@ -715,30 +743,10 @@
         if (drawerClose) {
             drawerClose.addEventListener('click', () => setOpen(false));
         }
-
-        // Desktop nav collapse
-        function setNavCollapsed(collapsed) {
-            if (collapsed) {
-                document.body.classList.add('chat-nav-collapsed');
-                if (navToggle) {
-                    navToggle.setAttribute('aria-expanded', 'false');
-                    const c = navToggle.querySelector('.icon-collapse');
-                    const e = navToggle.querySelector('.icon-expand');
-                    if (c && e) { c.classList.add('hidden'); e.classList.remove('hidden'); }
-                }
-            } else {
-                document.body.classList.remove('chat-nav-collapsed');
-                if (navToggle) {
-                    navToggle.setAttribute('aria-expanded', 'true');
-                    const c = navToggle.querySelector('.icon-collapse');
-                    const e = navToggle.querySelector('.icon-expand');
-                    if (c && e) { c.classList.remove('hidden'); e.classList.add('hidden'); }
-                }
-            }
-        }
         if (navToggle) {
-            navToggle.addEventListener('click', function () {
-                setNavCollapsed(!document.body.classList.contains('chat-nav-collapsed'));
+            navToggle.addEventListener('click', function (e) {
+                e.stopPropagation();
+                setNavCollapsed(true);
             });
         }
     })();
