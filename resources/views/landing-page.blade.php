@@ -6,7 +6,7 @@
        class="fixed inset-0 z-[99999] bg-[#07090e] flex flex-col items-center justify-center pointer-events-auto select-none overflow-hidden transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)]">
     <div class="relative z-10 flex items-center text-white font-playfair text-3xl sm:text-5xl md:text-6xl font-medium tracking-wide">
       <span class="inline-block w-3 h-3 rounded-full bg-yellow-400 mr-4 shadow-[0_0_14px_#facc15] animate-pulse"></span>
-      <span id="preloader-word-text" class="transition-all duration-150 inline-block">Reflect</span>
+      <span id="preloader-word-text" class="transition-all duration-200 inline-block">Hello</span>
     </div>
     
     {{-- Dennis Snellenberg curved curtain SVG bottom edge --}}
@@ -20,7 +20,7 @@
       const preloader = document.getElementById('words-preloader');
       if (!preloader) return;
 
-      const words = ['Reflect', 'Mindfulness', 'Clarity', 'Growth', 'Sanctuary', 'Lumina'];
+      const words = ['Hello', 'Bonjour', 'Ciao', 'Hola', 'Guten Tag', 'Olá', 'Namaste', 'Konnichiwa'];
       const wordEl = document.getElementById('preloader-word-text');
       let index = 0;
 
@@ -29,12 +29,12 @@
         if (index < words.length) {
           if (wordEl) {
             wordEl.style.opacity = '0';
-            wordEl.style.transform = 'translateY(6px)';
+            wordEl.style.transform = 'translateY(8px)';
             setTimeout(() => {
               wordEl.textContent = words[index];
               wordEl.style.opacity = '1';
               wordEl.style.transform = 'translateY(0)';
-            }, 60);
+            }, 100);
           }
         } else {
           clearInterval(interval);
@@ -44,9 +44,9 @@
             setTimeout(() => {
               preloader.remove();
             }, 900);
-          }, 300);
+          }, 350);
         }
-      }, 230);
+      }, 420);
 
       // Failsafe timeout
       setTimeout(() => {
@@ -54,7 +54,7 @@
           preloader.style.transform = 'translateY(-100%)';
           setTimeout(() => preloader.remove(), 900);
         }
-      }, 3500);
+      }, 5500);
     })();
   </script>
 
