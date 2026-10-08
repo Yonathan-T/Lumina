@@ -23,12 +23,171 @@
                 if (localStorage.getItem('sidebar-collapsed') === '1') {
                     document.documentElement.classList.add('sc-init');
                 }
+                if (localStorage.getItem('chat-nav-collapsed') === '1' && window.innerWidth >= 768) {
+                    document.documentElement.classList.add('chat-nav-collapsed');
+                }
             } catch (e) { }
+        })();
+
+        // Persistent Sanctuary Ambient Audio Manager (Survives all Livewire SPA navigations)
+        window.SanctuaryAudio = window.SanctuaryAudio || (function () {
+            let audio = null;
+            let isPlaying = false;
+            let audioCtx = null;
+            let synthNodes = [];
+
+            const audioSources = [
+                '/audio/Ladyfingers-Lofi.m4a',
+                '/storage/audio/c39fafa2-be3f-441a-a9d7-d591b91853a3.mp3',
+                'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3'
+            ];
+            let currentSourceIdx = 0;
+
+            function getAudioInstance() {
+                if (!audio) {
+                    audio = new Audio();
+                    audio.loop = true;
+                    audio.preload = 'auto';
+                    audio.volume = 0.7;
+                    audio.src = audioSources[currentSourceIdx];
+
+                    audio.addEventListener('play', function () {
+                        isPlaying = true;
+                        notifyState();
+                    });
+                    audio.addEventListener('pause', function () {
+                        isPlaying = false;
+                        notifyState();
+                    });
+                    audio.addEventListener('ended', function () {
+                        isPlaying = false;
+                        notifyState();
+                    });
+                    audio.addEventListener('error', function (err) {
+                        console.warn('Sanctuary audio source error, switching to fallback', err);
+                        tryNextSource();
+                    });
+                }
+                return audio;
+            }
+
+            function tryNextSource() {
+                currentSourceIdx++;
+                if (currentSourceIdx < audioSources.length) {
+                    if (audio) {
+                        audio.src = audioSources[currentSourceIdx];
+                        if (isPlaying) {
+                            audio.play().catch(function () {
+                                tryNextSource();
+                            });
+                        }
+                    }
+                } else {
+                    if (isPlaying) {
+                        startSynth();
+                    }
+                }
+            }
+
+            function notifyState() {
+                try {
+                    sessionStorage.setItem('sanctuary_audio_active', isPlaying ? '1' : '0');
+                } catch (e) { }
+                window.dispatchEvent(new CustomEvent('sanctuary-audio-state', {
+                    detail: { isPlaying: isPlaying }
+                }));
+            }
+
+            function play() {
+                isPlaying = true;
+                stopSynth();
+                const a = getAudioInstance();
+                const playPromise = a.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(function () {
+                        isPlaying = true;
+                        notifyState();
+                    }).catch(function (err) {
+                        console.warn('Audio play rejection, trying next source', err);
+                        tryNextSource();
+                    });
+                }
+            }
+
+            function pause() {
+                isPlaying = false;
+                if (audio) {
+                    audio.pause();
+                }
+                stopSynth();
+                notifyState();
+            }
+
+            function toggle() {
+                if (getIsPlaying()) {
+                    pause();
+                } else {
+                    play();
+                }
+            }
+
+            function getIsPlaying() {
+                return Boolean(isPlaying || (audio && !audio.paused && audio.currentTime > 0) || (synthNodes && synthNodes.length > 0));
+            }
+
+            function startSynth() {
+                try {
+                    if (!audioCtx) {
+                        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    if (audioCtx.state === 'suspended') {
+                        audioCtx.resume();
+                    }
+                    stopSynth();
+                    synthNodes = [];
+                    const freqs = [146.83, 220.00, 369.99];
+                    freqs.forEach(function (f) {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+                        gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start();
+                        synthNodes.push({ osc: osc, gain: gain });
+                    });
+                    isPlaying = true;
+                    notifyState();
+                } catch (e) {
+                    console.log('WebAudio synth fallback error', e);
+                }
+            }
+
+            function stopSynth() {
+                if (synthNodes && synthNodes.length > 0) {
+                    synthNodes.forEach(function (n) {
+                        try {
+                            n.osc.stop();
+                            n.osc.disconnect();
+                        } catch (e) { }
+                    });
+                    synthNodes = [];
+                }
+            }
+
+            return {
+                play: play,
+                pause: pause,
+                toggle: toggle,
+                getIsPlaying: getIsPlaying,
+                getInstance: getAudioInstance
+            };
         })();
     </script>
 </head>
 
-<body class="brand-page {{ (!$isLandingPage && ($patternOnBody || !$showSidebar)) ? 'bg-diagonal-lines' : '' }} text-[#c3beb6] min-h-screen flex flex-col {{ $showSidebar ? 'has-sidebar' : '' }}">
+<body class="brand-page {{ (!$isLandingPage && ($patternOnBody || !$showSidebar)) ? 'bg-diagonal-lines' : '' }} text-[#c3beb6] min-h-screen flex flex-col {{ $showSidebar ? 'has-sidebar' : '' }} {{ $isLandingPage ? 'scrollbar-none' : '' }}">
 
 
     @if ($showNav)
@@ -116,7 +275,7 @@
             </aside>
             <div id="sidebarBackdrop" class="md:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-30 hidden"></div>
             <main
-                class="flex-1 font-inter text-custom relative min-h-screen overflow-y-auto pt-12 md:pt-0 {{ (!$isLandingPage && !$patternOnBody) ? 'bg-diagonal-lines' : '' }}">
+                class="flex-1 font-inter text-custom relative min-h-screen overflow-y-auto scrollbar-none pt-12 md:pt-0 {{ (!$isLandingPage && !$patternOnBody) ? 'bg-diagonal-lines' : '' }}">
                 <button id="mobileSidebarToggle"
                     class="md:hidden fixed top-4 left-4 z-50 inline-flex items-center justify-center w-10 h-10 rounded-md border border-white/25 bg-[#0b1220]/80 backdrop-blur-sm text-white/90 hover:text-white hover:bg-[#0b1220]/95 transition">
                     <!-- simple hamburger -->
@@ -130,7 +289,7 @@
             </main>
         </div>
     @else
-        <main class="flex-1 font-inter text-custom {{ (!$isLandingPage && !$patternOnBody && $showSidebar) ? 'bg-diagonal-lines' : '' }}">
+        <main class="flex-1 font-inter text-custom scrollbar-none {{ (!$isLandingPage && !$patternOnBody && $showSidebar) ? 'bg-diagonal-lines' : '' }}">
             {{ $slot }}
         </main>
     @endif
@@ -157,6 +316,8 @@
                 });
         });
     </script>
+
+
 
 </body>
 

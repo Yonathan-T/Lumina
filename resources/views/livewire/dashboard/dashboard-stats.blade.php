@@ -6,14 +6,19 @@
             <h1 class="font-inter text-3xl font-bold tracking-tight">Hey, {{ auth()->user()->name }}</h1>
             <p class="text-muted font-inter">Welcome back to your journal. How are you feeling today?</p>
         </div>
-        <div class="relative ml-auto mr-10" x-data="{ open: false }" @click.outside="open = false">
-            <button type="button" @click="open = ! open"
-                class="cursor-pointer p-2 rounded-full hover:bg-white/10 transition-colors">
-                <x-icon name="bell" class="w-8 w-8" />
-                @if($unreadCount > 0)
-                    <span class="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
-                @endif
-            </button>
+        <div class="flex items-center gap-3 ml-auto mr-10">
+            <!-- Ambient Music Toggle (Dashboard Only, Compact & Sidebar-Themed) -->
+            <x-skiper25-music-button />
+
+            <!-- Notifications Dropdown -->
+            <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                <button type="button" @click="open = ! open"
+                    class="cursor-pointer p-2 rounded-full hover:bg-white/10 transition-colors">
+                    <x-icon name="bell" class="w-8 h-8" />
+                    @if($unreadCount > 0)
+                        <span class="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
+                    @endif
+                </button>
 
             <!-- Backdrop Overlay -->
             <div x-show="open" x-transition:enter="transition ease-out duration-300"
@@ -98,12 +103,13 @@
             </div>
         </div>
     </div>
+</div>
 
 
 
 
 
-    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mt-5">
+    <div id="dashboard-kpis-grid" class="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mt-5">
         {{-- Total Memos --}}
         <div class="card-highlight rounded-lg border border-white/5 bg-gradient-dark p-6">
             <div class="flex items-center justify-between">
@@ -166,7 +172,9 @@
         </div>
     </div>
     <!-- AI-Powered Quick Actions -->
-    @livewire('dashboard.ai-quick-chat')
+    <div id="dashboard-action-buttons">
+        @livewire('dashboard.ai-quick-chat')
+    </div>
     <!-- Recent section goes here -->
     @if($recentEntries && $recentEntries->count() > 0)
         <div class="mt-8">
