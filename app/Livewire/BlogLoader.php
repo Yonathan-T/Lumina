@@ -62,6 +62,7 @@ class BlogLoader extends Component
                     'source_name',
                     'published_at',
                     'category',
+                    'tags',
                     'image_url',
                 ])
                 ->orderBy('published_at', 'desc')
@@ -257,8 +258,58 @@ class BlogLoader extends Component
         \Log::info('Manual fresh load completed');
     }
 
+    public function getFormattedBlogs(): array
+    {
+        $fallbackImages = [
+            'https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=1000&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1544367563-12123d8965cd?q=80&w=1000&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1517842645767-c639042777db?q=80&w=1000&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?q=80&w=1000&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1528319725582-ddc096101511?q=80&w=1000&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1499209974431-9dddcece7f88?q=80&w=1000&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=1000&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1508672019048-805b876b67e2?q=80&w=1000&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1515377905703-c4788e51af15?q=80&w=1000&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=1000&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1470240731273-7821a6eeb6bd?q=80&w=1000&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1516541196182-6bdb0516ed27?q=80&w=1000&auto=format&fit=crop',
+        ];
+
+        return array_map(function ($blog, $index) use ($fallbackImages) {
+            $feedImage = !empty($blog['image_url']) 
+                ? $blog['image_url'] 
+                : $fallbackImages[$index % count($fallbackImages)];
+            $rawTags = is_array($blog['tags'] ?? null) 
+                ? $blog['tags'] 
+                : (json_decode($blog['tags'] ?? '[]', true) ?: []);
+            if (empty($rawTags) && !empty($blog['category'])) {
+                $rawTags = array_slice(array_filter(explode(' ', strtolower(str_replace(['&', 'and', ',', '/'], '', $blog['category'])))), 0, 2);
+            }
+            $publishedDate = isset($blog['published_at']) ? Carbon::parse($blog['published_at']) : now();
+            $readMinutes = max(2, min(7, (int) ceil(str_word_count(($blog['title'] ?? '') . ' ' . ($blog['description'] ?? '')) / 25) + 1));
+
+            return [
+                'id' => (string) ($blog['id'] ?? $index),
+                'title' => (string) ($blog['title'] ?? ''),
+                'description' => (string) ($blog['description'] ?? ''),
+                'external_url' => (string) ($blog['external_url'] ?? '#'),
+                'source_name' => (string) ($blog['source_name'] ?? 'Mindful'),
+                'category' => (string) ($blog['category'] ?? ''),
+                'image' => (string) $feedImage,
+                'fallback' => (string) $fallbackImages[($index + 2) % count($fallbackImages)],
+                'tags' => array_values(array_slice($rawTags, 0, 3)),
+                'date_formatted' => $publishedDate->diffForHumans(),
+                'date_title' => $publishedDate->format('M d, Y'),
+                'read_time' => $readMinutes . 'm',
+                'code' => '# ' . str_pad($index + 1, 2, '0', STR_PAD_LEFT),
+            ];
+        }, $this->blogs, array_keys($this->blogs));
+    }
+
     public function render()
     {
-        return view('livewire.blog-loader');
+        return view('livewire.blog-loader', [
+            'formattedBlogs' => $this->getFormattedBlogs(),
+        ]);
     }
 }

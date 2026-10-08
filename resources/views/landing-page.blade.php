@@ -1,20 +1,87 @@
 <!--HERO PART -->
 <x-layout :showSidebar="false" :isLandingPage="true">
 
-  {{-- Clean Monochromatic Dot Matrix Background --}}
-  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
-    {{-- Minimal dot grid (faded toward edges) --}}
-    <div class="absolute inset-0 bg-dot-matrix mask-edge-fade opacity-75"></div>
-
-    {{-- Subtle scanline texture layer --}}
-    <div class="absolute inset-0 bg-scanlines opacity-12"></div>
-
-    {{-- Vignette gradient overlay --}}
-    <div class="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60"></div>
+  {{-- Skiper 8 Typography Words Preloader (Dennis Snellenberg Style) --}}
+  <div id="words-preloader"
+       class="fixed inset-0 z-[99999] bg-[#07090e] flex flex-col items-center justify-center pointer-events-auto select-none overflow-hidden transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)]">
+    <div class="relative z-10 flex items-center text-white font-playfair text-3xl sm:text-5xl md:text-6xl font-medium tracking-wide">
+      <span class="inline-block w-3 h-3 rounded-full bg-yellow-400 mr-4 shadow-[0_0_14px_#facc15] animate-pulse"></span>
+      <span id="preloader-word-text" class="transition-all duration-150 inline-block">Reflect</span>
+    </div>
+    
+    {{-- Dennis Snellenberg curved curtain SVG bottom edge --}}
+    <svg class="absolute -bottom-24 left-0 w-full h-24 fill-[#07090e] pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <path id="preloader-curve" d="M0 0 L100 0 Q50 60 0 0 Z"></path>
+    </svg>
   </div>
 
-  <section class="mt-8 md:mt-16 pt-12 md:pt-16 pb-12 relative z-10">
-    <div class="mx-auto flex flex-col lg:flex-row justify-between rounded-xl  max-w-7xl px-4">
+  <script>
+    (function () {
+      const preloader = document.getElementById('words-preloader');
+      if (!preloader) return;
+
+      const words = ['Reflect', 'Mindfulness', 'Clarity', 'Growth', 'Sanctuary', 'Lumina'];
+      const wordEl = document.getElementById('preloader-word-text');
+      let index = 0;
+
+      const interval = setInterval(() => {
+        index++;
+        if (index < words.length) {
+          if (wordEl) {
+            wordEl.style.opacity = '0';
+            wordEl.style.transform = 'translateY(6px)';
+            setTimeout(() => {
+              wordEl.textContent = words[index];
+              wordEl.style.opacity = '1';
+              wordEl.style.transform = 'translateY(0)';
+            }, 60);
+          }
+        } else {
+          clearInterval(interval);
+          setTimeout(() => {
+            preloader.style.transform = 'translateY(-100%)';
+            preloader.style.transition = 'transform 0.85s cubic-bezier(0.76, 0, 0.24, 1)';
+            setTimeout(() => {
+              preloader.remove();
+            }, 900);
+          }, 300);
+        }
+      }, 230);
+
+      // Failsafe timeout
+      setTimeout(() => {
+        if (document.getElementById('words-preloader')) {
+          preloader.style.transform = 'translateY(-100%)';
+          setTimeout(() => preloader.remove(), 900);
+        }
+      }, 3500);
+    })();
+  </script>
+
+  @php
+    $currentHour = (int) now()->format('H');
+    $defaultScene = ($currentHour >= 5 && $currentHour < 12) ? 'alpine-dawn' : (($currentHour >= 12 && $currentHour < 19) ? 'ocean-sunset' : 'night-coast');
+  @endphp
+
+  {{-- Full-Page Dynamic Time-Aware ASCII Art Background --}}
+  <div class="page-time-container fixed inset-0 pointer-events-none select-none overflow-hidden z-0">
+    <ascii-art id="page-time-piece" piece="{{ $defaultScene }}" class="page-time-art absolute inset-0 w-full h-full block">
+    </ascii-art>
+
+    {{-- Subtle scanline texture layer --}}
+    <div class="absolute inset-0 bg-scanlines opacity-10 pointer-events-none"></div>
+
+    {{-- Atmospheric Dark Tint & Vignette Overlays for Crisp Content Contrast --}}
+    <div class="absolute inset-0 bg-[#07090e]/50 pointer-events-none"></div>
+    <div class="absolute inset-0 bg-gradient-to-b from-[#0a0c10]/80 via-transparent to-[#0a0c10]/85 pointer-events-none"></div>
+    <div class="absolute inset-0 bg-gradient-to-r from-[#0a0c10]/40 via-transparent to-[#0a0c10]/40 pointer-events-none"></div>
+  </div>
+
+  {{-- Main Content Layer with guaranteed z-10 stacking context --}}
+  <div class="relative z-10 flex flex-col min-h-screen">
+    <!-- Dynamic Automatic Time-Aware Hero Section -->
+    <section class="relative mt-6 pt-12 md:pt-16 pb-16">
+    <div class="relative z-10 mx-auto flex flex-col lg:flex-row justify-between rounded-xl max-w-7xl px-4">
 
       <!-- Text Content Column -->
       <div class="flex-1 py-12 px-8 flex flex-col">
@@ -150,9 +217,9 @@
     </div>
   </section>
   <!--BENEFITS -->
-  <section id="features" class="mt-3  py-12 "> <!-- Main container -->
+  <section id="features" class="relative z-10 mt-6 py-12"> <!-- Main container -->
     <div class="text-center max-w-2xl mx-auto mb-6">
-      <h2 class="font-playfair text-3xl md:text-4xl font-bold mb-6 tracking-wide">
+      <h2 class="font-playfair text-3xl md:text-4xl font-bold mb-6 tracking-wide text-white">
         Why Lumina?
       </h2>
       <p class="text-white/70">
@@ -365,9 +432,12 @@
   <!-- 
 ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
 
-  <!-- Professional Footer -->
-  <footer id="contact" class="bg-gradient-to-b from-ink to-[#0a0c10] border-t border-white/10 mt-20">
-    <div class="max-w-7xl mx-auto px-6 lg:px-16">
+  <!-- Atmospheric Footer (Shares main page time art with frosted glass blur) -->
+  <footer id="contact" class="relative overflow-hidden border-t border-white/15 mt-24 footer-atmospheric-blur">
+    <!-- Extra Ambient Blur Backdrop Layer over the Page Art -->
+    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-[#06080e]/25 to-[#06080e]/60 pointer-events-none"></div>
+
+    <div class="relative z-10 max-w-7xl mx-auto px-6 lg:px-16">
       <!-- Main Footer Content -->
       <div class="py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
 
@@ -398,64 +468,49 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
               class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 flex items-center justify-center transition-all group">
               <x-icons type="telegram" :logo="true" class="group-hover:scale-110 transition-transform hover:rotate-[360deg]" />
             </a>
-                    <!-- GitHub Star Button -->
-<a href="https://github.com/Yonathan-T/Lumina" target="_blank"
-   class="group relative inline-flex items-center gap-6 px-6 py-3 bg-gradient-to-br from-gray-900 via-[#0d1117] to-gray-900 
-          rounded-2xl border border-white/10 backdrop-blur-xl shadow-2xl 
-          hover:shadow-yellow-500/30 hover:border-yellow-500/30 
-          transition-all duration-500 hover:scale-105 hover:-translate-y-2 
-          overflow-hidden cursor-pointer">
+                    <!-- GitHub Star Button (Compact & Sleek) -->
+            <a href="https://github.com/Yonathan-T/Lumina" target="_blank"
+               class="group relative inline-flex items-center gap-3 px-3.5 py-2 bg-gradient-to-br from-gray-900/90 via-[#0d1117]/90 to-gray-900/90 
+                      rounded-xl border border-white/10 backdrop-blur-xl shadow-lg 
+                      hover:shadow-yellow-500/20 hover:border-yellow-500/30 
+                      transition-all duration-300 hover:-translate-y-0.5 
+                      overflow-hidden cursor-pointer">
 
-  <!-- Background glow -->
-  <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-    <div class="absolute inset-0 bg-yellow-500/10 blur-3xl"></div>
-  </div>
+              <!-- Background glow -->
+              <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                <div class="absolute inset-0 bg-yellow-500/10 blur-xl"></div>
+              </div>
 
-  <!-- Shine sweep -->
-  <div class="absolute inset-0 -translate-x-full group-hover:translate-x-full 
-              transition-transform duration-1000 ease-linear 
-              bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"></div>
+              <!-- Shine sweep -->
+              <div class="absolute inset-0 -translate-x-full group-hover:translate-x-full 
+                          transition-transform duration-1000 ease-linear 
+                          bg-gradient-to-r from-transparent via-white/15 to-transparent skew-x-12"></div>
 
-  <!-- GitHub Icon -->
-  <div class="z-10">
-    <x-icon name="github" class="w-8 h-8 text-gray-300 group-hover:text-white 
-                transition-all duration-500 group-hover:scale-110 group-hover:rotate-12" />
-  </div>
+              <!-- GitHub Icon -->
+              <div class="z-10 shrink-0">
+                <x-icon name="github" class="w-5 h-5 text-gray-300 group-hover:text-white transition-all duration-300 group-hover:scale-110" />
+              </div>
 
-  <!-- Text + Smart Animated Star -->
-  <div class="z-10 flex-1 text-left">
-    <p class="text-gray-400 text-xs font-medium tracking-wider uppercase mb-1 
-               group-hover:text-gray-200 transition-colors duration-400">
-      Star on GitHub
-    </p>
+              <!-- Text + Star Count -->
+              <div class="z-10 flex flex-col text-left justify-center">
+                <p class="text-gray-400 text-[10px] font-medium tracking-wider uppercase leading-tight group-hover:text-gray-200 transition-colors">
+                  Star on GitHub
+                </p>
 
-    <div class="flex items-center gap-3">
-      <p class="text-2xl font-black tracking-tight text-white 
-                 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400
-                 group-hover:from-yellow-400 group-hover:to-yellow-300 
-                 transition-all duration-500">
-        {{ $stars }}
-      </p>
+                <div class="flex items-center gap-1.5 pt-0.5">
+                  <p class="text-xs sm:text-sm font-bold tracking-tight text-white group-hover:text-yellow-400 transition-colors leading-none">
+                    {{ $stars }}
+                  </p>
 
-      <div class="relative inline-block">
-        <svg class="w-5 h-5 text-yellow-400 fill-current origin-center
-                    transition-all duration-700 ease-out
-                    group-hover:w-11 group-hover:h-8
-                    group-hover:translate-x-6
-                    group-hover:rotate-[720deg]
-                    drop-shadow-[0_0_4px_rgba(250,204,21,0.3)]
-                    group-hover:drop-shadow-[0_0_16px_rgba(250,204,21,0.8)]"
-             viewBox="0 0 24 24">
-          <path d="M12 .587l3.668 7.431 8.332 1.209-6 5.854 1.416 8.262L12 19.897l-7.416 3.897 1.416-8.262-6-5.854 8.332-1.209z"/>
-        </svg>
-
-        <div class="absolute inset-0 scale-0 group-hover:scale-150 blur-xl bg-yellow-400 
-                    opacity-0 group-hover:opacity-60 transition-all duration-700 -z-10 pointer-events-none">
-        </div>
-      </div>
-    </div>
-  </div>
-</a>
+                  <div class="relative inline-flex items-center">
+                    <svg class="w-3.5 h-3.5 text-yellow-400 fill-current transition-all duration-300 group-hover:scale-115 drop-shadow-[0_0_4px_rgba(250,204,21,0.5)]"
+                         viewBox="0 0 24 24">
+                      <path d="M12 .587l3.668 7.431 8.332 1.209-6 5.854 1.416 8.262L12 19.897l-7.416 3.897 1.416-8.262-6-5.854 8.332-1.209z"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </a>
           </div>
         </div>
 
@@ -546,13 +601,153 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
 
       <!-- Bottom Bar -->
       <div class="py-8 border-t border-white/10">
-        <div class="flex justify-center items-center">
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 text-xs">
           <!-- Copyright -->
-          <div class="text-white/40 text-sm">
+          <div class="text-white/40">
             © {{ date('Y') }} Lumina. All rights reserved.
           </div>
         </div>
       </div>
     </div>
   </footer>
+  </div>
+
+  <style>
+    /* Full-Page Time-Aware Atmosphere Backdrop */
+    .page-time-container,
+    .hero-time-container {
+      background-color: #07090e;
+    }
+    .page-time-art,
+    .hero-time-art {
+      width: 100% !important;
+      height: 100% !important;
+      opacity: 0.65;
+      filter: blur(1.8px);
+      transform: scale(1.03);
+      transform-origin: center;
+    }
+    .page-time-art canvas,
+    .hero-time-art canvas {
+      width: 100% !important;
+      height: 100% !important;
+      aspect-ratio: auto !important;
+      object-fit: cover !important;
+      object-position: center top !important;
+      display: block !important;
+      filter: blur(1.8px);
+    }
+    .footer-atmospheric-blur {
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      background-color: rgba(6, 8, 14, 0.45);
+    }
+
+    /* Lenis Smooth Momentum Scroller Styles */
+    html.lenis, html.lenis body {
+      height: auto;
+    }
+    .lenis.lenis-smooth {
+      scroll-behavior: auto !important;
+    }
+    .lenis.lenis-smooth [data-lenis-prevent] {
+      overscroll-behavior: contain;
+    }
+    .lenis.lenis-stopped {
+      overflow: hidden;
+    }
+    .lenis.lenis-scrolling iframe {
+      pointer-events: none;
+    }
+
+    /* Completely hide native browser scrollbars (custom Skiper 95 indicator active) */
+    html, body {
+      scrollbar-width: none !important; /* Firefox */
+      -ms-overflow-style: none !important; /* IE & Edge */
+    }
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar,
+    *::-webkit-scrollbar {
+      display: none !important; /* Chrome, Safari, Opera, Edge */
+      width: 0 !important;
+      height: 0 !important;
+      background: transparent !important;
+    }
+  </style>
+
+  <!-- ASCII.rest Web Component Loader & Automatic Time-Aware Sync -->
+  <script type="module" src="https://ascii.rest/ascii.js"></script>
+  <script>
+    (function () {
+      function syncHeroTimeScene() {
+        const hour = new Date().getHours();
+        const piece = (hour >= 5 && hour < 12) ? 'alpine-dawn' : ((hour >= 12 && hour < 19) ? 'ocean-sunset' : 'night-coast');
+        const el = document.getElementById('page-time-piece') || document.getElementById('hero-time-piece');
+        if (el && el.getAttribute('piece') !== piece) {
+          el.setAttribute('piece', piece);
+        }
+      }
+
+      syncHeroTimeScene();
+      document.addEventListener('livewire:navigated', syncHeroTimeScene);
+    })();
+  </script>
+
+  {{-- Skiper 95 Vertical Scroll Progress Indicator --}}
+  <x-skiper95-scroll-progress />
+
+  <!-- Lenis Silky Smooth Momentum Scroller -->
+  <script src="/lenis.min.js"></script>
+  <script>
+    (function () {
+      function initLenis() {
+        if (typeof Lenis === 'undefined') return;
+        if (window.__luminaLenis) {
+          try { window.__luminaLenis.destroy(); } catch (e) {}
+        }
+
+        const lenis = new Lenis({
+          lerp: 0.07,              // Buttery-smooth inertial deceleration
+          wheelMultiplier: 0.72,   // Gentle, controlled scroll speed (never frantic or too fast)
+          touchMultiplier: 1.1,
+          smoothWheel: true,
+          syncTouch: false,
+          orientation: 'vertical',
+          gestureOrientation: 'vertical',
+          autoResize: true,
+        });
+
+        window.__luminaLenis = lenis;
+
+        // Smooth anchor link scrolling for #features, #contact, etc.
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+          anchor.addEventListener('click', function (e) {
+            const targetId = this.getAttribute('href');
+            if (targetId && targetId !== '#') {
+              const targetEl = document.querySelector(targetId);
+              if (targetEl) {
+                e.preventDefault();
+                lenis.scrollTo(targetEl, { offset: -40, duration: 1.2 });
+              }
+            }
+          });
+        });
+
+        function raf(time) {
+          if (window.__luminaLenis === lenis) {
+            lenis.raf(time);
+            requestAnimationFrame(raf);
+          }
+        }
+        requestAnimationFrame(raf);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initLenis);
+      } else {
+        initLenis();
+      }
+      document.addEventListener('livewire:navigated', initLenis);
+    })();
+  </script>
 </x-layout>
