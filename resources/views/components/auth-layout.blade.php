@@ -11,68 +11,57 @@
         
         <div class="w-full max-w-6xl rounded-3xl bg-[#0d1117] border border-white/10 shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[640px]">
             
-            {{-- Left Column: Clean Full Aesthetic Artwork Card --}}
-            <div class="lg:col-span-6 relative overflow-hidden flex flex-col justify-between p-8 sm:p-10 text-white min-h-[380px] lg:min-h-full bg-black/60">
+            {{-- Left Column: High-Res Auth Artwork with Glassy Lumina Medallion & Stepper --}}
+            <div id="liquid-auth-hero" class="lg:col-span-6 relative overflow-hidden flex flex-col justify-between px-6 sm:px-8 pt-7 sm:pt-8 pb-5 sm:pb-6 text-white min-h-[440px] lg:min-h-full bg-[#05070c]">
                 
-                {{-- Background Image with subtle cinematic vignette (zero colorful blobs or noisy patterns) --}}
-                <img src="/images/auth-hero.jpg" alt="Lumina Sanctuary"
-                     class="absolute inset-0 w-full h-full object-cover object-center filter brightness-[0.7] contrast-[1.05]" />
-                
-                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/60"></div>
-                <div class="absolute inset-0 bg-black/25"></div>
+                {{-- Curated High-Res Background Image with Soft Blur --}}
+                <img src="/images/auth.jpg" alt="Lumina Sanctuary"
+                     class="absolute inset-0 w-full h-full object-cover object-center filter brightness-[0.72] contrast-[1.05] blur-[4px] scale-110 pointer-events-none transition-transform duration-1000 ease-out" />
 
-                {{-- Brand Header / Home Link --}}
-                <div class="relative z-10 flex items-center justify-between">
-                    <a href="/" wire:navigate.hover class="flex items-center gap-3 group">
-                        <div class="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group-hover:scale-105 transition-transform">
-                            <svg class="w-4 h-4 text-white -rotate-45" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M13,2l9,13.6L13,22ZM11,2L2,15.6L11,22Z" />
-                            </svg>
-                        </div>
-                        <span class="font-playfair font-bold text-xl tracking-wide text-white">Lumina</span>
-                    </a>
+                {{-- Soft Vignette & Contrast Overlay --}}
+                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/30 pointer-events-none z-1"></div>
 
-                    <a href="/" wire:navigate.hover class="text-xs text-white/70 hover:text-white transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10">
-                        <span>← Back to home</span>
+                {{-- Brand Header (Positioned down and scaled smaller) --}}
+                <div class="relative z-10 flex items-center justify-start pt-8 sm:pt-10">
+                    <a href="/" wire:navigate.hover class="flex items-center gap-2 group">
+                        <svg class="w-5 h-5 text-white -rotate-45 group-hover:scale-105 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M13,2l9,13.6L13,22ZM11,2L2,15.6L11,22Z" />
+                        </svg>
+                        <span class="font-playfair font-semibold text-base sm:text-lg tracking-wide text-white/95">Lumina</span>
                     </a>
                 </div>
 
-                {{-- Center Callout & Stepper --}}
-                <div class="relative z-10 my-auto py-6">
-                    <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-white font-inter"
+                {{-- Callout & Stepper (Shifted left and bottom with extra spacing between steps) --}}
+                <div class="relative z-10 mt-auto max-w-sm -ml-0.5 sm:-ml-1.5 pb-1">
+                    <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-white font-inter drop-shadow-md text-left"
                         x-text="currentMode === 'register' ? 'Get Started with Us' : 'Welcome Back'">
                         {{ $mode === 'register' ? 'Get Started with Us' : 'Welcome Back' }}
                     </h2>
-                    <p class="mt-2.5 text-sm text-white/80 max-w-sm leading-relaxed"
+                    <p class="mt-1.5 text-xs sm:text-sm text-white/90 leading-relaxed font-normal drop-shadow-sm max-w-sm text-left"
                        x-text="currentMode === 'register' ? 'Complete these easy steps to register your account and begin mindful reflection.' : 'Sign in to access your private memories and daily reflections.'">
                         {{ $mode === 'register' ? 'Complete these easy steps to register your account and begin mindful reflection.' : 'Sign in to access your private memories and daily reflections.' }}
                     </p>
 
-                    {{-- Stepper matching OnlyPipe style --}}
-                    <div class="mt-8 space-y-3 max-w-sm">
-                        <div class="flex items-center gap-3.5 px-4 py-3 rounded-2xl bg-white text-gray-900 shadow-lg font-medium text-sm transition-all"
+                    {{-- Stepper matching OnlyPipe style with more space between 1, 2, 3 --}}
+                    <div class="mt-5 space-y-3.5 max-w-sm">
+                        <div class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-white text-gray-900 shadow-lg font-semibold text-xs transition-all"
                              :class="currentMode === 'register' ? 'bg-white text-gray-900' : 'bg-white text-gray-900'">
-                            <span class="w-6 h-6 rounded-full bg-gray-900 text-white flex items-center justify-center text-xs font-bold shrink-0">1</span>
+                            <span class="w-5 h-5 rounded-full bg-gray-900 text-white flex items-center justify-center text-[10px] font-bold shrink-0">1</span>
                             <span x-text="currentMode === 'register' ? 'Sign up your account' : 'Sign in to your account'">
                                 {{ $mode === 'register' ? 'Sign up your account' : 'Sign in to your account' }}
                             </span>
                         </div>
 
-                        <div class="flex items-center gap-3.5 px-4 py-3 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 text-white/75 font-medium text-sm">
-                            <span class="w-6 h-6 rounded-full bg-white/15 text-white flex items-center justify-center text-xs font-bold shrink-0">2</span>
+                        <div class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-black/45 backdrop-blur-md border border-white/10 text-white/85 font-medium text-xs">
+                            <span class="w-5 h-5 rounded-full bg-white/15 text-white flex items-center justify-center text-[10px] font-bold shrink-0">2</span>
                             <span>Set up your private workspace</span>
                         </div>
 
-                        <div class="flex items-center gap-3.5 px-4 py-3 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 text-white/75 font-medium text-sm">
-                            <span class="w-6 h-6 rounded-full bg-white/15 text-white flex items-center justify-center text-xs font-bold shrink-0">3</span>
+                        <div class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-black/45 backdrop-blur-md border border-white/10 text-white/85 font-medium text-xs">
+                            <span class="w-5 h-5 rounded-full bg-white/15 text-white flex items-center justify-center text-[10px] font-bold shrink-0">3</span>
                             <span>Reflect & write with Lumi AI</span>
                         </div>
                     </div>
-                </div>
-
-                {{-- Bottom Subtle Clean Space --}}
-                <div class="relative z-10 text-xs text-white/50">
-                    Your story deserves to be written.
                 </div>
             </div>
 

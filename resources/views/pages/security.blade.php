@@ -1,5 +1,14 @@
-<x-layout :patternOnBody="true" :showNav="true" :showSidebar="false">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<x-layout :patternOnBody="false" :showNav="true" :showSidebar="false">
+    {{-- Full-Page Aurora Fjord Scenic ASCII Art Background --}}
+    <div class="page-ascii-container fixed inset-0 pointer-events-none select-none overflow-hidden z-0">
+        <ascii-art piece="aurora-fjord" class="page-ascii-art absolute inset-0 w-full h-full block">
+        </ascii-art>
+        <div class="absolute inset-0 bg-scanlines opacity-10 pointer-events-none"></div>
+        <div class="absolute inset-0 bg-[#07090e]/65 pointer-events-none"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-[#07090e]/85 via-transparent to-[#07090e]/95 pointer-events-none"></div>
+    </div>
+
+    <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {{-- Breadcrumb / Back --}}
         <div class="mb-8">
             <a href="{{ route('landingPage') }}" wire:navigate.hover
@@ -182,4 +191,28 @@
             </div>
         </div>
     </div>
+
+    <style>
+        .page-ascii-container {
+            background-color: #06090e;
+        }
+        .page-ascii-art {
+            width: 100% !important;
+            height: 100% !important;
+            opacity: 0.55;
+            filter: blur(1.8px);
+            transform: scale(1.03);
+            transform-origin: center;
+        }
+        .page-ascii-art canvas {
+            width: 100% !important;
+            height: 100% !important;
+            aspect-ratio: auto !important;
+            object-fit: cover !important;
+            object-position: center center !important;
+            display: block !important;
+            filter: blur(1.8px);
+        }
+    </style>
+    <script type="module" src="https://ascii.rest/ascii.js"></script>
 </x-layout>
