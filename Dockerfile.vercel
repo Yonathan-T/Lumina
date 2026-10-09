@@ -1,0 +1,89 @@
+# syntax=docker/dockerfile:1
+
+##########################################################################
+# Stage 1 — Build front-end assets with Vite
+##########################################################################
+FROM node:20-alpine AS assets
+
+WORKDIR /app
+
+COPY package.json package-lock.json* pnpm-lock.yaml* ./
+RUN npm install
+
+COPY . .
+RUN npm run build
+
+
+##########################################################################
+# Stage 2 — Base FrankenPHP image with necessary PHP extensions
+##########################################################################
+FROM dunglas/frankenphp:1-php8.4-bookworm AS base
+
+RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
+    && install-php-extensions \
+        intl \
+        zip \
+        pdo_pgsql \
+        pgsql \
+        pdo_mysql \
+        gd \
+        bcmath \
+        pcntl \
+        opcache
+
+WORKDIR /app
+
+
+##########################################################################
+# Stage 3 — Install PHP dependencies
+##########################################################################
+FROM base AS dependencies
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY composer.json composer.lock ./
+
+RUN composer install \
+    --no-dev \
+    --no-interaction \
+    --no-progress \
+    --no-scripts \
+    --optimize-autoloader \
+    --prefer-dist
+
+COPY . .
+
+# Copy Vite build artifacts from the assets stage
+COPY --from=assets /app/public/build ./public/build
+
+RUN mkdir -p \
+        storage/framework/cache \
+        storage/framework/sessions \
+        storage/framework/views \
+        bootstrap/cache \
+    && composer dump-autoload --no-dev --classmap-authoritative
+
+
+##########################################################################
+# Stage 4 — Final runtime image
+##########################################################################
+FROM base AS runtime
+
+COPY --from=dependencies --chown=www-data:www-data /app /app
+COPY --chown=www-data:www-data Caddyfile /etc/frankenphp/Caddyfile
+
+RUN setcap CAP_NET_BIND_SERVICE=+eip /usr/local/bin/frankenphp \
+    && chown -R www-data:www-data /config/caddy /data/caddy \
+    && chmod -R 775 /app/storage /app/bootstrap/cache
+
+# Standard production environment defaults (overridden by Vercel project env vars)
+ENV PORT=80 \
+    APP_ENV=production \
+    APP_DEBUG=false \
+    LOG_CHANNEL=stderr \
+    CACHE_STORE=database \
+    SESSION_DRIVER=database \
+    QUEUE_CONNECTION=sync
+
+USER www-data
+
+CMD ["frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile"]

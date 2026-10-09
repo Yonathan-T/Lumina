@@ -10,6 +10,7 @@ node_modules
 # Local env & secrets — production env comes from the host's dashboard
 .env
 .env.*
+!.env.example
 !.env.production.example
 
 # Build artifacts (Vite rebuilds these in the assets stage)
