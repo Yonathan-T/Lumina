@@ -11,9 +11,15 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('provider')->nullable();
-            $table->string('provider_id')->nullable();
-            $table->string('avatar')->nullable();
+            if (!Schema::hasColumn('users', 'provider')) {
+                $table->string('provider')->nullable();
+            }
+            if (!Schema::hasColumn('users', 'provider_id')) {
+                $table->string('provider_id')->nullable();
+            }
+            if (!Schema::hasColumn('users', 'avatar')) {
+                $table->string('avatar')->nullable();
+            }
         });
     }
 

@@ -77,12 +77,13 @@ class ElevenLabsTTSService
             $audioContent = $response->body();
 
             $filename = 'audio/' . Str::uuid() . '.mp3';
-            $disk = Storage::disk('public');
+            $diskName = config('filesystems.default') === 's3' ? 's3' : 'public';
+            $disk = Storage::disk($diskName);
             /* @var \Illuminate\Filesystem\FilesystemAdapter $disk */
             $disk->put($filename, $audioContent);
 
             // Return a public URL for the stored file
-            return asset('storage/' . $filename);
+            return $disk->url($filename);
         } catch (Exception $e) {
             $this->lastError = $e->getMessage();
             \Log::error('ElevenLabs TTS failed: ' . $e->getMessage());

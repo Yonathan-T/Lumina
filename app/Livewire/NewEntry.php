@@ -53,7 +53,8 @@ class NewEntry extends Component
 
         $bannerPath = null;
         if ($this->banner) {
-            $bannerPath = $this->banner->store('banners', 'public');
+            $disk = config('filesystems.default') === 's3' ? 's3' : 'public';
+            $bannerPath = $this->banner->store('banners', $disk);
         }
 
         $entry = Entry::create([
