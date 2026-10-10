@@ -76,7 +76,7 @@ class AiQuickChat extends Component
 
             $this->isProcessing = null;
 
-            return redirect()->route('chat.index');
+            return $this->redirect(route('chat.index', ['conversation' => $conversation->id]), navigate: true);
 
         } catch (\Exception $e) {
             Log::error('Guided Reflection Error: '.$e->getMessage());
@@ -290,7 +290,7 @@ Entries to summarize:'.$formattedEntries;
 
             $this->isProcessing = null;
 
-            return redirect()->route('chat.index');
+            return $this->redirect(route('chat.index', ['conversation' => $conversation->id]), navigate: true);
 
         } catch (\Exception $e) {
             Log::error('Memo Review Error: '.$e->getMessage());
@@ -334,7 +334,7 @@ Entries to summarize:'.$formattedEntries;
 
             $this->isProcessing = null;
 
-            return redirect()->route('chat.index');
+            return $this->redirect(route('chat.index', ['conversation' => $conversation->id]), navigate: true);
 
         } catch (\Exception $e) {
             Log::error('Therapy Session Error: '.$e->getMessage());

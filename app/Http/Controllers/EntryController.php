@@ -58,6 +58,7 @@ class EntryController extends Controller
     public function show(Entry $entry)
     {
         $this->authorize('view', $entry);
+        $entry->loadMissing('tags:id,name');
         return view('entries.showEntry', compact('entry'));
     }
 

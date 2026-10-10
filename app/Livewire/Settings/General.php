@@ -32,19 +32,28 @@ class General extends Component
         $this->streakAlerts = $settings['streak_alerts'] ?? false;
         $this->blogUpdates = $settings['blog_updates'] ?? false;
 
-        $this->sessions = DB::table('sessions')
-            ->where('user_id', auth()->id())
-            ->get()
-            ->map(function ($session) {
-                return [
-                    'id' => $session->id,
-                    'ip_address' => $session->ip_address,
-                    'user_agent' => $session->user_agent,
-                    'last_active' => Carbon::createFromTimestamp($session->last_activity)->diffForHumans(),
-                    'is_current_device' => $session->id === session()->getId(),
-                    'device' => Str::limit($session->user_agent, 40),
-                ];
-            });
+        try {
+            $this->sessions = DB::table('sessions')
+                ->where('user_id', auth()->id())
+                ->get()
+                ->map(function ($session) {
+                    $lastActive = !empty($session->last_activity)
+                        ? Carbon::createFromTimestamp((int) $session->last_activity)->diffForHumans()
+                        : 'Recently';
+
+                    return [
+                        'id' => $session->id,
+                        'ip_address' => $session->ip_address ?? 'Unknown IP',
+                        'user_agent' => $session->user_agent ?? 'Current Device',
+                        'last_active' => $lastActive,
+                        'is_current_device' => $session->id === session()->getId(),
+                        'device' => Str::limit($session->user_agent ?? 'Current Device', 40),
+                    ];
+                });
+        } catch (\Throwable $e) {
+            \Log::warning('Failed fetching sessions in settings: ' . $e->getMessage());
+            $this->sessions = collect();
+        }
     }
 
     // These methods are triggered automatically when the properties are updated via wire:model

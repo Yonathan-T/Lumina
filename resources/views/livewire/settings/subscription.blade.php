@@ -42,12 +42,12 @@
             <div class="space-y-4">
                 <p class="text-sm uppercase tracking-[0.25em] text-white/45">Current Plan</p>
                 <div class="flex flex-wrap items-center gap-3">
-                    <h2 class="text-3xl font-bold text-white">{{ $current['label'] }}</h2>
-                    <span class="rounded-full border border-white/10 px-3 py-1 text-xs font-semibold {{ $current['accent'] }}">
+                    <h2 class="text-3xl font-bold text-white">{{ $current['label'] ?? 'Free' }}</h2>
+                    <span class="rounded-full border border-white/10 px-3 py-1 text-xs font-semibold {{ $current['accent'] ?? 'text-slate-200' }}">
                         {{ ucfirst($currentPlan) }} tier
                     </span>
                 </div>
-                <p class="max-w-2xl text-sm text-white/65">{{ $current['description'] }}</p>
+                <p class="max-w-2xl text-sm text-white/65">{{ $current['description'] ?? 'A calm place to begin journaling with the essentials.' }}</p>
 
                 <div class="grid gap-3 pt-2 sm:grid-cols-3">
                     <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
@@ -68,15 +68,15 @@
             <div class="rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm">
                 @if($nextPlan)
                     <p class="text-xs uppercase tracking-[0.22em] text-white/40">Next Plan</p>
-                    <h3 class="mt-3 text-2xl font-semibold text-white">{{ $nextPlan['key'] === 'pro' ? 'Pro' : $nextPlan['name'] }}</h3>
-                    <p class="mt-2 text-sm text-white/60">{{ $nextPlan['description'] ?: 'The next tier unlocks more depth, more headroom, and more premium reflection tools.' }}</p>
+                    <h3 class="mt-3 text-2xl font-semibold text-white">{{ ($nextPlan['key'] ?? '') === 'pro' ? 'Pro' : ($nextPlan['name'] ?? 'Standard') }}</h3>
+                    <p class="mt-2 text-sm text-white/60">{{ ($nextPlan['description'] ?? '') ?: 'The next tier unlocks more depth, more headroom, and more premium reflection tools.' }}</p>
                     <div class="mt-5 rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
                         <p class="text-xs uppercase tracking-[0.2em] text-white/40">Upgrade Price</p>
-                        <p class="mt-2 text-2xl font-bold text-white">{{ $nextPlan['price'] }}</p>
+                        <p class="mt-2 text-2xl font-bold text-white">{{ $nextPlan['price'] ?? '$9/mo' }}</p>
                     </div>
-                    <a href="{{ $nextPlan['checkout_url'] }}"
+                    <a href="{{ $nextPlan['checkout_url'] ?? route('pricing') }}"
                         class="mt-5 inline-flex w-full items-center justify-center rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
-                        Upgrade to {{ $nextPlan['key'] === 'pro' ? 'Pro' : $nextPlan['name'] }}
+                        Upgrade to {{ ($nextPlan['key'] ?? '') === 'pro' ? 'Pro' : ($nextPlan['name'] ?? 'Standard') }}
                     </a>
                 @else
                     <p class="text-xs uppercase tracking-[0.22em] text-white/40">Top Tier</p>
@@ -109,7 +109,7 @@
             @if($nextPlan)
                 <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                     <div class="max-w-2xl">
-                        <p class="text-xs uppercase tracking-[0.22em] text-white/40">In {{ $nextPlan['key'] === 'pro' ? 'Pro' : $nextPlan['name'] }}</p>
+                        <p class="text-xs uppercase tracking-[0.22em] text-white/40">In {{ ($nextPlan['key'] ?? '') === 'pro' ? 'Pro' : ($nextPlan['name'] ?? 'Standard') }}</p>
                         <h3 class="mt-3 text-2xl font-semibold text-white">A cleaner step up, without the noise</h3>
                         <p class="mt-2 text-sm text-white/60">
                             Here is what changes when you move up. One clear upgrade path, one checkout button, and a better summary of what you are actually getting.
@@ -117,11 +117,11 @@
                     </div>
                     <div class="rounded-2xl border border-white/10 bg-white/5 px-5 py-5 min-w-[240px]">
                         <p class="text-xs uppercase tracking-[0.2em] text-white/40">Upgrade Price</p>
-                        <p class="mt-2 text-2xl font-bold text-white">{{ $nextPlan['price'] }}</p>
-                        <p class="mt-2 text-sm text-white/55">{{ $nextPlan['description'] ?: 'More room, better tools, and a fuller Lumina experience.' }}</p>
-                        <a href="{{ $nextPlan['checkout_url'] }}"
+                        <p class="mt-2 text-2xl font-bold text-white">{{ $nextPlan['price'] ?? '$9/mo' }}</p>
+                        <p class="mt-2 text-sm text-white/55">{{ ($nextPlan['description'] ?? '') ?: 'More room, better tools, and a fuller Lumina experience.' }}</p>
+                        <a href="{{ $nextPlan['checkout_url'] ?? route('pricing') }}"
                             class="mt-5 inline-flex w-full items-center justify-center rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
-                            Upgrade to {{ $nextPlan['key'] === 'pro' ? 'Pro' : $nextPlan['name'] }}
+                            Upgrade to {{ ($nextPlan['key'] ?? '') === 'pro' ? 'Pro' : ($nextPlan['name'] ?? 'Standard') }}
                         </a>
                     </div>
                 </div>

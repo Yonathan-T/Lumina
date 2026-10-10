@@ -32,8 +32,8 @@ class ApiIntegration extends Component
             try {
                 $this->apiKey = Crypt::decryptString($user->api_key);
                 $this->isKeyVerified = !is_null($user->api_key_verified_at);
-            } catch (DecryptException $e) {
-                \Log::error('Gemini API key decryption failed: ' . $e->getMessage());
+            } catch (\Throwable $e) {
+                \Log::warning('Gemini API key decryption failed: ' . $e->getMessage());
                 $this->status = 'error';
                 $this->statusMessage = 'Saved Gemini key is corrupted. Please re-enter.';
                 $this->apiKey = '';
@@ -46,8 +46,8 @@ class ApiIntegration extends Component
             try {
                 $this->elevenLabsKey = Crypt::decryptString($user->elevenlabs_api_key);
                 $this->isElevenLabsKeyVerified = !is_null($user->elevenlabs_api_key_verified_at);
-            } catch (DecryptException $e) {
-                \Log::error('ElevenLabs API key decryption failed: ' . $e->getMessage());
+            } catch (\Throwable $e) {
+                \Log::warning('ElevenLabs API key decryption failed: ' . $e->getMessage());
                 $this->elevenLabsStatus = 'error';
                 $this->elevenLabsStatusMessage = 'Saved ElevenLabs key is corrupted. Please re-enter.';
                 $this->elevenLabsKey = '';

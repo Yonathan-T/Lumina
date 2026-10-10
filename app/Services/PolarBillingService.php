@@ -84,6 +84,10 @@ class PolarBillingService
 
     public function normalizeProducts(array $products): array
     {
+        if (empty($products)) {
+            return $this->defaultProducts();
+        }
+
         $hash = md5(serialize($products));
         if ($this->memoizedProductsHash === $hash && $this->memoizedNormalizedProducts !== null) {
             return $this->memoizedNormalizedProducts;
@@ -125,6 +129,58 @@ class PolarBillingService
         $this->memoizedNormalizedProducts = $normalized;
 
         return $normalized;
+    }
+
+    public function defaultProducts(): array
+    {
+        return [
+            [
+                'key' => 'free',
+                'name' => 'Free Journaler',
+                'description' => 'A calm place to begin journaling with the essentials.',
+                'benefits' => [
+                    '10 entries per month',
+                    'Core AI chat reflections',
+                    'Light and dark sanctuary themes',
+                ],
+                'price_amount' => 0,
+                'price_currency' => 'USD',
+                'price' => '$0/mo',
+                'checkout_url' => route('pricing'),
+                'product_id' => 'free',
+            ],
+            [
+                'key' => 'standard',
+                'name' => 'Standard Journaler',
+                'description' => 'More room, more reflection, and richer daily support.',
+                'benefits' => [
+                    'Unlimited entries',
+                    'Guided reflection sessions',
+                    'Continuous ambient sanctuary music',
+                ],
+                'price_amount' => 900,
+                'price_currency' => 'USD',
+                'price' => '$9/mo',
+                'checkout_url' => route('pricing'),
+                'product_id' => 'standard',
+            ],
+            [
+                'key' => 'pro',
+                'name' => 'Pro Thinker',
+                'description' => 'Your full Lumina experience with everything unlocked.',
+                'benefits' => [
+                    'Everything in Standard',
+                    'Deep memo pattern analysis',
+                    'ElevenLabs voice audio synthesis',
+                    'Priority AI reasoning speed',
+                ],
+                'price_amount' => 1900,
+                'price_currency' => 'USD',
+                'price' => '$19/mo',
+                'checkout_url' => route('pricing'),
+                'product_id' => 'pro',
+            ],
+        ];
     }
 
     public function clearNormalizedProductsMemo(): void

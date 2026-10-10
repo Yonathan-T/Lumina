@@ -30,7 +30,10 @@ class ChatInterface extends Component
     public function mount()
     {
         $this->loadSessions();
-        if (! empty($this->sessions)) {
+        $requestedId = request()->query('conversation');
+        if ($requestedId && collect($this->sessions)->contains('id', (int) $requestedId)) {
+            $this->selectSession((int) $requestedId);
+        } elseif (! empty($this->sessions)) {
             $this->selectSession($this->sessions[0]['id']);
         }
     }

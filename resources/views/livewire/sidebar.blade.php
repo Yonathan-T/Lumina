@@ -108,20 +108,15 @@
             <x-sidebar-music-dock />
         </div>
 
-        {{-- Upgrade Button --}}
-        @php
-            $sidebarCtaLabel = $resolvedNextPlan
-                ? 'Upgrade to ' . ($resolvedNextPlan['key'] === 'pro' ? 'Pro' : $resolvedNextPlan['name'])
-                : 'Manage Plan';
-        @endphp
-
+        {{-- Manage Plan Button --}}
         <div class="p-4">
             <a id="sidebar-manage-plan-btn"
-                href="{{ $resolvedNextPlan['checkout_url'] ?? route('settings.index', ['tab' => 'subscription']) }}"
+                href="{{ route('settings.index', ['tab' => 'subscription']) }}"
+                wire:navigate.hover
                 class="z-222 h-10 px-4 py-2 w-full border border-white/10 hover:bg-blue-300/15 flex items-center rounded-md justify-center gap-2"
-                data-title="{{ $resolvedNextPlan ? 'Upgrade to ' . $resolvedNextPlan['name'] : 'Manage subscription' }}">
+                data-title="Manage Plan">
                 <x-icon name="badge-check" class="w-5 h-5 shrink-0 sidebar-icon" />
-                <span class="sidebar-label">{{ $sidebarCtaLabel }}</span>
+                <span class="sidebar-label">Manage Plan</span>
             </a>
         </div>
         {{-- User Profile --}}

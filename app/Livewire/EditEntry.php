@@ -52,10 +52,12 @@ class EditEntry extends Component
         $this->entry = $entry;
         $this->title = $entry->title;
         $this->content = $entry->content;
-        $this->selectedTags = $entry->tags->pluck('name')->toArray();
-        $this->availableTags = Tag::whereHas('entries', function ($query) {
-            $query->where('user_id', auth()->id());
-        })->get();
+        $this->entry->loadMissing('tags:id,name');
+        $this->selectedTags = $this->entry->tags->pluck('name')->toArray();
+        $this->availableTags = Tag::select(['id', 'name'])
+            ->whereHas('entries', function ($query) {
+                $query->where('user_id', auth()->id());
+            })->get();
     }
 
     public function startEditing()
@@ -136,7 +138,7 @@ class EditEntry extends Component
         $this->entry->delete();
         session()->flash('message', 'Entry deleted successfully!');
 
-        return redirect()->route('archive.entries');
+        return $this->redirect(route('archive.entries'), navigate: true);
     }
 
     public function addTag()

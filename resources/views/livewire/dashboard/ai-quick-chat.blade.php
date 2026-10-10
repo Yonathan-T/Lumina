@@ -67,52 +67,35 @@
             </div>
 
             <!-- Quick Chat Card -->
-            @can('access-premium')
-                {{-- ✅ Premium users see and can click the card --}}
-                <div class="group relative cursor-pointer overflow-hidden rounded-lg border border-white/10 bg-gradient-dark transition-all duration-200 hover:border-violet-400/40"
-                    wire:click="startQuickChat" 
-                    wire:loading.class="opacity-75 cursor-wait border-violet-400/60"
-                    wire:target="startQuickChat">
-                    <div class="pointer-events-none absolute inset-0 bg-dot-pattern opacity-60"></div>
-                    <div class="relative p-4">
-                        <div class="flex items-start gap-3">
-                            <div class="flex h-10 w-10 items-center justify-center rounded-md bg-violet-500/10">
-                                <x-icon name="flash-outline" class="h-5 w-5 text-violet-300" />
-                            </div>
-                            <div class="flex-1">
+            <div class="group relative cursor-pointer overflow-hidden rounded-lg border border-white/10 bg-gradient-dark transition-all duration-200 hover:border-violet-400/40"
+                wire:click="startQuickChat" 
+                wire:loading.class="opacity-75 cursor-wait border-violet-400/60"
+                wire:target="startQuickChat">
+                <div class="pointer-events-none absolute inset-0 bg-dot-pattern opacity-60"></div>
+                <div class="relative p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-md bg-violet-500/10">
+                            <x-icon name="flash-outline" class="h-5 w-5 text-violet-300" />
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
                                 <h3 class="text-lg font-semibold text-white">Quick Chat</h3>
-                                <p class="text-sm text-gray-400">Private chat, not saved</p>
+                                <span class="rounded-full bg-violet-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-violet-300 border border-violet-500/30">Beta</span>
                             </div>
-                            <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-violet-300 transition-transform duration-200 group-hover:translate-x-0.5">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
-                                    <path fill-rule="evenodd" d="M3.25 10a.75.75 0 0 1 .75-.75h9.19L9.97 6.03a.75.75 0 1 1 1.06-1.06l4.5 4.5a.75.75 0 0 1 0 1.06l-4.5 4.5a.75.75 0 1 1-1.06-1.06l3.22-3.22H4A.75.75 0 0 1 3.25 10Z" clip-rule="evenodd" />
-                                </svg>
-                            </span>
+                            <p class="text-sm text-gray-400">Private chat, not saved</p>
                         </div>
-                        <div wire:loading wire:target="startQuickChat" class="mt-3 flex items-center gap-2 text-sm text-violet-400">
-                            <div class="h-4 w-4 animate-spin rounded-full border-2 border-violet-400 border-t-transparent"></div>
-                            Opening Quick Chat...
-                        </div>
+                        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-violet-300 transition-transform duration-200 group-hover:translate-x-0.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
+                                <path fill-rule="evenodd" d="M3.25 10a.75.75 0 0 1 .75-.75h9.19L9.97 6.03a.75.75 0 1 1 1.06-1.06l4.5 4.5a.75.75 0 0 1 0 1.06l-4.5 4.5a.75.75 0 1 1-1.06-1.06l3.22-3.22H4A.75.75 0 0 1 3.25 10Z" clip-rule="evenodd" />
+                            </svg>
+                        </span>
+                    </div>
+                    <div wire:loading wire:target="startQuickChat" class="mt-3 flex items-center gap-2 text-sm text-violet-400">
+                        <div class="h-4 w-4 animate-spin rounded-full border-2 border-violet-400 border-t-transparent"></div>
+                        Opening Quick Chat...
                     </div>
                 </div>
-            @else
-                {{-- 🔒 Free users see a locked state --}}
-                <div class="relative cursor-not-allowed overflow-hidden rounded-lg border border-white/10 bg-gradient-dark opacity-75">
-                    <div class="pointer-events-none absolute inset-0 bg-dot-pattern opacity-60"></div>
-                    <div class="relative p-4">
-                        <div class="flex items-start gap-3">
-                            <div class="flex h-10 w-10 items-center justify-center rounded-md bg-violet-500/10">
-                                <x-icon name="lock" class="h-5 w-5 text-violet-300" />
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="text-lg font-semibold text-white">Quick Chat</h3>
-                                <p class="text-sm text-gray-400">Upgrade to unlock this feature</p>
-                            </div>
-                            <span class="inline-flex h-8 items-center rounded-full bg-white/5 px-3 text-[11px] uppercase tracking-[0.18em] text-gray-400">Locked</span>
-                        </div>
-                    </div>
-                </div>
-            @endcan
+            </div>
 
             <!-- Review Past Memos Card -->
             <div class="group relative cursor-pointer overflow-hidden rounded-lg border border-white/10 bg-gradient-dark transition-all duration-200 hover:border-amber-400/40"

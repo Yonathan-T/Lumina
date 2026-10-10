@@ -70,7 +70,7 @@ class History extends Component
             $this->processingEntryId = null;
 
             // Redirect to the chat interface
-            return redirect()->route('chat.index', ['conversation' => $conversation->id]);
+            return $this->redirect(route('chat.index', ['conversation' => $conversation->id]), navigate: true);
 
         } catch (\Exception $e) {
             \Log::error('Reflection Error: '.$e->getMessage());

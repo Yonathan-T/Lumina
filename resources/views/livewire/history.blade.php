@@ -11,31 +11,26 @@
             <x-search-trigger />
             <x-search-modal />
         </div>
-        <div class="relative w-44 ml-auto">
-            <select wire:model.change="sort" class="flex h-10 w-full rounded-md border border-white/15 shadow-sm bg-background px-3 py-2 text-sm
-                text-white">
+        <div class="relative w-48 ml-auto flex items-center">
+            <select wire:model.change="sort" class="flex h-10 w-full rounded-md border border-white/15 shadow-sm bg-background px-3 py-2 text-sm text-white focus:border-blue-400 focus:outline-none cursor-pointer">
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
                 <option value="longest">Longest First</option>
                 <option value="shortest">Shortest First</option>
             </select>
-
-            <!--HERE, I NEED TO MAKE A BETTER UI FOR THE SELECT ITEM!!!
-         
-         SO HERE GOES A BIG COMMENT SECTION!!!
-         -->
+            <div wire:loading wire:target="sort" class="absolute -left-7 flex items-center justify-center">
+                <div class="h-4 w-4 animate-spin rounded-full border-2 border-blue-400 border-t-transparent"></div>
+            </div>
         </div>
     </div>
     <div class="mt-8">
         <div class="{{ \App\Helpers\FontHelper::getFontClass() }}" data-font-bind data-font-size-bind style="font-size: {{ \App\Helpers\FontHelper::getFontSize() }}px;">
 
-
-
-
             <h2 class="text-xl font-semibold mb-4">All entries</h2>
+            <div wire:loading.class="opacity-60 pointer-events-none transition-opacity duration-200" wire:target="sort">
             @if($recentEntries->count() > 0)
                 @foreach($recentEntries as $entry)
-                    <a href="{{ route('entries.show', $entry) }}" class="block">
+                    <a href="{{ route('entries.show', $entry) }}" wire:navigate.hover class="block">
                         <div
                             class="flex items-stretch rounded-lg card-highlight  shadow-md  bg-gradient-dark border border-white/10 overflow-hidden mb-4">
                             <!-- Date Square -->
@@ -108,6 +103,7 @@
                     </a>
                 </div>
             @endif
+            </div>
         </div>
     </div>
 
