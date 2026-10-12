@@ -252,7 +252,7 @@
   {{-- <x-pricing-section :products="$products" /> --}}
 
   <!-- FAQ Section -->
-  <section class="py-20 px-4">
+  <section id="faq" class="py-20 px-4">
     <div class="max-w-4xl mx-auto">
       <div class="text-center mb-12">
         <h2 class="font-playfair text-3xl md:text-4xl font-bold mb-4 tracking-wide">

@@ -248,10 +248,9 @@
                 </p>
             </a>
             <div class="hidden md:flex space-x-6 font-bold">
-                <x-links href="#features" section="features">Features</x-links>
-                {{-- <x-links href="#pricing" section="pricing">Pricing</x-links> --}}
+                <x-links href="{{ $isLandingPage ? '#features' : '/#features' }}" section="features">Features</x-links>
+                <x-links href="{{ $isLandingPage ? '#faq' : '/#faq' }}" section="faq">FAQs</x-links>
                 <x-links :href="route('blogs.index')" :active="request()->routeIs('blogs.*')" wire:navigate.hover>Blogs</x-links>
-                <x-links href="#contact" section="contact">Contact</x-links>
             </div>
             <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 @auth
@@ -324,11 +323,18 @@
             >
                 <div class="rounded-3xl border border-white/15 bg-[#060b16]/95 backdrop-blur-2xl p-4 shadow-2xl space-y-1.5 divide-y divide-white/5">
                     <a 
-                        href="#features" 
+                        href="{{ $isLandingPage ? '#features' : '/#features' }}" 
                         @click="mobileNavOpen = false"
                         class="block px-4 py-2.5 rounded-xl text-base font-semibold text-gray-200 hover:text-white hover:bg-white/10 transition-colors"
                     >
                         Features
+                    </a>
+                    <a 
+                        href="{{ $isLandingPage ? '#faq' : '/#faq' }}" 
+                        @click="mobileNavOpen = false"
+                        class="block px-4 py-2.5 rounded-xl text-base font-semibold text-gray-200 hover:text-white hover:bg-white/10 transition-colors"
+                    >
+                        FAQs
                     </a>
                     <a 
                         href="{{ route('blogs.index') }}" 
@@ -337,13 +343,6 @@
                         class="block px-4 py-2.5 rounded-xl text-base font-semibold text-gray-200 hover:text-white hover:bg-white/10 transition-colors"
                     >
                         Blogs
-                    </a>
-                    <a 
-                        href="#contact" 
-                        @click="mobileNavOpen = false"
-                        class="block px-4 py-2.5 rounded-xl text-base font-semibold text-gray-200 hover:text-white hover:bg-white/10 transition-colors"
-                    >
-                        Contact
                     </a>
                 </div>
             </div>
