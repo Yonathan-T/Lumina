@@ -270,7 +270,7 @@
           :class="openFaq === 1 ? 'shadow-lg' : ''">
           <button @click="openFaq = openFaq === 1 ? null : 1"
             class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
-            <span class="font-medium text-lg text-white">Is my data private?</span>
+            <span class="font-medium text-lg text-white">How is my privacy and personal safety protected?</span>
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-transform duration-300"
               :class="openFaq === 1 ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -278,8 +278,9 @@
           </button>
           <div x-show="openFaq === 1" x-collapse x-cloak>
             <div class="px-6 pb-5 text-white/70">
-              Absolutely. Your entries are encrypted and never shared. We don't read your journals. Your privacy is our
-              top priority, and all data is stored securely with industry-standard encryption.
+              Your reflections are sacred. Your entries, journals, and private conversations are encrypted, securely hashed,
+              and tied exclusively to your authenticated account. No one else can access them—not even our team. Your personal
+              sanctuary belongs entirely to you.
             </div>
           </div>
         </div>
@@ -290,7 +291,7 @@
           :class="openFaq === 2 ? 'shadow-lg' : ''">
           <button @click="openFaq = openFaq === 2 ? null : 2"
             class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
-            <span class="font-medium text-lg text-white">Can I cancel anytime?</span>
+            <span class="font-medium text-lg text-white">Does the AI train on my personal journals or conversations?</span>
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-transform duration-300"
               :class="openFaq === 2 ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -298,8 +299,9 @@
           </button>
           <div x-show="openFaq === 2" x-collapse x-cloak>
             <div class="px-6 pb-5 text-white/70">
-              Yes! Cancel with one click from your settings. No questions asked. You'll keep your free account and all
-              your entries, you just won't have access to premium features anymore.
+              Never. Your memos, reflections, and chats with Lumi are never used to train public AI models. The AI
+              only processes the specific context you choose to discuss during your active session to offer thoughtful,
+              empathetic guidance and personalized insights.
             </div>
           </div>
         </div>
@@ -310,7 +312,7 @@
           :class="openFaq === 3 ? 'shadow-lg' : ''">
           <button @click="openFaq = openFaq === 3 ? null : 3"
             class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
-            <span class="font-medium text-lg text-white">What's the difference between Standard and Pro?</span>
+            <span class="font-medium text-lg text-white">Who can access my entries and conversations?</span>
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-transform duration-300"
               :class="openFaq === 3 ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -318,9 +320,8 @@
           </button>
           <div x-show="openFaq === 3" x-collapse x-cloak>
             <div class="px-6 pb-5 text-white/70">
-              Pro adds unlimited entries, text-to-speech for listening to your journals, unlimited data exports, and
-              premium customization options. Standard is perfect for most daily journalers with 100 entries per month
-              and AI chat support.
+              Only you. All your data is partitioned by your private user account with strict authorization safeguards.
+              Your vault is completely isolated from other users and never indexed by search engines or public crawlers.
             </div>
           </div>
         </div>
@@ -331,7 +332,7 @@
           :class="openFaq === 4 ? 'shadow-lg' : ''">
           <button @click="openFaq = openFaq === 4 ? null : 4"
             class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
-            <span class="font-medium text-lg text-white">How does the AI work?</span>
+            <span class="font-medium text-lg text-white">Can I export my journals and data anytime?</span>
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-transform duration-300"
               :class="openFaq === 4 ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -339,9 +340,8 @@
           </button>
           <div x-show="openFaq === 4" x-collapse x-cloak>
             <div class="px-6 pb-5 text-white/70">
-              Lumi, our AI assistant, reads your entries (with your permission) and provides thoughtful, context-aware
-              responses to help you reflect deeper. It remembers your previous conversations and journal themes to offer
-              personalized insights and prompts.
+              Yes, absolutely. You retain 100% ownership of your thoughts and words. You can download formatted PDF
+              summaries or full data exports whenever you like—with no limits, paywalls, or restrictions.
             </div>
           </div>
         </div>
@@ -352,7 +352,7 @@
           :class="openFaq === 5 ? 'shadow-lg' : ''">
           <button @click="openFaq = openFaq === 5 ? null : 5"
             class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
-            <span class="font-medium text-lg text-white">Can I export my data?</span>
+            <span class="font-medium text-lg text-white">How does the ambient music and sanctuary experience work?</span>
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-transform duration-300"
               :class="openFaq === 5 ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -360,8 +360,9 @@
           </button>
           <div x-show="openFaq === 5" x-collapse x-cloak>
             <div class="px-6 pb-5 text-white/70">
-              Free users can manually copy their entries. Standard plan users get 4 full JSON exports per year, and Pro
-              users can export their data anytime with unlimited exports. Your data is always yours.
+              Lumina features a built-in persistent ambient audio player curated with calming lofi tracks. It
+              smoothly docks into your sidebar, lets you switch tracks or loop your favorite soothing melodies, and
+              accompanies your reflections across every page without interruption.
             </div>
           </div>
         </div>
@@ -372,7 +373,7 @@
           :class="openFaq === 6 ? 'shadow-lg' : ''">
           <button @click="openFaq = openFaq === 6 ? null : 6"
             class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
-            <span class="font-medium text-lg text-white">What if I exceed my monthly entry limit?</span>
+            <span class="font-medium text-lg text-white">Can I listen back to my memos with audio narration?</span>
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-transform duration-300"
               :class="openFaq === 6 ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -380,48 +381,9 @@
           </button>
           <div x-show="openFaq === 6" x-collapse x-cloak>
             <div class="px-6 pb-5 text-white/70">
-              You'll receive a friendly notification encouraging you to upgrade. Your existing entries are never locked
-              or deleted—you just won't be able to create new ones until the next month or you upgrade your plan.
-            </div>
-          </div>
-        </div>
-
-        <!-- FAQ Item 7 -->
-        <div
-          class="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden transition-all duration-300"
-          :class="openFaq === 7 ? 'shadow-lg' : ''">
-          <button @click="openFaq = openFaq === 7 ? null : 7"
-            class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
-            <span class="font-medium text-lg text-white">Is there a mobile app?</span>
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-transform duration-300"
-              :class="openFaq === 7 ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          <div x-show="openFaq === 7" x-collapse x-cloak>
-            <div class="px-6 pb-5 text-white/70">
-              Not yet, but our web app works beautifully on mobile browsers and is fully responsive. You can add it to
-              your home screen for a native app-like experience. A dedicated native app is coming in 2025!
-            </div>
-          </div>
-        </div>
-
-        <!-- FAQ Item 8 -->
-        <div
-          class="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden transition-all duration-300"
-          :class="openFaq === 8 ? 'shadow-lg' : ''">
-          <button @click="openFaq = openFaq === 8 ? null : 8"
-            class="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
-            <span class="font-medium text-lg text-white">Do you offer refunds?</span>
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-transform duration-300"
-              :class="openFaq === 8 ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          <div x-show="openFaq === 8" x-collapse x-cloak>
-            <div class="px-6 pb-5 text-white/70">
-              Yes, we offer a 30-day money-back guarantee on all paid plans. If Lumina isn't right for you, just contact
-              support within 30 days of your purchase for a full refund.
+              Yes! Lumina integrates natural voice narration so you can transform your written memos into spoken audio
+              reflections. To enable voice generation, simply add your own ElevenLabs API key in your account Settings,
+              and you can listen back to any memo anytime.
             </div>
           </div>
         </div>
