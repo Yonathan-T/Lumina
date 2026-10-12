@@ -42,29 +42,31 @@ class SearchController extends Controller
             ];
         }
 
-        // and Search tags
-        if ($request->get('include_tags')) {
-            $tags = Tag::where('name', 'LIKE', "%{$query}%")
-                ->whereHas('entries', function ($query) {
-                    $query->where('user_id', auth()->id());
-                })
-                ->withCount(['entries' => function ($query) {
-                    $query->where('user_id', auth()->id());
-                }])
-                ->limit(5)
-                ->get();
+        // Also search matching tags
+        $isPg = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'pgsql';
+        $operator = $isPg ? 'ILIKE' : 'LIKE';
+        $cleanTagQuery = ltrim($query, '#');
 
-            foreach ($tags as $tag) {
-                $results[] = [
-                    'id' => "tag-{$tag->id}",
-                    'title' => "#{$tag->name}",
-                    'preview' => "{$tag->entries_count} entries",
-                    'date' => "{$tag->entries_count} entries",
-                    'tags' => [$tag->name],
-                    'type' => 'tag',
-                    'url' => route('tags.index').'?tag='.urlencode($tag->name),
-                ];
-            }
+        $tags = Tag::where('name', $operator, "%{$cleanTagQuery}%")
+            ->whereHas('entries', function ($query) {
+                $query->where('user_id', auth()->id());
+            })
+            ->withCount(['entries' => function ($query) {
+                $query->where('user_id', auth()->id());
+            }])
+            ->limit(3)
+            ->get();
+
+        foreach ($tags as $tag) {
+            $results[] = [
+                'id' => "tag-{$tag->id}",
+                'title' => "#{$tag->name}",
+                'preview' => "{$tag->entries_count} entries tagged",
+                'date' => "Tag",
+                'tags' => [$tag->name],
+                'type' => 'tag',
+                'url' => route('tags.index').'?tag='.urlencode($tag->name),
+            ];
         }
 
         return response()->json(['results' => $results]);

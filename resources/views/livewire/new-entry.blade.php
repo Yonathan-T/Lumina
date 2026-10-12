@@ -10,52 +10,98 @@
             </div>
         </div>
         <!-- <form method="POST" action="/entries"> Should i use livewire or controller -->
-        <form wire:submit.prevent="save">
+        <form wire:submit="save">
             @csrf
             <div class="space-y-4">
                 <div class="relative group" x-data="{
                         preview: null,
-                        uploading: false,
-                        select(e) {
+                        selectFile(e) {
                             const file = e.target.files[0];
-                            if (file) this.preview = URL.createObjectURL(file);
-                        },
-                        clear() { this.preview = null; $wire.set('banner', null); }
-                    }"
-                    x-on:livewire-upload-start="uploading = true"
-                    x-on:livewire-upload-finish="uploading = false"
-                    x-on:livewire-upload-error="uploading = false">
+                            if (!file) return;
 
-                    {{-- Preview (shows instantly from the local file, before the upload finishes) --}}
+                            // 1. Instant 0ms visual preview
+                            this.preview = URL.createObjectURL(file);
+
+                            // 2. High-speed client optimization before upload
+                            const upload = (fileToUpload) => {
+                                $wire.upload('banner', fileToUpload, () => {}, (err) => {
+                                    console.error('Banner upload error:', err);
+                                });
+                            };
+
+                            if (file.type && file.type.startsWith('image/') && file.size > 800 * 1024) {
+                                const img = new Image();
+                                img.onload = () => {
+                                    const maxDim = 1920;
+                                    let w = img.width;
+                                    let h = img.height;
+                                    if (w > maxDim || h > maxDim) {
+                                        if (w > h) {
+                                            h = Math.round((h * maxDim) / w);
+                                            w = maxDim;
+                                        } else {
+                                            w = Math.round((w * maxDim) / h);
+                                            h = maxDim;
+                                        }
+                                    }
+                                    const canvas = document.createElement('canvas');
+                                    canvas.width = w;
+                                    canvas.height = h;
+                                    const ctx = canvas.getContext('2d');
+                                    ctx.drawImage(img, 0, 0, w, h);
+                                    canvas.toBlob((blob) => {
+                                        if (blob) {
+                                            const optimized = new File([blob], file.name.replace(/\.[^/.]+$/, '.jpg'), { type: 'image/jpeg' });
+                                            upload(optimized);
+                                        } else {
+                                            upload(file);
+                                        }
+                                    }, 'image/jpeg', 0.85);
+                                };
+                                img.onerror = () => upload(file);
+                                img.src = this.preview;
+                            } else {
+                                upload(file);
+                            }
+                        },
+                        clear() {
+                            this.preview = null;
+                            if (this.$refs.bannerFileInput) {
+                                this.$refs.bannerFileInput.value = '';
+                            }
+                            $wire.set('banner', null);
+                        }
+                    }">
+
+                    {{-- Single hidden file input controlled by refs --}}
+                    <input type="file" x-ref="bannerFileInput" x-on:change="selectFile($event)" class="hidden" accept="image/*">
+
+                    {{-- Preview Container --}}
                     <div x-show="preview" x-cloak class="relative w-full h-64 rounded-xl overflow-hidden border border-white/10 shadow-2xl">
                         <img :src="preview" class="w-full h-full object-cover" alt="Cover preview">
                         <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
 
-                        {{-- background-upload indicator --}}
-                        <div x-show="uploading" x-cloak class="absolute inset-0 flex items-center justify-center gap-2 bg-black/50 text-white text-sm">
-                            <div class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                            Uploading…
-                        </div>
-
                         <button type="button" x-on:click="clear()"
-                            class="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-red-500/80 transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm">
+                            class="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-red-500/80 transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm cursor-pointer"
+                            title="Remove Cover">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
                         </button>
                         <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <label class="cursor-pointer bg-black/50 text-white px-4 py-2 rounded-lg hover:bg-white/20 backdrop-blur-sm text-sm font-medium flex items-center gap-2 transition-all">
+                            <button type="button" x-on:click="$refs.bannerFileInput.click()"
+                                class="cursor-pointer bg-black/50 text-white px-4 py-2 rounded-lg hover:bg-white/20 backdrop-blur-sm text-sm font-medium flex items-center gap-2 transition-all">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                 </svg>
                                 Change Cover
-                                <input type="file" wire:model="banner" x-on:change="select($event)" class="hidden" accept="image/*">
-                            </label>
+                            </button>
                         </div>
                     </div>
 
                     {{-- Dropzone --}}
-                    <label x-show="!preview"
+                    <div x-show="!preview"
+                        x-on:click="$refs.bannerFileInput.click()"
                         class="cursor-pointer group flex flex-col items-center justify-center w-full h-32 rounded-xl border-2 border-dashed border-white/10 hover:border-white/20 hover:bg-white/5 transition-all duration-200">
                         <div class="flex flex-col items-center justify-center pt-5 pb-6 text-muted group-hover:text-white transition-colors">
                             <svg class="w-8 h-8 mb-3 opacity-50 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,8 +109,7 @@
                             </svg>
                             <p class="text-sm font-medium">Add Cover Image</p>
                         </div>
-                        <input type="file" wire:model="banner" x-on:change="select($event)" class="hidden" accept="image/*">
-                    </label>
+                    </div>
 
                     <x-form-error name="banner" />
                 </div>
@@ -113,10 +158,17 @@
                 </div>
 
                 <div class="flex justify-end gap-2">
-                    <button href="/dashboard"
-                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors  border border-white/10 bg-background backdrop-blur-sm hover:bg-white/5 transition duration-200 hover:text-accent h-10 px-4 py-2">Discard
-                        Draft</button>
-                    <x-form-button>Save Entry</x-form-button>
+                    <a href="{{ route('dashboard') }}" wire:navigate.hover
+                        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors border border-white/10 bg-background backdrop-blur-sm hover:bg-white/5 transition duration-200 hover:text-accent h-10 px-4 py-2 text-white">
+                        Discard Draft
+                    </a>
+                    <button type="submit" 
+                        wire:loading.attr="disabled"
+                        wire:target="save, banner"
+                        class="inline-flex items-center justify-center gap-2 rounded-md bg-white text-black px-5 py-2 text-sm font-semibold hover:bg-gray-200 transition disabled:opacity-50 cursor-pointer min-w-[120px]">
+                        <span wire:loading.remove wire:target="save, banner">Save Entry</span>
+                        <div wire:loading wire:target="save, banner" class="h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent"></div>
+                    </button>
                 </div>
 
             </div>
@@ -139,13 +191,16 @@
                             reflect on your thoughts and feelings.</p>
 
                         <div class="flex gap-3 pt-2">
-                            <button wire:click="goToDashboard"
-                                class="flex-1 px-4 py-2 text-sm font-medium text-muted hover:text-white border border-white/10 rounded-md hover:bg-white/5 transition-colors">
+                            <a href="{{ route('dashboard') }}" wire:navigate.hover
+                                class="flex-1 px-4 py-2 text-sm font-medium text-muted hover:text-white border border-white/10 rounded-md hover:bg-white/5 transition-colors inline-flex items-center justify-center cursor-pointer">
                                 Maybe Later
-                            </button>
+                            </a>
                             <button wire:click="startEntryChat"
-                                class="flex-1 px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
-                                Yes, Let's Talk!
+                                wire:loading.attr="disabled"
+                                wire:target="startEntryChat"
+                                class="flex-1 px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors inline-flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer min-h-[38px]">
+                                <span wire:loading.remove wire:target="startEntryChat">Yes, Let's Talk!</span>
+                                <div wire:loading wire:target="startEntryChat" class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                             </button>
                         </div>
                     </div>

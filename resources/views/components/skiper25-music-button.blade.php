@@ -14,12 +14,16 @@
             this.syncState();
             window.addEventListener('sanctuary-audio-state', (e) => {
                 this.isPlaying = !!(e.detail && e.detail.isPlaying);
-                if (!this.isPlaying) {
+                if (!this.isPlaying && sessionStorage.getItem('sanctuary_docked') !== '1') {
                     this.isDocked = false;
                 }
             });
             window.addEventListener('music-docked', () => {
                 this.isDocked = true;
+            });
+            window.addEventListener('music-undocked', () => {
+                this.isDocked = false;
+                this.isPlaying = false;
             });
             window.addEventListener('focus', () => {
                 this.syncState();
@@ -30,14 +34,14 @@
         },
 
         syncState() {
-            if (window.SanctuaryAudio) {
+            if (window.SanctuaryAudio && typeof window.SanctuaryAudio.getIsPlaying === 'function') {
                 this.isPlaying = window.SanctuaryAudio.getIsPlaying();
             }
-            this.isDocked = Boolean(this.isPlaying || window.isMusicFlying);
+            this.isDocked = Boolean((sessionStorage.getItem('sanctuary_docked') === '1') || window.isMusicFlying);
         },
 
         handleClick() {
-            if (!this.isPlaying) {
+            if (!this.isDocked) {
                 // Immediately vanish header button as jumper takes flight!
                 this.isDocked = true;
                 window.isMusicFlying = true;
@@ -47,9 +51,11 @@
                     window.triggerMusicJumpToSidebar(() => {
                         window.isMusicFlying = false;
                         this.isDocked = true;
+                        if (window.SanctuaryAudio) {
+                            window.SanctuaryAudio.play();
+                        }
                     });
-                }
-                if (window.SanctuaryAudio) {
+                } else if (window.SanctuaryAudio) {
                     window.SanctuaryAudio.play();
                 }
             } else {
@@ -59,6 +65,7 @@
                 this.isDocked = false;
                 window.isMusicFlying = false;
                 try { sessionStorage.removeItem('sanctuary_docked'); } catch(e){}
+                window.dispatchEvent(new CustomEvent('music-undocked'));
             }
         }
     }" 

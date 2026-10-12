@@ -30,58 +30,66 @@
             <div wire:loading.class="opacity-60 pointer-events-none transition-opacity duration-200" wire:target="sort">
             @if($recentEntries->count() > 0)
                 @foreach($recentEntries as $entry)
-                    <a href="{{ route('entries.show', $entry) }}" wire:navigate.hover class="block">
+                    <div class="relative group rounded-lg card-highlight shadow-md bg-gradient-dark border border-white/10 hover:border-white/20 transition-all overflow-hidden mb-4 cursor-pointer">
+                        <a href="{{ route('entries.show', $entry) }}" wire:navigate.hover class="!absolute inset-0 !z-10 cursor-pointer block" aria-label="View entry {{ $entry->title }}"></a>
                         <div
-                            class="flex items-stretch rounded-lg card-highlight  shadow-md  bg-gradient-dark border border-white/10 overflow-hidden mb-4">
-                            <!-- Date Square -->
+                            class="flex items-stretch pointer-events-none">
+                            <!-- Date Square (Desktop only) -->
                             <div
-                                class="flex flex-col justify-center items-center 
-                                                                                                                            bg-gradient-dark  border border-white/10 
-                                                                                                                            w-20 min-w-30 h-30 
-                                                                                                                            rounded-xl shadow-lg 
-                                                                                                                            m-4 card-highlight
-                                                                                                                            self-center">
+                                class="hidden md:flex flex-col justify-center items-center 
+                                    bg-gradient-dark border border-white/10 
+                                    w-20 min-w-30 h-30 
+                                    rounded-xl shadow-lg 
+                                    m-4 card-highlight
+                                    self-center shrink-0">
                                 <span class="text-lg font-bold">{{ strtoupper($entry->date_month) }}</span>
                                 <span class="text-2xl font-extrabold leading-none">{{ $entry->date_day }}</span>
                             </div>
                             <!-- Content -->
-                            <div class="flex-1 flex flex-col justify-between p-6">
-                                <div class="flex items-center justify-between mb-2">
-                                    <div class="justify-start">
-                                        <h3 class="text-2xl font-semibold leading-none tracking-tight">{{ $entry->title }}</h3>
+                            <div class="flex-1 min-w-0 flex flex-col justify-between p-4 sm:p-6">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2.5">
+                                    <div class="min-w-0 pointer-events-auto relative !z-20 flex-1">
+                                        <a href="{{ route('entries.show', $entry) }}" wire:navigate.hover class="hover:text-blue-400 transition-colors">
+                                            <h3 class="text-xl sm:text-2xl font-semibold leading-snug tracking-tight text-white line-clamp-2 sm:truncate">{{ $entry->title }}</h3>
+                                        </a>
+                                        <!-- Mobile Date & Relative Time -->
+                                        <div class="md:hidden mt-1 flex items-center gap-1.5 text-xs text-muted">
+                                            <span>{{ $entry->date_formatted ?? ($entry->date_month . ' ' . $entry->date_day) }}</span>
+                                            <span>•</span>
+                                            <span>{{ $entry->diff }}</span>
+                                        </div>
                                     </div>
-                                    <div class="flex items-center gap-2">
-                                        <button onclick="event.preventDefault(); event.stopPropagation(); "
-                                            wire:click="Reflect({{ $entry->id }})" @disabled($isProcessing === 'reflection' && $processingEntryId === $entry->id)
-                                            class="cursor-pointer text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 px-2 py-1 rounded text-sm flex items-center gap-1 transition-colors disabled:opacity-50">
-                                            @if($isProcessing === 'reflection' && $processingEntryId === $entry->id)
-                                                <x-icon name="rotate-ccw" class="h-4 w-4 animate-spin" />
-                                                Starting...
-                                            @else
-                                                <x-icon name="stethoscope" class="h-4 w-4" />
-                                                Reflect
-                                            @endif
+                                    <div class="flex items-center justify-between sm:justify-end gap-2.5 pointer-events-auto relative !z-20 shrink-0 pt-1 sm:pt-0">
+                                        <button type="button"
+                                            wire:click.stop="Reflect({{ $entry->id }})"
+                                            wire:loading.attr="disabled"
+                                            wire:target="Reflect({{ $entry->id }})"
+                                            class="cursor-pointer text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 px-2.5 py-1 rounded-md text-xs sm:text-sm font-medium inline-flex items-center gap-1.5 whitespace-nowrap transition-colors disabled:opacity-50">
+                                            <x-icon wire:loading.remove wire:target="Reflect({{ $entry->id }})" name="stethoscope" class="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                                            <svg wire:loading wire:target="Reflect({{ $entry->id }})" class="animate-spin h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-400 shrink-0" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                            </svg>
+                                            <span>Reflect</span>
                                         </button>
 
-                                        <div class="text-sm text-muted whitespace-nowrap">
+                                        <div class="hidden md:block text-sm text-muted whitespace-nowrap">
                                             {{ $entry->diff }}
                                         </div>
                                     </div>
                                 </div>
-                                {{-- <p class="line-clamp-3 mb-2"> {!! nl2br(e($entry->content)) !!}</p> --}}
-                                <p class="line-clamp-3 mb-2">{!! $entry->content_html !!}</p>
-                                <div class="mt-2 flex flex-wrap gap-2">
+                                <p class="line-clamp-3 text-sm sm:text-base text-gray-300 mb-2">{!! $entry->content_html !!}</p>
+                                <div class="mt-2 flex flex-wrap gap-2 pointer-events-auto relative !z-20">
                                     @foreach($entry->tags as $tag)
                                         <div
                                             class="inline-flex items-center rounded-full quick-start-btn border px-2.5 py-0.5 text-xs font-semibold transition-colors border-transparent bg-secondary text-secondary-foreground hover:/80">
                                             #{{ $tag->name }}
                                         </div>
                                     @endforeach
-
                                 </div>
                             </div>
                         </div>
-                    </a>
+                    </div>
                 @endforeach
                 <div class="mt-6">
                     {{ $recentEntries->links() }}

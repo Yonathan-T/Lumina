@@ -26,8 +26,6 @@ class EditEntry extends Component
 
     public $selectedTags = [];
 
-    public $availableTags = [];
-
     public $newTag = '';
 
     public $tagError = null;
@@ -41,8 +39,8 @@ class EditEntry extends Component
     public $showMissingElevenLabsModal = false;
 
     protected $rules = [
-        'title' => 'required|string|min:3|max:255',
-        'content' => 'required|string|min:10',
+        'title' => 'required|string|max:255',
+        'content' => 'required|string',
         'selectedTags' => 'array',
         'banner' => 'nullable|image|max:10240', // 10MB Max
     ];
@@ -54,10 +52,6 @@ class EditEntry extends Component
         $this->content = $entry->content;
         $this->entry->loadMissing('tags:id,name');
         $this->selectedTags = $this->entry->tags->pluck('name')->toArray();
-        $this->availableTags = Tag::select(['id', 'name'])
-            ->whereHas('entries', function ($query) {
-                $query->where('user_id', auth()->id());
-            })->get();
     }
 
     public function startEditing()
@@ -68,9 +62,11 @@ class EditEntry extends Component
     public function cancelEditing()
     {
         $this->isEditing = false;
+        $this->entry->load('tags:id,name');
         $this->title = $this->entry->title;
         $this->content = $this->entry->content;
         $this->selectedTags = $this->entry->tags->pluck('name')->toArray();
+        $this->newTag = '';
         $this->banner = null;
         $this->tagError = null;
     }
@@ -78,6 +74,18 @@ class EditEntry extends Component
     public function save()
     {
         $this->validate();
+
+        // If the user typed a new tag in the input box without pressing Enter, add it automatically
+        if (!empty(trim($this->newTag))) {
+            $pendingTag = ltrim(trim($this->newTag), '#');
+            if ($pendingTag !== '' && !preg_match('/\s/', $pendingTag)) {
+                if (!in_array(strtolower($pendingTag), array_map('strtolower', $this->selectedTags))) {
+                    $this->selectedTags[] = $pendingTag;
+                }
+            }
+            $this->newTag = '';
+            $this->tagError = null;
+        }
 
         preg_match_all('/(?<=\s|^)#([A-Za-z][\w]{1,30})/', $this->content, $matches);
         $tagsFromContent = array_map('strtolower', $matches[1]);
@@ -93,10 +101,21 @@ class EditEntry extends Component
 
         if ($this->banner) {
             $disk = config('filesystems.default') === 's3' ? 's3' : 'public';
-            if ($this->entry->banner_path) {
-                Storage::disk($disk)->delete($this->entry->banner_path);
+            try {
+                if ($this->entry->banner_path) {
+                    try {
+                        Storage::disk($disk)->delete($this->entry->banner_path);
+                    } catch (\Throwable $e) {}
+                }
+                $updateData['banner_path'] = $this->banner->store('banners', $disk);
+            } catch (\Throwable $e) {
+                \Log::warning('Banner upload failed on primary disk, falling back to public: ' . $e->getMessage());
+                try {
+                    $updateData['banner_path'] = $this->banner->store('banners', 'public');
+                } catch (\Throwable $e2) {
+                    \Log::error('Banner upload failed: ' . $e2->getMessage());
+                }
             }
-            $updateData['banner_path'] = $this->banner->store('banners', $disk);
         }
 
         $this->entry->update($updateData);
@@ -115,7 +134,10 @@ class EditEntry extends Component
             $tagIds[] = $tag->id;
         }
         $this->entry->tags()->sync($tagIds);
-        $this->entry->load('tags');
+        $this->entry->refresh()->load('tags:id,name');
+        $this->selectedTags = $this->entry->tags->pluck('name')->toArray();
+        $this->title = $this->entry->title;
+        $this->content = $this->entry->content;
         app(EntrySearchService::class)->updateEntryIndex($this->entry);
 
         $this->isEditing = false;
@@ -143,7 +165,7 @@ class EditEntry extends Component
 
     public function addTag()
     {
-        $tag = trim($this->newTag);
+        $tag = ltrim(trim($this->newTag), '#');
 
         if ($tag === '') {
             $this->tagError = 'Tag cannot be empty.';
@@ -239,12 +261,10 @@ class EditEntry extends Component
         return [
             'title.required' => 'Oops! You forgot the title, it\'s kind of important. 📛',
             'title.string' => "C'mon now, the title can't be a number or emoji salad. Make it a string! 📝",
-            'title.min' => 'Too short! The title needs to be at least :min characters. Stretch it out a bit. 📏',
             'title.max' => 'Whoa there! That title\'s a bit too epic. Keep it under :max characters. ✂️',
 
             'content.required' => 'No content? No story. Fill in the blanks, please! 🕳️',
             'content.string' => 'The content should be words, not wizardry. Use a string! 🔮',
-            'content.min' => 'Give us more to work with! Content must be at least :min characters. 🧱',
             'banner.image' => 'The file must be an image. 🖼️',
             'banner.max' => 'The image is too large. Maximum size is 10MB. 📉',
         ];
@@ -252,6 +272,8 @@ class EditEntry extends Component
 
     public function render()
     {
+        $this->entry->loadMissing('tags:id,name');
+
         return view('livewire.edit-entry');
     }
 }

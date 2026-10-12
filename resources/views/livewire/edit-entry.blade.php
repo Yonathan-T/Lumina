@@ -3,10 +3,10 @@
     <div class="fixed top-6 right-6 z-50 flex flex-col gap-3 max-w-md w-full px-4 sm:px-0 pointer-events-none">
         @if (session('message'))
             <div id="success-message"
-                class="pointer-events-auto bg-[#0b1329]/95 card-highlight border border-green-500/30 rounded-xl px-5 py-4 shadow-2xl backdrop-blur-md transition-all duration-300">
+                class="pointer-events-auto sidebar-gradient card-highlight border border-[#c2b68e]/40 rounded-xl px-5 py-4 shadow-2xl backdrop-blur-md transition-all duration-300">
                 <div class="flex items-start justify-between gap-3">
                     <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0 text-green-400 mt-0.5">
+                        <div class="w-8 h-8 rounded-lg bg-[#c2b68e]/15 border border-[#c2b68e]/30 flex items-center justify-center flex-shrink-0 text-[#c2b68e] mt-0.5">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                             </svg>
@@ -14,7 +14,7 @@
                         <span class="text-sm font-medium text-white leading-snug">{{ session('message') }}</span>
                     </div>
                     <button onclick="dismissMessage('success-message')"
-                        class="text-gray-400 hover:text-white transition-colors p-1 rounded-md hover:bg-white/10 flex-shrink-0">
+                        class="text-gray-400 hover:text-white transition-colors p-1 rounded-md hover:bg-white/10 flex-shrink-0 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12" />
@@ -68,7 +68,7 @@
 
                 @if($isEditing)
                     <!-- Edit Mode -->
-                    <form wire:submit.prevent="save">
+                    <form wire:submit="save">
                         <div class="space-y-6">
 
                             <div class="mb-6 relative group">
@@ -157,10 +157,16 @@
                                                 class="ml-1 text-red-white hover:rounded-lg hover:text-white/15">&times;</button>
                                         </span>
                                     @endforeach
-                                    <input wire:model.defer="newTag" wire:keydown.enter.prevent="addTag"
-                                        id="tag-input-field"
-                                        class="flex h-10 rounded-md border border-input px-3 py-2 text-sm w-48 border-none bg-background placeholder:text-[rgb(65,74,90)] focus:outline-none focus:ring-0"
-                                        placeholder="Add a tag and press Enter" type="text">
+                                    <span class="inline-flex items-center gap-2">
+                                        <input wire:model="newTag" wire:keydown.enter.prevent="addTag"
+                                            id="tag-input-field"
+                                            class="flex h-10 rounded-md border border-white/10 px-3 py-2 text-sm w-48 bg-background placeholder:text-[rgb(65,74,90)] focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                            placeholder="Add a tag and press Enter" type="text">
+                                        <button type="button" wire:click="addTag"
+                                            class="px-3 py-2 text-xs font-medium rounded-md bg-white/10 text-white hover:bg-white/20 transition-colors cursor-pointer">
+                                            Add
+                                        </button>
+                                    </span>
                                 </div>
                                 @if($tagError)
                                     <div class="text-red-500 text-sm mt-1">{{ $tagError }}</div>
@@ -168,8 +174,8 @@
                             </div>
 
                             <div class="flex justify-between items-center mt-8 border-t border-white/10 pt-6">
-                                <button type="button" wire:click="cancelEditing"
-                                    class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white border border-white/10 hover:bg-[rgb(29,40,58)] transition-colors">
+                                <button type="button" @click="isEditing = false" wire:click="cancelEditing"
+                                    class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white border border-white/10 hover:bg-[rgb(29,40,58)] transition-colors cursor-pointer">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M6 18L18 6M6 6l12 12"></path>
@@ -178,12 +184,11 @@
                                 </button>
                                 <div class="flex gap-2">
                                     <button type="submit"
-                                        class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M5 13l4 4L19 7"></path>
-                                        </svg>
-                                        Save Changes
+                                        wire:loading.attr="disabled"
+                                        wire:target="save, banner"
+                                        class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors disabled:opacity-50 cursor-pointer min-w-[130px]">
+                                        <span wire:loading.remove wire:target="save, banner">Save Changes</span>
+                                        <span wire:loading wire:target="save, banner" class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent inline-block"></span>
                                     </button>
                                 </div>
                             </div>
@@ -306,13 +311,18 @@
 
                     <div class="flex justify-between items-center mt-8 border-t border-white/10 pt-6">
                         <button wire:click="startEditing"
-                            class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white border border-white/10 hover:bg-[rgb(29,40,58)] transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
-                                </path>
-                            </svg>
-                            Edit
+                            wire:loading.attr="disabled"
+                            wire:target="startEditing"
+                            class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white border border-white/10 hover:bg-[rgb(29,40,58)] transition-colors cursor-pointer min-w-[80px]">
+                            <span wire:loading.remove wire:target="startEditing" class="inline-flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                    </path>
+                                </svg>
+                                Edit
+                            </span>
+                            <span wire:loading wire:target="startEditing" class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent inline-block"></span>
                         </button>
                         <button type="button" @click="showDeleteModal = true"
                             class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors">

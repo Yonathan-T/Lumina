@@ -87,6 +87,72 @@ class AiQuickChat extends Component
 
     /**
      * Generate or open weekly summary with TLDR and insights
+    /**
+     * Sanitize weekly summary: completely strip emojis and leading bullet points
+     */
+    public function sanitizeSummary(string $summary): string
+    {
+        // Strip all unicode emojis and symbols
+        $clean = preg_replace('/[\x{1F600}-\x{1F64F}\x{1F300}-\x{1F5FF}\x{1F680}-\x{1F6FF}\x{1F700}-\x{1F77F}\x{1F780}-\x{1F7FF}\x{1F800}-\x{1F8FF}\x{1F900}-\x{1F9FF}\x{1FA00}-\x{1FA6F}\x{1FA70}-\x{1FAFF}\x{2600}-\x{26FF}\x{2700}-\x{27BF}]/u', '', $summary);
+
+        // Strip leading bullet dashes/asterisks/bullets from lines
+        $clean = preg_replace('/^[ \t]*[-*•][ \t]+/m', '', $clean);
+
+        return trim($clean);
+    }
+
+    /**
+     * Computed property parsing weekly summary into structured sections for modern card rendering
+     */
+    public function getParsedWeeklySummaryProperty(): array
+    {
+        if (empty($this->weeklySummary)) {
+            return [];
+        }
+
+        $raw = $this->sanitizeSummary($this->weeklySummary);
+        $sections = [];
+
+        // Split by markdown headers (# Title or ## Title)
+        $parts = preg_split('/^#{1,3}\s+(.+)$/m', $raw, -1, PREG_SPLIT_DELIM_CAPTURE);
+
+        if (count($parts) <= 1) {
+            return [
+                [
+                    'title' => 'Weekly Overview',
+                    'content' => $raw,
+                ]
+            ];
+        }
+
+        $intro = trim($parts[0] ?? '');
+        if (!empty($intro)) {
+            $sections[] = [
+                'title' => 'Executive Overview',
+                'content' => $intro,
+            ];
+        }
+
+        for ($i = 1; $i < count($parts); $i += 2) {
+            $title = trim($parts[$i] ?? '');
+            $content = trim($parts[$i + 1] ?? '');
+
+            $title = preg_replace('/[\x{1F600}-\x{1F64F}\x{1F300}-\x{1F5FF}\x{1F680}-\x{1F6FF}\x{1F700}-\x{1F77F}\x{1F780}-\x{1F7FF}\x{1F800}-\x{1F8FF}\x{1F900}-\x{1F9FF}\x{1FA00}-\x{1FA6F}\x{1FA70}-\x{1FAFF}\x{2600}-\x{26FF}\x{2700}-\x{27BF}]/u', '', $title);
+            $title = trim($title, " #:\t\n\r\0\x0B");
+
+            if (!empty($title)) {
+                $sections[] = [
+                    'title' => $title,
+                    'content' => $content,
+                ];
+            }
+        }
+
+        return $sections;
+    }
+
+    /**
+     * Generate or open weekly summary with TLDR and insights
      */
     public function summarizePastWeek($sync = false)
     {
@@ -95,7 +161,18 @@ class AiQuickChat extends Component
         $cacheKey = "weekly_summary_{$userId}_" . now()->startOfWeek()->format('Y_m_d');
 
         if (Cache::has($cacheKey)) {
-            $this->weeklySummary = Cache::get($cacheKey);
+            $this->weeklySummary = $this->sanitizeSummary(Cache::get($cacheKey));
+            $this->summaryLoading = false;
+            return;
+        }
+
+        // Fast path: If the user has written 0 entries in the past week, return the message instantly without waiting
+        $recentCount = Entry::where('user_id', $userId)
+            ->where('created_at', '>=', now()->subWeek())
+            ->count();
+
+        if ($recentCount === 0) {
+            $this->weeklySummary = "## No Entries This Week\n\nYou haven't written any journal entries in the past week. Consider starting a new entry to track your thoughts and experiences!";
             $this->summaryLoading = false;
             return;
         }
@@ -117,7 +194,7 @@ class AiQuickChat extends Component
         $cacheKey = "weekly_summary_{$userId}_" . now()->startOfWeek()->format('Y_m_d');
 
         if (Cache::has($cacheKey)) {
-            $this->weeklySummary = Cache::get($cacheKey);
+            $this->weeklySummary = $this->sanitizeSummary(Cache::get($cacheKey));
             $this->summaryLoading = false;
             return;
         }
@@ -143,38 +220,46 @@ class AiQuickChat extends Component
             $formattedEntries = $userDataService->formatEntriesForAI($entries);
 
             $prompt = '
-Generate a **weekly summary** of the following journal entries in Markdown format.
+Generate a clean, professional **Weekly Journal Summary Report** of the following journal entries in GitHub-flavored Markdown.
 
-Use this exact structure, with a blank line after each header:
-
-# 🧭 TL;DR
-
-2–3 sentences summarizing the main theme and emotional tone of the week.
-
-# ✨ Key Themes
-
-- List 3–5 recurring ideas or emotions in bullet points.
-
-# 🔁 Patterns & Reflections
-
-1 short paragraph describing repeating behaviors, thoughts, or insights.
-
-# 💡 Insights
-
-1 paragraph highlighting deeper takeaways.
-
-# 🚀 Action Items
-
-List 3 short, practical, motivating next steps.
-
-Rules:
-- Include blank lines after every header.
+STRICT FORMATTING RULES:
+- Do NOT use ANY emojis anywhere in the response. Absolutely no icons, emojis, or symbols.
+- Do NOT use bullet points (no dashes "-", no asterisks "*", no bullet dots "•"). Write clear, cohesive narrative paragraphs, formatted tables, and numbered action items.
 - Do NOT ask questions.
-- Use proper Markdown spacing for readability.
+- Use clean Markdown headers ("## ") for each section.
 
-Entries to summarize:'.$formattedEntries;
+Structure the report using this exact template:
+
+## Executive Overview
+A concise, thoughtful 2–3 sentence synthesis capturing the primary emotional tone, overarching mindset, and key focus areas across the week.
+
+## Entries Reviewed
+Discuss each journal entry by its exact Title and date, with a single clean sentence summarizing what was written without bullet points.
+
+## Key Dimensions
+| Dimension | Focus & Observation |
+| :--- | :--- |
+| Primary Themes | [Summary of core recurring themes] |
+| Emotional Trajectory | [Summary of emotional tone, stability, and growth] |
+| Notable Milestones | [Key events, shifts, or decisions mentioned] |
+
+## Behavioral Patterns & Reflections
+A well-structured narrative examining recurring habits, perspective shifts, and how challenges or uncertainties were navigated throughout the week without using bullet points.
+
+## Strategic Takeaways
+Core Realization: [Key personal takeaway or realization]
+Growth Opportunity: [Constructive area for development or mindfulness]
+
+## Recommended Next Steps
+1. [Actionable, practical step 1]
+2. [Actionable, practical step 2]
+3. [Actionable, practical step 3]
+
+Journal entries to analyze:
+'.$formattedEntries;
 
             $summary = app(AiChatService::class)->generateResponse($prompt, null);
+            $summary = $this->sanitizeSummary($summary);
             $this->weeklySummary = $summary;
 
             // Cache summary for 24 hours / weekly session
@@ -194,9 +279,6 @@ Entries to summarize:'.$formattedEntries;
      */
     public function startQuickChat()
     {
-        if (! Gate::allows('access-premium')) {
-            abort(403, 'You must upgrade your plan to access this feature.');
-        }
         $this->showQuickChatModal = true;
         $this->quickChatMessages = [
             [
@@ -211,13 +293,15 @@ Entries to summarize:'.$formattedEntries;
     /**
      * Send message in quick chat
      */
-    public function sendQuickChat()
+    public function sendQuickChat($message = null)
     {
-        if (empty(trim($this->quickChatInput))) {
+        $messageToSend = $message !== null && trim($message) !== '' ? trim($message) : trim($this->quickChatInput);
+
+        if (empty($messageToSend)) {
             return;
         }
 
-        $userMessage = trim($this->quickChatInput);
+        $userMessage = $messageToSend;
 
         $this->quickChatMessages[] = [
             'sender' => 'user',

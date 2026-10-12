@@ -6,12 +6,12 @@
 
     <button type="submit"
         :disabled="submitting"
-        class="w-full py-2.5 px-4 bg-white text-gray-900 rounded-xl font-semibold hover:bg-gray-100 active:scale-[0.99] transition disabled:opacity-75 disabled:cursor-wait flex items-center justify-center gap-2 min-h-[42px] shadow-sm cursor-pointer mt-4">
+        class="w-full py-2.5 px-4 bg-white text-gray-900 rounded-xl font-semibold hover:bg-gray-100 active:scale-[0.99] transition disabled:opacity-75 flex items-center justify-center gap-2 min-h-[42px] shadow-sm cursor-pointer mt-4">
         <svg x-show="submitting" x-cloak class="animate-spin h-5 w-5 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <span x-text="submitting ? 'Please wait...' : '{{ $button }}'">{{ $button }}</span>
+        <span x-show="!submitting">{{ $button }}</span>
     </button>
 
     @isset($social)

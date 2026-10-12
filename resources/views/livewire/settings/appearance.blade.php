@@ -1,19 +1,13 @@
 <div>
 
-    <div class="bg-gradient-dark rounded-lg p-8 mb-8 shadow-2xl card-highlight">
-        <h2 class="text-2xl font-bold mb-2 text-white">Appearance</h2>
-        <p class="mb-6 text-muted">Customize how Lumina looks and feels</p>
+    <div class="bg-gradient-dark rounded-lg p-5 sm:p-8 mb-6 sm:mb-8 shadow-2xl card-highlight">
+        <h2 class="text-xl sm:text-2xl font-bold mb-2 text-white">Appearance</h2>
+        <p class="mb-6 text-muted text-sm sm:text-base">Customize how Lumina looks and feels</p>
         @livewire('settings.font-settings')
-        {{-- <div class="ml-4 flex items-center justify-between mb-8">
-            <div>
-                <div class="text-lg text-white font-semibold">Dark Mode</div>
-                <div class="text-muted text-sm">Switch between light and dark themes</div>
-            </div>
-            <x-toggle :model="'darkMode'" />
-        </div> --}}
-        <hr class="ml-4 border border-white/5 mb-4" />
 
-        <div class="ml-4 mb-6">
+        <hr class="sm:ml-4 border border-white/5 my-6" />
+
+        <div class="sm:ml-4 mb-6">
             <h3 class="text-xl font-semibold text-white">Font Size</h3>
             <p class="text-muted mb-3">Customize your font size</p>
             <div class="flex items-center justify-between mb-2">

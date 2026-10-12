@@ -41,17 +41,17 @@
 
     <!-- Export Data Card -->
     <div class="bg-gradient-dark card-highlight rounded-lg overflow-hidden">
-        <div class="p-6 border-b border-white/10">
-            <h3 class="text-xl font-semibold text-white">Export Data</h3>
-            <p class="text-sm text-gray-400 mt-1">Download your journal entries, chat conversations</p>
+        <div class="p-4 sm:p-6 border-b border-white/10">
+            <h3 class="text-lg sm:text-xl font-semibold text-white">Export Data</h3>
+            <p class="text-xs sm:text-sm text-gray-400 mt-1">Download your journal entries, chat conversations</p>
         </div>
 
-        <div class="p-6">
+        <div class="p-4 sm:p-6">
             <button type="button" wire:click="exportData" wire:loading.attr="disabled" wire:target="exportData"
                 class="w-full px-4 py-3 border border-white/10 hover:bg-blue-300/15 rounded-lg transition-all duration-200 text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed">
                 <div class="flex items-center gap-3">
                     <div
-                        class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
+                        class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors shrink-0">
                         <svg wire:loading.remove wire:target="exportData" class="w-5 h-5 text-blue-400" fill="none"
                             stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -68,12 +68,12 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="font-semibold text-white">Export All Journal Entries</p>
+                        <p class="font-semibold text-white text-sm sm:text-base">Export All Journal Entries</p>
                         <p class="text-xs text-gray-400">We'll email you a secure download link</p>
                     </div>
                 </div>
 
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" fill="none"
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-white transition-colors shrink-0" fill="none"
                     stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
@@ -83,7 +83,7 @@
                 class="w-full mt-4 px-4 py-3 border border-white/10 hover:bg-blue-300/15 rounded-lg transition-all duration-200 text-left flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed">
                 <div class="flex items-center gap-3">
                     <div
-                        class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
+                        class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors shrink-0">
                         <svg wire:loading.remove wire:target="exportConversation" class="w-5 h-5 text-blue-400"
                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -100,12 +100,12 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="font-semibold text-white">Export All Chat Conversations</p>
+                        <p class="font-semibold text-white text-sm sm:text-base">Export All Chat Conversations</p>
                         <p class="text-xs text-gray-400">We'll email you a secure download link</p>
                     </div>
                 </div>
 
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" fill="none"
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-white transition-colors shrink-0" fill="none"
                     stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
@@ -119,29 +119,29 @@
 
     <!-- Delete Account Card -->
     <div class="bg-gradient-dark card-highlight rounded-lg overflow-hidden border border-red-500/20" x-data="{ showDeleteConfirm: false }">
-        <div class="p-6 border-b border-white/10 bg-red-500/5">
-            <h3 class="text-xl font-semibold text-white">Danger Zone</h3>
-            <p class="text-sm text-gray-400 mt-1">Permanently delete your account and all data</p>
+        <div class="p-4 sm:p-6 border-b border-white/10 bg-red-500/5">
+            <h3 class="text-lg sm:text-xl font-semibold text-white">Danger Zone</h3>
+            <p class="text-xs sm:text-sm text-gray-400 mt-1">Permanently delete your account and all data</p>
         </div>
 
-        <div class="p-6 bg-red-500/5">
+        <div class="p-4 sm:p-6 bg-red-500/5">
             <button type="button" @click="showDeleteConfirm = !showDeleteConfirm"
                 class="w-full px-4 py-3 border border-red-500/30 hover:bg-red-300/15 rounded-lg transition-all duration-200 text-left flex items-center justify-between group">
                 <div class="flex items-center gap-3">
                     <div
-                        class="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center group-hover:bg-red-500/20 transition-colors">
+                        class="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center group-hover:bg-red-500/20 transition-colors shrink-0">
                         <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                     </div>
                     <div>
-                        <p class="font-semibold text-white">Delete Account</p>
+                        <p class="font-semibold text-white text-sm sm:text-base">Delete Account</p>
                         <p class="text-xs text-gray-400">Permanently delete all your data</p>
                     </div>
                 </div>
 
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-red-400 transition-colors" fill="none"
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-red-400 transition-colors shrink-0" fill="none"
                     stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
@@ -154,13 +154,13 @@
                     other
                     data. This action cannot be undone.
                 </div>
-                <div class="flex gap-2">
+                <div class="flex flex-wrap gap-2">
                     <button type="button" wire:click="deleteAccount" @click="showDeleteConfirm = false"
-                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                        class="px-4 py-2 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700 transition">
                         Yes, Delete Everything
                     </button>
                     <button type="button" @click="showDeleteConfirm = false"
-                        class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+                        class="px-4 py-2 bg-gray-600 text-white text-xs sm:text-sm rounded-lg hover:bg-gray-700 transition">
                         Cancel
                     </button>
                 </div>

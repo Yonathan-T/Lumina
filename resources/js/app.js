@@ -31,13 +31,14 @@ class SearchModal {
     constructor(searchUrl, options = {}) {
         this.searchUrl = searchUrl;
         this.options = {
-            debounceMs: 300,
+            debounceMs: 150,
             minQueryLength: 2,
             ...options
         };
         
         this.modal = document.getElementById('searchModal');
         this.input = document.getElementById('searchInput');
+        this.spinner = document.getElementById('searchSpinner');
         this.trigger = document.getElementById('searchTrigger');
         this.results = document.getElementById('searchResults');
         this.emptyState = document.getElementById('emptyState');
@@ -45,6 +46,7 @@ class SearchModal {
         
         this.debounceTimer = null;
         this.currentQuery = '';
+        this.abortController = null;
         
         this.init();
     }
@@ -91,6 +93,11 @@ class SearchModal {
         this.modal?.classList.remove('flex');
         this.input.value = '';
         this.currentQuery = '';
+        if (this.abortController) {
+            this.abortController.abort();
+            this.abortController = null;
+        }
+        this.hideSpinner();
         this.showEmptyState();
         document.body.style.overflow = '';
     }
@@ -99,13 +106,28 @@ class SearchModal {
         return !this.modal?.classList.contains('hidden');
     }
     
+    showSpinner() {
+        this.spinner?.classList.remove('hidden');
+    }
+
+    hideSpinner() {
+        this.spinner?.classList.add('hidden');
+    }
+
     handleSearch(query) {
         clearTimeout(this.debounceTimer);
         
         if (query.length < this.options.minQueryLength) {
+            this.hideSpinner();
+            if (this.abortController) {
+                this.abortController.abort();
+                this.abortController = null;
+            }
             this.showEmptyState();
             return;
         }
+
+        this.showSpinner();
         
         this.debounceTimer = setTimeout(() => {
             this.performSearch(query);
@@ -113,11 +135,20 @@ class SearchModal {
     }
     
     async performSearch(query) {
-        if (query === this.currentQuery) return;
+        if (query === this.currentQuery) {
+            this.hideSpinner();
+            return;
+        }
         this.currentQuery = query;
+
+        if (this.abortController) {
+            this.abortController.abort();
+        }
+        this.abortController = new AbortController();
         
         try {
             const response = await fetch(`${this.searchUrl}?q=${encodeURIComponent(query)}`, {
+                signal: this.abortController.signal,
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json',
@@ -125,14 +156,20 @@ class SearchModal {
             });
             
             const data = await response.json();
+            this.hideSpinner();
             this.displayResults(data.results || []);
         } catch (error) {
+            if (error?.name === 'AbortError') {
+                return;
+            }
+            this.hideSpinner();
             console.error('Search error:', error);
             this.showNoResults();
         }
     }
     
     displayResults(results) {
+        this.hideSpinner();
         if (results.length === 0) {
             this.showNoResults();
             return;
@@ -148,7 +185,11 @@ class SearchModal {
             element.addEventListener('click', () => {
                 const url = element.dataset.url;
                 if (url) {
-                    window.location.href = url;
+                    if (window.Livewire && typeof window.Livewire.navigate === 'function') {
+                        window.Livewire.navigate(url);
+                    } else {
+                        window.location.href = url;
+                    }
                 }
                 this.close();
             });
@@ -395,6 +436,10 @@ window.triggerMusicJumpToSidebar = function (onComplete) {
     jumper.style.willChange = 'transform, width, height, opacity';
     jumper.className = 'flex items-center justify-between px-3 py-1.5 rounded-md border border-white/15 bg-[#0f111a]/95 text-white shadow-[0_12px_36px_rgba(0,0,0,0.9),0_0_15px_rgba(255,255,255,0.08)] backdrop-blur-md select-none overflow-hidden';
 
+    const currentTrackName = (window.SanctuaryAudio && window.SanctuaryAudio.getCurrentTrack()) 
+        ? window.SanctuaryAudio.getCurrentTrack().title 
+        : '01-Ladyfingers-Lofi';
+
     jumper.innerHTML = `
         <div class="flex items-center gap-2 shrink-0">
             <span class="w-5 h-5 flex items-center justify-center shrink-0 animate-[spin_4s_linear_infinite] text-white">
@@ -402,7 +447,7 @@ window.triggerMusicJumpToSidebar = function (onComplete) {
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14.5c-2.49 0-4.5-2.01-4.5-4.5S9.51 7.5 12 7.5s4.5 2.01 4.5 4.5-2.01 4.5-4.5 4.5zm0-5.5c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"/>
                 </svg>
             </span>
-            <span class="jumper-label text-sm font-medium text-white whitespace-nowrap">Sanctuary</span>
+            <span class="jumper-label text-xs font-semibold text-white/90 whitespace-nowrap">${currentTrackName}</span>
         </div>
         <div class="jumper-label flex items-center gap-2 ml-auto">
             <div class="flex items-center gap-[2px] h-3.5 px-1">
@@ -587,12 +632,15 @@ window.triggerMusicJumpToSidebar = function (onComplete) {
                 void jumper.offsetWidth;
 
                 // MORPH: smoothly expand or shrink to own its place in the sidebar!
+                if (window.SanctuaryAudio && !window.SanctuaryAudio.getIsPlaying()) {
+                    window.SanctuaryAudio.play();
+                }
                 jumper.style.transition = 'all 0.22s cubic-bezier(0.16, 1, 0.3, 1)';
                 jumper.style.transform = `translate(${targetLeft}px, ${targetTop}px) scale(1) rotate(0deg)`;
                 jumper.style.width = targetWidth + 'px';
                 jumper.style.height = targetHeight + 'px';
                 jumper.style.borderRadius = '6px';
-                jumper.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                jumper.style.backgroundColor = 'transparent';
                 jumper.style.borderColor = 'rgba(255, 255, 255, 0.1)';
                 jumper.style.boxShadow = 'none';
 

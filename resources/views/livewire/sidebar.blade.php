@@ -146,7 +146,7 @@
 
             <div class="flex flex-col sidebar-label">
                 <span class="text-sm font-medium">{{ $userName }}</span>
-                <span class="text-xs text-muted">{{ $resolvedCurrentPlanMeta['label'] ?? ucfirst($resolvedCurrentPlan) }} - {{ $resolvedCurrentPlanMeta['price'] ?? '$0/mo' }}</span>
+                <span class="text-xs text-muted">{{ $resolvedCurrentPlanMeta['label'] ?? ucfirst($resolvedCurrentPlan) }}</span>
             </div>
         </button>
         <div id="profileMenu"
@@ -173,7 +173,7 @@
                     <a href="{{ $resolvedNextPlan['checkout_url'] ?? route('settings.index', ['tab' => 'subscription']) }}"
                         class="flex items-center gap-2 px-4 py-2 hover:bg-blue-300/15 text-white transition-colors rounded-md">
                         <x-icon name="sparkles" class="w-4 h-4" />
-                        {{ $resolvedNextPlan ? $sidebarCtaLabel : 'Manage subscription' }}
+                        {{ $resolvedNextPlan ? ($sidebarCtaLabel ?? 'Upgrade plan') : 'Manage subscription' }}
                     </a>
                 </li>
                 <li>

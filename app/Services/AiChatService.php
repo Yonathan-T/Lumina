@@ -113,13 +113,32 @@ class AiChatService
         $systemPrompt = $this->getGeminiSystemPrompt($userContext);
         $messages = $this->buildGeminiMessages($message, $conversationHistory);
 
+        $payload = $this->buildGeminiRequestPayload($messages, $systemPrompt);
+
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
         ])->withOptions([
                     'stream' => true,
                 ])
                 ->timeout(120)
-                ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key={$this->geminiApiKey}", $this->buildGeminiRequestPayload($messages, $systemPrompt));
+                ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key={$this->geminiApiKey}", $payload);
+
+        if (! $response->successful()) {
+            // If gemini-2.5-flash hits rate limit / quota (429) or is unavailable (503), fall back to gemini-1.5-flash
+            if ($response->status() === 429 || $response->status() === 503) {
+                $fallbackResponse = Http::withHeaders([
+                    'Content-Type' => 'application/json',
+                ])->withOptions([
+                    'stream' => true,
+                ])
+                ->timeout(120)
+                ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key={$this->geminiApiKey}", $payload);
+
+                if ($fallbackResponse->successful()) {
+                    $response = $fallbackResponse;
+                }
+            }
+        }
 
         if (! $response->successful()) {
             Log::error('Gemini Streaming API Error', [
@@ -330,11 +349,21 @@ class AiChatService
     {
         $systemPrompt = $this->getGeminiSystemPrompt($userContext);
         $messages = $this->buildGeminiMessages($message, $conversationHistory);
+        $payload = $this->buildGeminiRequestPayload($messages, $systemPrompt);
 
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
-        ])->timeout(15)->connectTimeout(5)->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$this->geminiApiKey}", $this->buildGeminiRequestPayload($messages, $systemPrompt));
+        ])->timeout(15)->connectTimeout(5)->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$this->geminiApiKey}", $payload);
 
+        if (! $response->successful() && ($response->status() === 429 || $response->status() === 503)) {
+            $fallbackResponse = Http::withHeaders([
+                'Content-Type' => 'application/json',
+            ])->timeout(15)->connectTimeout(5)->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$this->geminiApiKey}", $payload);
+
+            if ($fallbackResponse->successful()) {
+                $response = $fallbackResponse;
+            }
+        }
 
         if ($response->successful()) {
             $data = $response->json();

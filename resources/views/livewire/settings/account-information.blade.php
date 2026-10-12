@@ -1,10 +1,8 @@
 <div>
-    <div class="bg-gradient-dark rounded-lg p-8 mb-8 shadow-2xl card-highlight">
-        {{-- <h2 class="text-2xl font-bold mb-2 text-white">Theme</h2>
-        <p class="mb-6 text-muted">Select your preferred theme for Lumina</p> --}}
+    <div class="mb-6 sm:mb-8">
         @livewire('settings.api-integration')
     </div>
-    <div class="bg-gradient-dark rounded-lg p-8 mb-8 shadow-2xs card-highlight">
+    <div class="bg-gradient-dark rounded-lg p-5 sm:p-8 mb-6 sm:mb-8 shadow-2xs card-highlight">
         <h2 class="text-2xl font-bold mb-2 text-white">Account Information</h2>
         <p class="mb-6 text-muted">Update your account details and personal information</p>
         <form wire:submit.prevent="save" class="space-y-4">
@@ -14,7 +12,7 @@
                     class="w-full px-4 py-2 rounded bg-gradient-dark text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-white-500" />
                 <x-form-error name="name" />
             </div>
-            <div class=" flex items-center justify-between mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
                 <div>
                     <div class="text-lg text-white font-semibold"> Change Password</div>
 
@@ -23,7 +21,7 @@
                     </div>
                 </div>
                 <button type="button" wire:click="forgotPassword"
-                    class="transition duration-300 ease-in-out hover:bg-white hover:text-gray-900 px-4 py-2 rounded-md border border-white/5 cursor-pointer">
+                    class="self-start sm:self-auto transition duration-300 ease-in-out hover:bg-white hover:text-gray-900 px-4 py-2 rounded-md border border-white/5 cursor-pointer whitespace-nowrap">
                     Set Password </button>
             </div>
             @if (session('status'))
@@ -68,9 +66,9 @@
         </form>
     </div>
 
-    <div class="bg-gradient-dark rounded-lg p-8 mb-8 shadow-2xs card-highlight">
+    <div class="bg-gradient-dark rounded-lg p-5 sm:p-8 mb-6 sm:mb-8 shadow-2xs card-highlight">
         <h2 class="text-2xl font-bold mb-2 text-white">Account</h2>
-        <div class="flex justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 
 
             <div class="mb-6 text-muted  space-y-2">

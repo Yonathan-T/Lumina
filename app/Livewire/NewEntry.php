@@ -26,7 +26,8 @@ class NewEntry extends Component
 
     public $showQuickChatModal = false;
 
-    public $savedEntry = null;
+    public $savedEntryId = null;
+    public $savedEntryTitle = '';
 
     // Quick chat properties
     public $quickChatMessages = [];
@@ -38,8 +39,8 @@ class NewEntry extends Component
     public function save()
     {
         $this->validate([
-            'title' => 'required|string|min:3|max:255',
-            'content' => 'required|string|min:10',
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
             'selectedTags' => 'array',
             'banner' => 'nullable|image|max:10240', // 10MB Max
         ]);
@@ -54,7 +55,17 @@ class NewEntry extends Component
         $bannerPath = null;
         if ($this->banner) {
             $disk = config('filesystems.default') === 's3' ? 's3' : 'public';
-            $bannerPath = $this->banner->store('banners', $disk);
+            try {
+                $bannerPath = $this->banner->store('banners', $disk);
+            } catch (\Throwable $e) {
+                \Log::warning('Banner upload failed on primary disk, trying public: ' . $e->getMessage());
+                try {
+                    $bannerPath = $this->banner->store('banners', 'public');
+                } catch (\Throwable $e2) {
+                    \Log::error('Banner upload failed: ' . $e2->getMessage());
+                    $bannerPath = null;
+                }
+            }
         }
 
         $entry = Entry::create([
@@ -78,16 +89,16 @@ class NewEntry extends Component
 
         $entry->load('tags');
 
-        // Rebuild the search index after the response is flushed so saving feels
-        // instant — indexing can insert up to 500 token rows.
+        // Rebuild the search index after the response is flushed
         dispatch(fn () => app(EntrySearchService::class)->updateEntryIndex($entry))->afterResponse();
 
-        // Store the saved entry for potential chat context
-        $this->savedEntry = $entry;
+        // Store lightweight scalar properties
+        $this->savedEntryId = $entry->id;
+        $this->savedEntryTitle = $entry->title;
 
-        $this->reset(['title', 'content', 'selectedTags']);
+        $this->reset(['title', 'content', 'selectedTags', 'banner']);
 
-        // Show confirmation modal instead of redirecting immediately
+        // Show confirmation modal
         $this->showConfirmationModal = true;
     }
 
@@ -103,7 +114,7 @@ class NewEntry extends Component
         $this->quickChatMessages = [
             [
                 'sender' => 'ai',
-                'content' => "I just read your entry about \"{$this->savedEntry->title}\". I'm here to help you reflect on it. What would you like to explore further?",
+                'content' => "I just read your entry about \"{$this->savedEntryTitle}\". I'm here to help you reflect on it. What would you like to explore further?",
                 'timestamp' => now()->format('g:i A'),
             ],
         ];
@@ -190,16 +201,13 @@ class NewEntry extends Component
         return [
             'title.required' => 'Oops! You forgot the title, it’s kind of important. 📛',
             'title.string' => "C'mon now, the title can't be a number or emoji salad. Make it a string! 📝",
-            'title.min' => 'Too short! The title needs to be at least :min characters. Stretch it out a bit. 📏',
             'title.max' => 'Whoa there! That title’s a bit too epic. Keep it under :max characters. ✂️',
 
             'content.required' => 'No content? No story. Fill in the blanks, please! 🕳️',
             'content.string' => 'The content should be words, not wizardry. Use a string! 🔮',
-            'content.min' => 'Give us more to work with! Content must be at least :min characters. 🧱',
             'banner.image' => 'The file must be an image. 🖼️',
             'banner.max' => 'The image is too large. Maximum size is 10MB. 📉',
         ];
-
     }
 
     public function render()

@@ -188,7 +188,7 @@ class DashboardAiQuickChatTest extends TestCase
 
         Livewire::test(AiQuickChat::class)
             ->call('startGuidedReflection')
-            ->assertRedirect(route('chat.index'));
+            ->assertRedirect(route('chat.index', ['conversation' => 1]));
 
         // Verify Conversation was created rapidly in DB
         $conversation = Conversation::where('user_id', $this->user->id)->first();
@@ -219,7 +219,7 @@ class DashboardAiQuickChatTest extends TestCase
 
         Livewire::test(AiQuickChat::class)
             ->call('reviewPastMemos')
-            ->assertRedirect(route('chat.index'));
+            ->assertRedirect(route('chat.index', ['conversation' => 1]));
 
         // Verify Conversation was created in DB
         $conversation = Conversation::where('user_id', $this->user->id)
@@ -251,7 +251,7 @@ class DashboardAiQuickChatTest extends TestCase
 
         Livewire::test(AiQuickChat::class)
             ->call('startTherapySession')
-            ->assertRedirect(route('chat.index'));
+            ->assertRedirect(route('chat.index', ['conversation' => 1]));
 
         $conversation = Conversation::where('user_id', $this->user->id)
             ->where('type', 'therapy')

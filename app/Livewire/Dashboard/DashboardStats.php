@@ -88,49 +88,35 @@ class DashboardStats extends Component
         $this->entriesFromLastWeek = $thisWeekEntries - $lastWeekEntries;
 
         // Tag Section
-        $this->mostUsedTag = Tag::select('tags.*')
-            ->join('entry_tag', 'tags.id', '=', 'entry_tag.tag_id')
+        $this->mostUsedTag = Tag::join('entry_tag', 'tags.id', '=', 'entry_tag.tag_id')
             ->join('entries', 'entry_tag.entry_id', '=', 'entries.id')
             ->where('entries.user_id', $userId)
-            ->groupBy('tags.id')
+            ->groupBy('tags.id', 'tags.name')
+            ->select('tags.id', 'tags.name', DB::raw('COUNT(*) as usage_count'))
             ->orderByRaw('COUNT(*) DESC')
             ->first();
 
-        $this->mostUsedTagCount = $this->mostUsedTag
-            ? DB::table('entry_tag')
-                ->join('entries', 'entry_tag.entry_id', '=', 'entries.id')
-                ->where('entry_tag.tag_id', $this->mostUsedTag->id)
-                ->where('entries.user_id', $userId)
-                ->count()
-            : 0;
+        $this->mostUsedTagCount = $this->mostUsedTag ? (int) $this->mostUsedTag->usage_count : 0;
 
-        // longest entry sec
-        $entries = Entry::where('user_id', $userId)
-            ->select(['id', 'content', 'created_at'])
-            ->get();
+        // Longest entry section (computed in DB rather than hydrating all full entries)
+        $longest = Entry::where('user_id', $userId)
+            ->select(['id', 'created_at'])
+            ->selectRaw('LENGTH(content) as char_count')
+            ->orderByRaw('LENGTH(content) DESC')
+            ->first();
 
-        if ($entries->isEmpty()) {
+        if (! $longest) {
             $this->longestEntry = null;
             $this->longestEntryCharCount = 0;
             $this->longestEntryDate = null;
-
-            return;
+        } else {
+            $this->longestEntry = [
+                'entry' => $longest,
+                'char_count' => (int) $longest->char_count,
+            ];
+            $this->longestEntryCharCount = (int) $longest->char_count;
+            $this->longestEntryDate = $longest->created_at?->format('M d, Y');
         }
-
-        $this->longestEntry = $entries
-            ->map(function ($entry) {
-                $cleaned = preg_replace('/\s+/', '', $entry->content ?? '');
-
-                return [
-                    'entry' => $entry,
-                    'char_count' => strlen($cleaned),
-                ];
-            })
-            ->sortByDesc('char_count')
-            ->first();
-
-        $this->longestEntryCharCount = $this->longestEntry['char_count'];
-        $this->longestEntryDate = $this->longestEntry['entry']->created_at->format('M d, Y');
 
         // recent entry sec
         $lastEntry = $userDataService->getLastEntry();

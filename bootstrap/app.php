@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'polar/*',
         ]);
+        $middleware->redirectGuestsTo('/auth/login');
+        $middleware->redirectUsersTo('/dashboard');
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

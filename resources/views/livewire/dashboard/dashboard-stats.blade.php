@@ -180,7 +180,7 @@
         <div class="mt-8">
             <h2 class="text-xl font-semibold mb-4">Recent Entry</h2>
             @foreach($recentEntries as $entry)
-                <a href="{{ route('entries.show', $entry) }}">
+                <a href="{{ route('entries.show', $entry) }}" wire:navigate.hover>
                     <div
                         class="rounded-lg bg-card text-card-foreground shadow-md card-highlight bg-gradient-dark border border-white/10">
                         <div class="flex flex-col space-y-1.5 p-6">

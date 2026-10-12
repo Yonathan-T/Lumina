@@ -16,13 +16,11 @@ class SessionController extends Controller
     public function store()
     {
         $normalizedEmail = User::normalizeEmailValue((string) request('email'));
-        User::normalizeStoredEmailRecord($normalizedEmail);
 
         request()->merge([
             'email' => $normalizedEmail,
         ]);
 
-        // validate
         $attributes = request()->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
@@ -31,13 +29,14 @@ class SessionController extends Controller
         $remember = request()->filled('remember');
 
         if (! Auth::attempt($attributes, $remember)) {
-            throw ValidationException::withMessages(
-                ['email' => 'Sorry, those credentials do not match']
-            );
+            throw ValidationException::withMessages([
+                'email' => 'Sorry, those credentials do not match',
+            ]);
         }
+
         request()->session()->regenerate();
 
-        return redirect('/dashboard');
+        return redirect()->intended('/dashboard');
     }
 
     public function destroy()

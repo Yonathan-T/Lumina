@@ -27,14 +27,90 @@ class ChatInterface extends Component
 
     public $messagesLoaded = false;
 
+    public $greeting = 'Ready when you are';
+
+    public $starterPrompts = [];
+
+    public function getRandomGreeting(): string
+    {
+        $greetings = [
+            'Ready when you are',
+            'What\'s on your mind?',
+            'Take your time',
+            'Here whenever you\'re ready',
+            'Let\'s talk through it',
+            'A quiet space for your thoughts',
+        ];
+
+        // Ensure we pick a greeting different from the current one on update
+        $candidates = array_values(array_filter($greetings, fn ($g) => $g !== $this->greeting));
+        if (empty($candidates)) {
+            $candidates = $greetings;
+        }
+
+        return $candidates[array_rand($candidates)];
+    }
+
+    public function getRotatedStarterPrompts(): array
+    {
+        $all = [
+            [
+                'title' => 'Reflect on today',
+                'subtitle' => 'Review key feelings and lessons from today',
+                'action' => 'Help me reflect on how my day went and what I learned.',
+            ],
+            [
+                'title' => 'Clear my head',
+                'subtitle' => 'Untangle racing thoughts and find calm',
+                'action' => 'I have a lot on my mind right now. Can we break it down step by step?',
+            ],
+            [
+                'title' => 'Work through a choice',
+                'subtitle' => 'Weigh options with objective guidance',
+                'action' => 'I need help making a decision. Can you ask me guiding questions?',
+            ],
+            [
+                'title' => 'Fresh perspective',
+                'subtitle' => 'Gain clarity on stress or challenges',
+                'action' => 'What is a fresh perspective on dealing with everyday stress?',
+            ],
+            [
+                'title' => 'Unpack an interaction',
+                'subtitle' => 'Talk through a conversation or event',
+                'action' => 'I had a conversation that stuck with me. Can we unpack it?',
+            ],
+            [
+                'title' => 'Set an intention',
+                'subtitle' => 'Focus on what matters for tomorrow',
+                'action' => 'Help me set a clear, grounded intention for tomorrow.',
+            ],
+        ];
+
+        shuffle($all);
+
+        return array_slice($all, 0, 4);
+    }
+
     public function mount()
     {
+        $this->greeting = $this->getRandomGreeting();
+        $this->starterPrompts = $this->getRotatedStarterPrompts();
         $this->loadSessions();
+
         $requestedId = request()->query('conversation');
+        if (! $requestedId && session()->has('active_chat_conversation_id')) {
+            $candidateId = (int) session('active_chat_conversation_id');
+            if (collect($this->sessions)->contains('id', $candidateId)) {
+                $requestedId = $candidateId;
+            }
+        }
+
         if ($requestedId && collect($this->sessions)->contains('id', (int) $requestedId)) {
             $this->selectSession((int) $requestedId);
-        } elseif (! empty($this->sessions)) {
-            $this->selectSession($this->sessions[0]['id']);
+        } else {
+            // Default: do not force-select old conversation; show fresh greeting screen
+            $this->activeSession = null;
+            $this->messages = [];
         }
     }
 
@@ -59,14 +135,33 @@ class ChatInterface extends Component
 
     public function selectSession($sessionId)
     {
+        $sessionId = (int) $sessionId;
+
         $this->messages = [];
         $this->isTyping = false;
         $this->isSwitchingSession = true;
         $this->isLoadingMessages = true;
         $this->messagesLoaded = false;
 
-        $this->activeSession = collect($this->sessions)->firstWhere('id', $sessionId);
-        $this->loadMessages($sessionId);
+        $conversation = Conversation::where('user_id', auth()->id())->find($sessionId);
+
+        if ($conversation) {
+            $this->activeSession = [
+                'id' => $conversation->id,
+                'title' => $conversation->title,
+                'lastActivity' => $conversation->last_activity ? $conversation->last_activity->diffForHumans() : $conversation->created_at->diffForHumans(),
+                'messageCount' => $conversation->message_count ?? 0,
+                'type' => $conversation->type ?? 'general',
+            ];
+            $this->loadMessages($conversation->id);
+            session(['active_chat_conversation_id' => $conversation->id]);
+        } else {
+            $this->activeSession = null;
+            $this->messages = [];
+            session()->forget('active_chat_conversation_id');
+        }
+
+        $this->dispatch('session-selected', sessionId: $sessionId);
     }
 
     public function loadMessages($sessionId)
@@ -94,31 +189,43 @@ class ChatInterface extends Component
 
     public function createNewSession()
     {
-        $conversation = Conversation::create([
-            'user_id' => auth()->id(),
-            'title' => 'New Conversation',
-            'type' => 'general',
-            'message_count' => 0,
-            'last_activity' => now(),
-        ]);
-
-        $newSession = [
-            'id' => $conversation->id,
-            'title' => 'New Conversation',
-            'lastActivity' => 'Just now',
-            'messageCount' => 0,
-            'type' => 'general',
-        ];
-
-        $this->sessions = array_merge([$newSession], $this->sessions);
-        $this->activeSession = $newSession;
+        $this->activeSession = null;
         $this->messages = [];
+        $this->greeting = $this->getRandomGreeting();
+        $this->starterPrompts = $this->getRotatedStarterPrompts();
+        $this->isTyping = false;
+        $this->isLoadingMessages = false;
+        $this->messagesLoaded = false;
+        session()->forget('active_chat_conversation_id');
+        $this->dispatch('session-cleared');
     }
 
     public function ensureSessionForMessage()
     {
         if (! $this->activeSession) {
-            $this->createNewSession();
+            $conversation = Conversation::create([
+                'user_id' => auth()->id(),
+                'title' => 'New Conversation',
+                'type' => 'general',
+                'message_count' => 0,
+                'last_activity' => now(),
+            ]);
+
+            $newSession = [
+                'id' => $conversation->id,
+                'title' => 'New Conversation',
+                'lastActivity' => 'Just now',
+                'messageCount' => 0,
+                'type' => 'general',
+            ];
+
+            $this->sessions = array_merge([$newSession], $this->sessions);
+            $this->activeSession = $newSession;
+            $this->messages = [];
+            $this->messagesLoaded = true;
+            $this->isLoadingMessages = false;
+            session(['active_chat_conversation_id' => $conversation->id]);
+            $this->dispatch('session-selected', sessionId: $conversation->id);
         }
 
         return $this->activeSession['id'] ?? null;
@@ -132,6 +239,19 @@ class ChatInterface extends Component
         $sessionId = (int) $sessionId;
         $selectedSession = collect($this->sessions)->firstWhere('id', $sessionId);
 
+        if (! $selectedSession) {
+            $conversation = Conversation::where('user_id', auth()->id())->find($sessionId);
+            if ($conversation) {
+                $selectedSession = [
+                    'id' => $conversation->id,
+                    'title' => $conversation->title,
+                    'lastActivity' => $conversation->last_activity ? $conversation->last_activity->diffForHumans() : $conversation->created_at->diffForHumans(),
+                    'messageCount' => $conversation->message_count ?? 0,
+                    'type' => $conversation->type ?? 'general',
+                ];
+            }
+        }
+
         if ($selectedSession) {
             $this->activeSession = $selectedSession;
         }
@@ -141,7 +261,7 @@ class ChatInterface extends Component
         }
     }
 
-    public function failStreamingResponse($sessionId = null, $errorMessage = 'Sorry, I encountered an error. Please try again.')
+    public function failStreamingResponse($sessionId = null, $errorMessage = 'Sorry, I encountered an error. Please try again.', $userMessage = null)
     {
         $this->isTyping = false;
 
@@ -151,9 +271,35 @@ class ChatInterface extends Component
             $sessionId = (int) $sessionId;
             $selectedSession = collect($this->sessions)->firstWhere('id', $sessionId);
 
+            if (! $selectedSession) {
+                $conversation = Conversation::where('user_id', auth()->id())->find($sessionId);
+                if ($conversation) {
+                    $selectedSession = [
+                        'id' => $conversation->id,
+                        'title' => $conversation->title,
+                        'lastActivity' => $conversation->last_activity ? $conversation->last_activity->diffForHumans() : $conversation->created_at->diffForHumans(),
+                        'messageCount' => $conversation->message_count ?? 0,
+                        'type' => $conversation->type ?? 'general',
+                    ];
+                }
+            }
+
             if ($selectedSession) {
                 $this->activeSession = $selectedSession;
                 $this->loadMessages($sessionId);
+            }
+        }
+
+        // Ensure user message is not lost even if stream failed before or during DB persistence
+        if ($userMessage) {
+            $lastMsg = !empty($this->messages) ? end($this->messages) : null;
+            if (!$lastMsg || $lastMsg['isAi'] || trim($lastMsg['content']) !== trim($userMessage)) {
+                $this->messages[] = [
+                    'id' => 'user_pending_'.time(),
+                    'content' => $userMessage,
+                    'isAi' => false,
+                    'createdAt' => now()->toIso8601String(),
+                ];
             }
         }
 
@@ -170,20 +316,24 @@ class ChatInterface extends Component
 
     public function deleteSession($sessionId)
     {
-        // Find the session to see if it was the active one
-        $deletedSession = collect($this->sessions)->firstWhere('id', $sessionId);
+        $sessionId = (int) $sessionId;
 
-        // Delete the conversation and all associated messages from the database
-        Conversation::destroy($sessionId);
+        Conversation::where('id', $sessionId)
+            ->where('user_id', auth()->id())
+            ->delete();
 
-        // Reload the sessions list from the database
-        $this->loadSessions();
+        // In-memory removal for instant feedback
+        $this->sessions = array_values(array_filter($this->sessions, function ($session) use ($sessionId) {
+            return (int) $session['id'] !== $sessionId;
+        }));
 
-        // Now, if the active session was deleted, force the UI to reset
-        if ($deletedSession && $this->activeSession && $deletedSession['id'] === $this->activeSession['id']) {
-            // This is the key change: force a reset regardless of remaining sessions
+        // If the deleted session was currently active, show fresh greeting screen
+        if ($this->activeSession && (int) $this->activeSession['id'] === $sessionId) {
             $this->activeSession = null;
             $this->messages = [];
+            $this->greeting = $this->getRandomGreeting();
+            session()->forget('active_chat_conversation_id');
+            $this->dispatch('session-cleared');
         }
     }
 

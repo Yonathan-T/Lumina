@@ -45,31 +45,25 @@ class History extends Component
                 'user_id' => auth()->id(),
                 'title' => $reflectionData['conversation_title'],
                 'type' => 'reflection',
-                'message_count' => 0,
-                'last_activity' => now(),
-            ]);
-
-            // Get AI response using the complete reflection prompt
-            $aiChatService = app(AiChatService::class);
-            $aiResponse = $aiChatService->generateResponse($reflectionData['prompt'], $conversation->id);
-
-            // Save the AI's response as the first message
-            Message::create([
-                'conversation_id' => $conversation->id,
-                'content' => $aiResponse,
-                'is_ai_response' => true,
-            ]);
-
-            // Update conversation with the new message count
-            $conversation->update([
                 'message_count' => 1,
                 'last_activity' => now(),
+            ]);
+
+            $entry = $reflectionData['entry'];
+            $titleSnippet = !empty($entry->title) ? " around \"{$entry->title}\"" : '';
+            $initialMessage = "I've reviewed your journal entry{$titleSnippet}. Take a moment to settle in—how are you feeling about what you wrote, and what would you like to reflect on together?";
+
+            // Save the AI's response as the initial message
+            Message::create([
+                'conversation_id' => $conversation->id,
+                'content' => $initialMessage,
+                'is_ai_response' => true,
             ]);
 
             $this->isProcessing = null;
             $this->processingEntryId = null;
 
-            // Redirect to the chat interface
+            // Redirect immediately to the chat interface
             return $this->redirect(route('chat.index', ['conversation' => $conversation->id]), navigate: true);
 
         } catch (\Exception $e) {
@@ -131,6 +125,7 @@ class History extends Component
             $entry->content_html = nl2br(e(\Str::limit($plain, 200)));
             $entry->date_month = $entry->created_at->format('M');
             $entry->date_day = $entry->created_at->format('d');
+            $entry->date_formatted = $entry->created_at->format('M d, Y');
             $entry->diff = $entry->created_at->diffForHumans();
 
             return $entry;

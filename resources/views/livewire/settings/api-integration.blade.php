@@ -1,5 +1,5 @@
 <div
-    class="relative overflow-hidden rounded-2xl border border-gray-800 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 p-8 space-y-8"
+    class="relative overflow-hidden rounded-2xl border border-gray-800 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 p-5 sm:p-8 space-y-6 sm:space-y-8"
     x-data="{ confirmGeminiRemoval: false, confirmElevenLabsRemoval: false }">
     <div
         class="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-gradient-to-br from-teal-500/10 to-blue-500/10 blur-3xl">
@@ -8,25 +8,25 @@
         class="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-gradient-to-tr from-purple-500/10 to-teal-500/10 blur-3xl">
     </div>
 
-    <div class="relative z-10 bg-diagonal-lines space-y-8">
+    <div class="relative z-10 bg-diagonal-lines space-y-6 sm:space-y-8">
         {{-- Header --}}
         <div class="flex items-start justify-between">
             <div class="flex items-center gap-3">
-                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-dark">
-                    <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-dark shrink-0">
+                    <svg class="h-5 w-5 sm:h-6 sm:w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z">
                         </path>
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-2xl font-bold text-white">API Keys</h3>
-                    <p class="text-sm text-gray-400">Configure your personal API keys for AI chat, reflection, and voice narration</p>
+                    <h3 class="text-xl sm:text-2xl font-bold text-white">API Keys</h3>
+                    <p class="text-xs sm:text-sm text-gray-400">Configure your personal API keys for AI chat, reflection, and voice narration</p>
                 </div>
             </div>
         </div>
 
-        <div class="rounded-xl border border-gray-700/50 bg-gray-800/50 p-6 backdrop-blur-sm space-y-8">
+        <div class="rounded-xl border border-gray-700/50 bg-gray-800/50 p-4 sm:p-6 backdrop-blur-sm space-y-6 sm:space-y-8">
             {{-- Secure Storage Notice --}}
             <div class="flex items-start gap-3 rounded-lg bg-blue-500/10 p-4 ring-1 ring-blue-500/20">
                 <svg class="h-5 w-5 flex-shrink-0 text-blue-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -42,23 +42,23 @@
 
             {{-- 1. Google Gemini API Key Section --}}
             <div>
-                <div class="mb-4 flex items-start justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-dark">
-                            <svg class="h-5 w-5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-gradient-dark shrink-0 border border-white/10 shadow-sm">
+                            <svg class="h-5 w-5 text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                             </svg>
                         </div>
-                        <div>
-                            <h4 class="text-lg font-semibold text-white">Gemini API Key</h4>
-                            <p class="text-xs text-gray-400">Powers AI chat, self-reflection sessions, and weekly summaries</p>
+                        <div class="min-w-0">
+                            <h4 class="text-base sm:text-lg font-semibold text-white">Google Gemini API Key</h4>
+                            <p class="text-xs text-gray-400 leading-relaxed">Powers AI chat, self-reflection sessions, and weekly summaries</p>
                         </div>
                     </div>
 
                     @if($this->hasApiKey())
                         @if($isKeyVerified)
-                            <div class="flex items-center gap-2 rounded-full bg-emerald-500/10 px-3.5 py-1.5 ring-1 ring-emerald-500/20">
+                            <div class="self-start sm:self-auto flex items-center gap-2 rounded-full bg-emerald-500/10 px-3.5 py-1.5 ring-1 ring-emerald-500/20 shrink-0">
                                 <div class="relative flex h-2 w-2">
                                     <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                                     <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
@@ -66,13 +66,13 @@
                                 <span class="text-xs font-medium text-emerald-400">Active</span>
                             </div>
                         @else
-                            <div class="flex items-center gap-2 rounded-full bg-yellow-500/10 px-3.5 py-1.5 ring-1 ring-yellow-500/20">
+                            <div class="self-start sm:self-auto flex items-center gap-2 rounded-full bg-yellow-500/10 px-3.5 py-1.5 ring-1 ring-yellow-500/20 shrink-0">
                                 <div class="h-2 w-2 rounded-full bg-yellow-500"></div>
                                 <span class="text-xs font-medium text-yellow-400">Saved (Unverified)</span>
                             </div>
                         @endif
                     @else
-                        <div class="flex items-center gap-2 rounded-full bg-gray-500/10 px-3.5 py-1.5 ring-1 ring-gray-500/20">
+                        <div class="self-start sm:self-auto flex items-center gap-2 rounded-full bg-gray-500/10 px-3.5 py-1.5 ring-1 ring-gray-500/20 shrink-0">
                             <div class="h-2 w-2 rounded-full bg-gray-500"></div>
                             <span class="text-xs font-medium text-gray-400">Not Configured</span>
                         </div>
@@ -82,11 +82,11 @@
                 <div class="mb-4">
                     <label class="mb-2 block text-sm font-medium text-gray-300">Gemini API Key</label>
                     <div class="relative" x-data="{ showKey: false }">
-                        <input :type="showKey ? 'text' : 'password'" wire:model="apiKey"
-                            placeholder="Enter your Gemini API key"
-                            class="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-3 pr-12 text-white placeholder-gray-500 transition-all focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
+                        <input :type="showKey ? 'text' : 'password'" wire:model.defer="apiKey"
+                            placeholder="{{ $hasSavedGeminiKey ? '••••••••••••••••••••••••••••••••' : 'Enter your Gemini API key' }}"
+                            class="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-3 pr-12 text-white placeholder-gray-500 font-mono text-sm transition-all focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20" />
                         <button type="button" @click="showKey = !showKey"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-white"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-white transition-colors cursor-pointer"
                             aria-label="Toggle Gemini API Key visibility">
                             <svg x-show="showKey" x-cloak class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -102,6 +102,9 @@
                             </svg>
                         </button>
                     </div>
+                    @if($hasSavedGeminiKey)
+                        <p class="mt-1.5 text-xs text-gray-400">Your key is stored securely with AES-256 encryption. Click the eye icon to view or hide it.</p>
+                    @endif
                 </div>
 
                 @if($statusMessage)
@@ -164,20 +167,20 @@
 
             {{-- 2. ElevenLabs Voice API Key Section --}}
             <div>
-                <div class="mb-4 flex items-start justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-dark">
-                            <x-icon name="voice" class="h-5 w-5 text-purple-400" />
+                <div class="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-gradient-dark shrink-0 border border-white/10 shadow-sm">
+                            <x-icon name="voice" class="h-5 w-5 text-purple-400 shrink-0" />
                         </div>
-                        <div>
-                            <h4 class="text-lg font-semibold text-white">ElevenLabs API Key</h4>
-                            <p class="text-xs text-gray-400">Powers high-quality AI voice narration for your journal entries</p>
+                        <div class="min-w-0">
+                            <h4 class="text-base sm:text-lg font-semibold text-white">ElevenLabs API Key</h4>
+                            <p class="text-xs text-gray-400 leading-relaxed">Powers high-quality AI voice narration for your journal entries</p>
                         </div>
                     </div>
 
                     @if($this->hasElevenLabsKey())
                         @if($isElevenLabsKeyVerified)
-                            <div class="flex items-center gap-2 rounded-full bg-emerald-500/10 px-3.5 py-1.5 ring-1 ring-emerald-500/20">
+                            <div class="self-start sm:self-auto flex items-center gap-2 rounded-full bg-emerald-500/10 px-3.5 py-1.5 ring-1 ring-emerald-500/20 shrink-0">
                                 <div class="relative flex h-2 w-2">
                                     <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                                     <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
@@ -185,13 +188,13 @@
                                 <span class="text-xs font-medium text-emerald-400">Active</span>
                             </div>
                         @else
-                            <div class="flex items-center gap-2 rounded-full bg-yellow-500/10 px-3.5 py-1.5 ring-1 ring-yellow-500/20">
+                            <div class="self-start sm:self-auto flex items-center gap-2 rounded-full bg-yellow-500/10 px-3.5 py-1.5 ring-1 ring-yellow-500/20 shrink-0">
                                 <div class="h-2 w-2 rounded-full bg-yellow-500"></div>
                                 <span class="text-xs font-medium text-yellow-400">Saved (Unverified)</span>
                             </div>
                         @endif
                     @else
-                        <div class="flex items-center gap-2 rounded-full bg-gray-500/10 px-3.5 py-1.5 ring-1 ring-gray-500/20">
+                        <div class="self-start sm:self-auto flex items-center gap-2 rounded-full bg-gray-500/10 px-3.5 py-1.5 ring-1 ring-gray-500/20 shrink-0">
                             <div class="h-2 w-2 rounded-full bg-gray-500"></div>
                             <span class="text-xs font-medium text-gray-400">Not Configured</span>
                         </div>
@@ -201,11 +204,11 @@
                 <div class="mb-4">
                     <label class="mb-2 block text-sm font-medium text-gray-300">ElevenLabs API Key</label>
                     <div class="relative" x-data="{ showElevenLabsKey: false }">
-                        <input :type="showElevenLabsKey ? 'text' : 'password'" wire:model="elevenLabsKey"
-                            placeholder="xi-api-key or your ElevenLabs API key"
-                            class="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-3 pr-12 text-white placeholder-gray-500 transition-all focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20" />
+                        <input :type="showElevenLabsKey ? 'text' : 'password'" wire:model.defer="elevenLabsKey"
+                            placeholder="{{ $hasSavedElevenLabsKey ? '••••••••••••••••••••••••••••••••' : 'xi-api-key or your ElevenLabs API key' }}"
+                            class="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-3 pr-12 text-white placeholder-gray-500 font-mono text-sm transition-all focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20" />
                         <button type="button" @click="showElevenLabsKey = !showElevenLabsKey"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-white"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-white transition-colors cursor-pointer"
                             aria-label="Toggle ElevenLabs API Key visibility">
                             <svg x-show="showElevenLabsKey" x-cloak class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -221,6 +224,9 @@
                             </svg>
                         </button>
                     </div>
+                    @if($hasSavedElevenLabsKey)
+                        <p class="mt-1.5 text-xs text-gray-400">Your key is stored securely with AES-256 encryption. Click the eye icon to view or hide it.</p>
+                    @endif
                 </div>
 
                 @if($elevenLabsStatusMessage)

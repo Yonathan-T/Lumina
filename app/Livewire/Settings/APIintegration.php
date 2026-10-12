@@ -15,6 +15,7 @@ class ApiIntegration extends Component
     public $statusMessage = '';
     public $isKeyVerified = false;
     public $hasTestedSuccessfully = false;
+    public $hasSavedGeminiKey = false;
 
     // ElevenLabs API Key State
     public $elevenLabsKey = '';
@@ -22,37 +23,46 @@ class ApiIntegration extends Component
     public $elevenLabsStatusMessage = '';
     public $isElevenLabsKeyVerified = false;
     public $hasElevenLabsTestedSuccessfully = false;
+    public $hasSavedElevenLabsKey = false;
 
     public function mount()
     {
         $user = auth()->user();
 
-        // Load Gemini Key
+        // Load Gemini Key state
         if ($user->api_key) {
             try {
                 $this->apiKey = Crypt::decryptString($user->api_key);
+                $this->hasSavedGeminiKey = true;
                 $this->isKeyVerified = !is_null($user->api_key_verified_at);
             } catch (\Throwable $e) {
                 \Log::warning('Gemini API key decryption failed: ' . $e->getMessage());
                 $this->status = 'error';
                 $this->statusMessage = 'Saved Gemini key is corrupted. Please re-enter.';
-                $this->apiKey = '';
+                $this->hasSavedGeminiKey = false;
                 $this->isKeyVerified = false;
+                $this->apiKey = '';
             }
+        } else {
+            $this->apiKey = '';
         }
 
-        // Load ElevenLabs Key
+        // Load ElevenLabs Key state
         if ($user->elevenlabs_api_key) {
             try {
                 $this->elevenLabsKey = Crypt::decryptString($user->elevenlabs_api_key);
+                $this->hasSavedElevenLabsKey = true;
                 $this->isElevenLabsKeyVerified = !is_null($user->elevenlabs_api_key_verified_at);
             } catch (\Throwable $e) {
                 \Log::warning('ElevenLabs API key decryption failed: ' . $e->getMessage());
                 $this->elevenLabsStatus = 'error';
                 $this->elevenLabsStatusMessage = 'Saved ElevenLabs key is corrupted. Please re-enter.';
-                $this->elevenLabsKey = '';
+                $this->hasSavedElevenLabsKey = false;
                 $this->isElevenLabsKeyVerified = false;
+                $this->elevenLabsKey = '';
             }
+        } else {
+            $this->elevenLabsKey = '';
         }
     }
 
@@ -62,7 +72,20 @@ class ApiIntegration extends Component
 
     public function testConnection()
     {
-        if (empty(trim($this->apiKey))) {
+        $user = auth()->user();
+        $keyToTest = trim($this->apiKey);
+
+        if (empty($keyToTest) && $user->api_key) {
+            try {
+                $keyToTest = Crypt::decryptString($user->api_key);
+            } catch (\Throwable $e) {
+                $this->status = 'error';
+                $this->statusMessage = 'Could not decrypt saved key. Please enter a new key.';
+                return;
+            }
+        }
+
+        if (empty($keyToTest)) {
             $this->status = 'error';
             $this->statusMessage = 'Please enter a Gemini API key first';
             return;
@@ -72,13 +95,13 @@ class ApiIntegration extends Component
         $this->statusMessage = 'Testing connection to Google Gemini...';
 
         try {
-            $response = Http::get("https://generativelanguage.googleapis.com/v1/models?key={$this->apiKey}");
+            $response = Http::get("https://generativelanguage.googleapis.com/v1/models?key={$keyToTest}");
 
             if ($response->successful() && !empty($response->json('models'))) {
                 $this->hasTestedSuccessfully = true;
                 $this->isKeyVerified = true;
 
-                auth()->user()->update([
+                $user->update([
                     'api_key_verified_at' => now(),
                     'api_key_tested_at' => now(),
                 ]);
@@ -89,7 +112,7 @@ class ApiIntegration extends Component
                 $this->hasTestedSuccessfully = false;
                 $this->isKeyVerified = false;
 
-                auth()->user()->update([
+                $user->update([
                     'api_key_verified_at' => null,
                     'api_key_tested_at' => now(),
                 ]);
@@ -107,30 +130,32 @@ class ApiIntegration extends Component
 
     public function saveApiKey()
     {
-        if (empty(trim($this->apiKey))) {
+        $newKey = trim($this->apiKey);
+        $user = auth()->user();
+
+        if (empty($newKey) && !$user->api_key) {
             $this->status = 'error';
             $this->statusMessage = 'Gemini API key cannot be empty';
             return;
         }
 
-        $user = auth()->user();
-        $encrypted = Crypt::encryptString($this->apiKey);
+        if (!empty($newKey)) {
+            $encrypted = Crypt::encryptString($newKey);
+            $user->api_key = $encrypted;
 
-        $currentPlaintext = $user->api_key ? Crypt::decryptString($user->api_key) : null;
-        $keyChanged = $currentPlaintext !== $this->apiKey;
+            if (!$this->hasTestedSuccessfully) {
+                $user->api_key_verified_at = null;
+                $user->api_key_tested_at = now();
+                $this->isKeyVerified = false;
+            } else {
+                $user->api_key_verified_at = now();
+                $this->isKeyVerified = true;
+            }
 
-        $user->api_key = $encrypted;
-
-        if ($keyChanged && !$this->hasTestedSuccessfully) {
-            $user->api_key_verified_at = null;
-            $user->api_key_tested_at = now();
-            $this->isKeyVerified = false;
-        } else {
-            $user->api_key_verified_at = now();
-            $this->isKeyVerified = true;
+            $user->save();
+            $this->hasSavedGeminiKey = true;
+            $this->apiKey = $newKey;
         }
-
-        $user->save();
 
         $this->status = 'success';
         $this->statusMessage = $this->isKeyVerified
@@ -149,6 +174,7 @@ class ApiIntegration extends Component
         ]);
 
         $this->apiKey = '';
+        $this->hasSavedGeminiKey = false;
         $this->isKeyVerified = false;
         $this->hasTestedSuccessfully = false;
 
@@ -168,7 +194,20 @@ class ApiIntegration extends Component
 
     public function testElevenLabsConnection()
     {
-        if (empty(trim($this->elevenLabsKey))) {
+        $user = auth()->user();
+        $keyToTest = trim($this->elevenLabsKey);
+
+        if (empty($keyToTest) && $user->elevenlabs_api_key) {
+            try {
+                $keyToTest = Crypt::decryptString($user->elevenlabs_api_key);
+            } catch (\Throwable $e) {
+                $this->elevenLabsStatus = 'error';
+                $this->elevenLabsStatusMessage = 'Could not decrypt saved key. Please enter a new key.';
+                return;
+            }
+        }
+
+        if (empty($keyToTest)) {
             $this->elevenLabsStatus = 'error';
             $this->elevenLabsStatusMessage = 'Please enter an ElevenLabs API key first';
             return;
@@ -179,14 +218,14 @@ class ApiIntegration extends Component
 
         try {
             $response = Http::withHeaders([
-                'xi-api-key' => trim($this->elevenLabsKey),
+                'xi-api-key' => $keyToTest,
             ])->get('https://api.elevenlabs.io/v1/user');
 
             if ($response->successful()) {
                 $this->hasElevenLabsTestedSuccessfully = true;
                 $this->isElevenLabsKeyVerified = true;
 
-                auth()->user()->update([
+                $user->update([
                     'elevenlabs_api_key_verified_at' => now(),
                     'elevenlabs_api_key_tested_at' => now(),
                 ]);
@@ -197,7 +236,7 @@ class ApiIntegration extends Component
                 $this->hasElevenLabsTestedSuccessfully = false;
                 $this->isElevenLabsKeyVerified = false;
 
-                auth()->user()->update([
+                $user->update([
                     'elevenlabs_api_key_verified_at' => null,
                     'elevenlabs_api_key_tested_at' => now(),
                 ]);
@@ -215,30 +254,32 @@ class ApiIntegration extends Component
 
     public function saveElevenLabsKey()
     {
-        if (empty(trim($this->elevenLabsKey))) {
+        $newKey = trim($this->elevenLabsKey);
+        $user = auth()->user();
+
+        if (empty($newKey) && !$user->elevenlabs_api_key) {
             $this->elevenLabsStatus = 'error';
             $this->elevenLabsStatusMessage = 'ElevenLabs API key cannot be empty';
             return;
         }
 
-        $user = auth()->user();
-        $encrypted = Crypt::encryptString(trim($this->elevenLabsKey));
+        if (!empty($newKey)) {
+            $encrypted = Crypt::encryptString($newKey);
+            $user->elevenlabs_api_key = $encrypted;
 
-        $currentPlaintext = $user->elevenlabs_api_key ? Crypt::decryptString($user->elevenlabs_api_key) : null;
-        $keyChanged = $currentPlaintext !== trim($this->elevenLabsKey);
+            if (!$this->hasElevenLabsTestedSuccessfully) {
+                $user->elevenlabs_api_key_verified_at = null;
+                $user->elevenlabs_api_key_tested_at = now();
+                $this->isElevenLabsKeyVerified = false;
+            } else {
+                $user->elevenlabs_api_key_verified_at = now();
+                $this->isElevenLabsKeyVerified = true;
+            }
 
-        $user->elevenlabs_api_key = $encrypted;
-
-        if ($keyChanged && !$this->hasElevenLabsTestedSuccessfully) {
-            $user->elevenlabs_api_key_verified_at = null;
-            $user->elevenlabs_api_key_tested_at = now();
-            $this->isElevenLabsKeyVerified = false;
-        } else {
-            $user->elevenlabs_api_key_verified_at = now();
-            $this->isElevenLabsKeyVerified = true;
+            $user->save();
+            $this->hasSavedElevenLabsKey = true;
+            $this->elevenLabsKey = $newKey;
         }
-
-        $user->save();
 
         $this->elevenLabsStatus = 'success';
         $this->elevenLabsStatusMessage = $this->isElevenLabsKeyVerified
@@ -257,6 +298,7 @@ class ApiIntegration extends Component
         ]);
 
         $this->elevenLabsKey = '';
+        $this->hasSavedElevenLabsKey = false;
         $this->isElevenLabsKeyVerified = false;
         $this->hasElevenLabsTestedSuccessfully = false;
 

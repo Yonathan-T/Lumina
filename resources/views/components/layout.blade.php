@@ -1,20 +1,21 @@
-@props(['showSidebar' => false, 'showNav' => true, 'isLandingPage' => false, 'patternOnBody' => false])
+@props(['showSidebar' => false, 'showNav' => true, 'isLandingPage' => false, 'patternOnBody' => false, 'isChatPage' => false])
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="{{ $isChatPage ? 'is-chat-page h-full h-[100dvh] overflow-hidden overscroll-none' : '' }}">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
     <title>Lumina</title>
     <link rel="icon" type="image/svg+xml" href="/lumiicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link
+        rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&family=Poppins:wght@400;500;600;700&family=Lora:wght@400;500;600&family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Crimson+Text:wght@400;600&family=Merriweather:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Ubuntu:wght@400;500;700&display=swap"
-        rel="stylesheet">
+        media="print"
+        onload="this.media='all'"
+        onerror="this.remove()">
     @livewireStyles
     <script>
         // Apply collapsed class ASAP to avoid sidebar flash on refresh
@@ -33,23 +34,30 @@
         window.SanctuaryAudio = window.SanctuaryAudio || (function () {
             let audio = null;
             let isPlaying = false;
+            let isLooping = false;
             let audioCtx = null;
             let synthNodes = [];
 
-            const audioSources = [
-                '/audio/Ladyfingers-Lofi.m4a',
-                '/storage/audio/c39fafa2-be3f-441a-a9d7-d591b91853a3.mp3',
-                'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3'
+            const playlist = [
+                { title: '01-Ladyfingers-Lofi', url: '/audio/01-Ladyfingers-Lofi.m4a' },
+                { title: '02-where-am-i-supposed-to-go', url: '/audio/02-where-am-i-supposed-to-go.m4a' },
+                { title: '03-ridgeclub - biting bullets', url: '/audio/03-ridgeclub%20-%20biting%20bullets.m4a' },
+                { title: '04-falling-forwards', url: '/audio/04-falling-forwards.m4a' },
+                { title: '05-Solace', url: '/audio/05-Solace.m4a' }
             ];
-            let currentSourceIdx = 0;
+            let currentTrackIdx = 0;
+
+            function getCurrentTrack() {
+                return playlist[currentTrackIdx] || playlist[0];
+            }
 
             function getAudioInstance() {
                 if (!audio) {
                     audio = new Audio();
-                    audio.loop = true;
+                    audio.loop = isLooping;
                     audio.preload = 'auto';
                     audio.volume = 0.7;
-                    audio.src = audioSources[currentSourceIdx];
+                    audio.src = getCurrentTrack().url;
 
                     audio.addEventListener('play', function () {
                         isPlaying = true;
@@ -60,33 +68,54 @@
                         notifyState();
                     });
                     audio.addEventListener('ended', function () {
-                        isPlaying = false;
-                        notifyState();
+                        if (isLooping) {
+                            audio.currentTime = 0;
+                            audio.play().catch(function() {});
+                        } else {
+                            next();
+                        }
                     });
                     audio.addEventListener('error', function (err) {
-                        console.warn('Sanctuary audio source error, switching to fallback', err);
-                        tryNextSource();
+                        console.warn('Sanctuary audio source error, switching to next track', err);
+                        next();
                     });
                 }
                 return audio;
             }
 
-            function tryNextSource() {
-                currentSourceIdx++;
-                if (currentSourceIdx < audioSources.length) {
-                    if (audio) {
-                        audio.src = audioSources[currentSourceIdx];
-                        if (isPlaying) {
-                            audio.play().catch(function () {
-                                tryNextSource();
-                            });
-                        }
-                    }
+            function loadTrack(idx, autoPlay = true) {
+                currentTrackIdx = (idx + playlist.length) % playlist.length;
+                const track = getCurrentTrack();
+                const a = getAudioInstance();
+                a.src = track.url;
+                a.currentTime = 0;
+                a.loop = isLooping;
+                if (autoPlay || isPlaying) {
+                    play();
                 } else {
-                    if (isPlaying) {
-                        startSynth();
-                    }
+                    notifyState();
                 }
+            }
+
+            function next() {
+                loadTrack(currentTrackIdx + 1, isPlaying);
+            }
+
+            function prev() {
+                loadTrack(currentTrackIdx - 1, isPlaying);
+            }
+
+            function toggleLoop() {
+                isLooping = !isLooping;
+                if (audio) {
+                    audio.loop = isLooping;
+                }
+                notifyState();
+                return isLooping;
+            }
+
+            function getIsLooping() {
+                return Boolean(isLooping);
             }
 
             function notifyState() {
@@ -94,7 +123,11 @@
                     sessionStorage.setItem('sanctuary_audio_active', isPlaying ? '1' : '0');
                 } catch (e) { }
                 window.dispatchEvent(new CustomEvent('sanctuary-audio-state', {
-                    detail: { isPlaying: isPlaying }
+                    detail: { 
+                        isPlaying: isPlaying,
+                        isLooping: isLooping,
+                        track: getCurrentTrack()
+                    }
                 }));
             }
 
@@ -108,8 +141,8 @@
                         isPlaying = true;
                         notifyState();
                     }).catch(function (err) {
-                        console.warn('Audio play rejection, trying next source', err);
-                        tryNextSource();
+                        console.warn('Audio play rejection, trying fallback', err);
+                        startSynth();
                     });
                 }
             }
@@ -180,6 +213,11 @@
                 play: play,
                 pause: pause,
                 toggle: toggle,
+                next: next,
+                prev: prev,
+                toggleLoop: toggleLoop,
+                getIsLooping: getIsLooping,
+                getCurrentTrack: getCurrentTrack,
                 getIsPlaying: getIsPlaying,
                 getInstance: getAudioInstance
             };
@@ -187,14 +225,14 @@
     </script>
 </head>
 
-<body class="brand-page {{ (!$isLandingPage && ($patternOnBody || !$showSidebar)) ? 'bg-diagonal-lines' : '' }} text-[#c3beb6] min-h-screen flex flex-col {{ $showSidebar ? 'has-sidebar' : '' }} {{ $isLandingPage ? 'scrollbar-none' : '' }}">
+<body class="brand-page {{ (!$isLandingPage && ($patternOnBody || !$showSidebar)) ? 'bg-diagonal-lines' : '' }} text-[#c3beb6] min-h-screen flex flex-col {{ $showSidebar ? 'has-sidebar' : '' }} {{ $isLandingPage ? 'scrollbar-none' : '' }} {{ $isChatPage ? 'is-chat-page h-full h-[100dvh] max-h-[100dvh] overflow-hidden overscroll-none fixed inset-0 w-full' : '' }}">
 
 
     @if ($showNav)
 
-        <x-navs>
-            <a href="/" wire:navigate.hover class="ml-3 flex items-center gap-2 group relative">
-                <svg class="w-10 h-10 text-white
+        <x-navs x-data="{ mobileNavOpen: false }">
+            <a href="/" wire:navigate.hover class="ml-1 sm:ml-3 flex items-center gap-1.5 sm:gap-2 group relative shrink-0">
+                <svg class="w-7 h-7 sm:w-10 sm:h-10 text-white
                                                        transition-transform duration-700 ease-out
                                                        group-hover:rotate-[720deg]
                                                        -rotate-45" fill="currentColor" viewBox="0 0 24 24"
@@ -202,89 +240,136 @@
                     <path d="M13,2l9,13.6L13,22ZM11,2L2,15.6L11,22Z" />
                 </svg>
 
-                <p class="font-playfair font-bold text-xl text-white
+                <p class="font-playfair font-bold text-base sm:text-xl text-white tracking-wide
                                                      transition-all duration-500
                                                      group-hover:text-white/40
                                                      group-hover:translate-x-1">
                     LUMINA
                 </p>
             </a>
-            <div class="space-x-6 font-bold">
+            <div class="hidden md:flex space-x-6 font-bold">
                 <x-links href="#features" section="features">Features</x-links>
                 {{-- <x-links href="#pricing" section="pricing">Pricing</x-links> --}}
                 <x-links :href="route('blogs.index')" :active="request()->routeIs('blogs.*')" wire:navigate.hover>Blogs</x-links>
                 <x-links href="#contact" section="contact">Contact</x-links>
             </div>
-            <div>
+            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 @auth
                     <a href="/dashboard"
                         wire:navigate.hover
                         class="
-                                                                                                                                                                                                                                        border border-white/25 rounded-lg px-3 py-2
-                                                                                                                                                                                                                                        bg-[#060b16] text-white font-semibold
-                                                                                                                                                                                                                                        shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
-                                                                                                                                                                                                                                        active:translate-y-[2px]
-                                                                                                                                                                                                                                        active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
-                                                                                                                                                                                                                                        active:border-gray-600
-                                                                                                                                                                                                                                        transition-all duration-200 ease-in-out
-                                                                                                                                                                                                                                        select-none
-                                                                                                                                                                                                                                        inline-block
-                                                                                                                                                                                                                                    ">
+                            border border-white/25 rounded-lg px-2.5 py-1.5 sm:px-3 sm:py-2
+                            bg-[#060b16] text-white font-semibold text-xs sm:text-sm
+                            shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
+                            active:translate-y-[2px]
+                            active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
+                            active:border-gray-600
+                            transition-all duration-200 ease-in-out
+                            select-none
+                            inline-block
+                        ">
                         Dashboard
                     </a>
                 @endauth
                 @guest
                     <a href="/auth/login"
                         wire:navigate.hover
-                        class="text-sm font-semibold text-white/80 hover:text-white mr-4 transition-colors">
+                        class="text-xs sm:text-sm font-semibold text-white/80 hover:text-white mr-1.5 sm:mr-3 transition-colors">
                         Sign in
                     </a>
                     <a href="/auth/register"
                         wire:navigate.hover
                         class="
-                                                                                                                                                                                                                                        border border-white/25 rounded-lg px-3 py-2
-                                                                                                                                                                                                                                        bg-[#060b16] text-white font-semibold
-                                                                                                                                                                                                                                        shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
-                                                                                                                                                                                                                                        active:translate-y-[2px]
-                                                                                                                                                                                                                                        active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
-                                                                                                                                                                                                                                        active:border-gray-600
-                                                                                                                                                                                                                                        transition-all duration-200 ease-in-out
-                                                                                                                                                                                                                                        select-none
-                                                                                                                                                                                                                                        inline-block
-                                                                                                                                                                                                                                    ">
+                            border border-white/25 rounded-lg px-2.5 py-1.5 sm:px-3 sm:py-2
+                            bg-[#060b16] text-white font-semibold text-xs sm:text-sm
+                            shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
+                            active:translate-y-[2px]
+                            active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
+                            active:border-gray-600
+                            transition-all duration-200 ease-in-out
+                            select-none
+                            inline-block
+                        ">
                         Sign up
                     </a>
 
                 @endguest
+
+                {{-- Mobile Hamburger (Only visible on screens < md) --}}
+                <button 
+                    type="button"
+                    @click="mobileNavOpen = !mobileNavOpen"
+                    class="md:hidden p-1.5 sm:p-2 text-white/80 hover:text-white focus:outline-none rounded-lg border border-white/25 bg-[#060b16] active:translate-y-[2px] transition-all cursor-pointer shrink-0"
+                    aria-label="Toggle navigation menu"
+                >
+                    <svg class="w-5 h-5 transition-transform duration-200" :class="{ 'rotate-90': mobileNavOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path x-show="!mobileNavOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        <path x-show="mobileNavOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
             </div>
 
-
-
-
-
-
-
+            {{-- Mobile Dropdown Menu Popover --}}
+            <div 
+                x-show="mobileNavOpen"
+                @click.outside="mobileNavOpen = false"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 -translate-y-2 scale-98"
+                x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                x-transition:leave-end="opacity-0 -translate-y-2 scale-98"
+                class="md:hidden absolute top-full left-0 right-0 mt-3 z-50"
+                style="display: none;"
+            >
+                <div class="rounded-3xl border border-white/15 bg-[#060b16]/95 backdrop-blur-2xl p-4 shadow-2xl space-y-1.5 divide-y divide-white/5">
+                    <a 
+                        href="#features" 
+                        @click="mobileNavOpen = false"
+                        class="block px-4 py-2.5 rounded-xl text-base font-semibold text-gray-200 hover:text-white hover:bg-white/10 transition-colors"
+                    >
+                        Features
+                    </a>
+                    <a 
+                        href="{{ route('blogs.index') }}" 
+                        wire:navigate.hover
+                        @click="mobileNavOpen = false"
+                        class="block px-4 py-2.5 rounded-xl text-base font-semibold text-gray-200 hover:text-white hover:bg-white/10 transition-colors"
+                    >
+                        Blogs
+                    </a>
+                    <a 
+                        href="#contact" 
+                        @click="mobileNavOpen = false"
+                        class="block px-4 py-2.5 rounded-xl text-base font-semibold text-gray-200 hover:text-white hover:bg-white/10 transition-colors"
+                    >
+                        Contact
+                    </a>
+                </div>
+            </div>
         </x-navs>
     @endif
 
     @if($showSidebar)
-        <div class="flex min-h-screen">
+        <div class="flex {{ $isChatPage ? 'h-screen h-[100dvh] overflow-hidden' : 'min-h-screen' }}">
             <aside id="appSidebarContainer"
                 class="w-64 transition-all duration-300 md:translate-x-0 md:fixed fixed inset-y-0 left-0 z-40">
                 @include('components.cached-sidebar')
             </aside>
             <div id="sidebarBackdrop" class="md:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-30 hidden"></div>
             <main
-                class="flex-1 font-inter text-custom relative min-h-screen overflow-y-auto scrollbar-none pt-12 md:pt-0 {{ (!$isLandingPage && !$patternOnBody) ? 'bg-diagonal-lines' : '' }}">
-                <button id="mobileSidebarToggle"
-                    class="md:hidden fixed top-4 left-4 z-50 inline-flex items-center justify-center w-10 h-10 rounded-md border border-white/25 bg-[#0b1220]/80 backdrop-blur-sm text-white/90 hover:text-white hover:bg-[#0b1220]/95 transition">
-                    <!-- simple hamburger -->
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
-                        <path fill-rule="evenodd"
-                            d="M3.75 6.75A.75.75 0 0 1 4.5 6h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75Zm0 5.25a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75Zm.75 4.5a.75.75 0 0 0 0 1.5h15a.75.75 0 0 0 0-1.5h-15Z"
-                            clip-rule="evenodd" />
-                    </svg>
-                </button>
+                class="flex-1 font-inter text-custom relative {{ $isChatPage ? 'h-screen h-[100dvh] overflow-hidden overscroll-none pt-0' : 'min-h-screen overflow-y-auto scrollbar-none pt-12 md:pt-0' }} {{ (!$isLandingPage && !$patternOnBody && !$isChatPage) ? 'bg-diagonal-lines' : '' }}">
+                @if(!$isChatPage)
+                    <button id="mobileSidebarToggle"
+                        class="md:hidden fixed top-4 left-4 z-50 inline-flex items-center justify-center w-10 h-10 rounded-md border border-white/25 bg-[#0b1220]/80 backdrop-blur-sm text-white/90 hover:text-white hover:bg-[#0b1220]/95 transition">
+                        <!-- simple hamburger -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                            <path fill-rule="evenodd"
+                                d="M3.75 6.75A.75.75 0 0 1 4.5 6h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75Zm0 5.25a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75Zm.75 4.5a.75.75 0 0 0 0 1.5h15a.75.75 0 0 0 0-1.5h-15Z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                @endif
                 {{ $slot }}
             </main>
         </div>
@@ -396,6 +481,13 @@
                 document.documentElement.classList.remove('sc-init');
             } catch (e) { }
 
+            const isChat = !!document.getElementById('chatRoot');
+            document.body.classList.toggle('is-chat-page', isChat);
+            document.documentElement.classList.toggle('is-chat-page', isChat);
+            if (!isChat) {
+                document.body.classList.remove('chat-open');
+            }
+
             document.body.classList.remove('sidebar-open');
             updateSidebarTitles();
             highlightNav();
@@ -430,6 +522,17 @@
                     document.body.classList.remove('sidebar-open');
                     document.getElementById('mobileSidebarToggle')?.setAttribute('aria-expanded', 'false');
                     mobileBackdrop.classList.add('hidden');
+                    return;
+                }
+
+                // If on mobile and a link or button inside sidebar is clicked, close sidebar drawer
+                if (window.innerWidth <= 768 && document.body.classList.contains('sidebar-open')) {
+                    const sidebarLink = event.target.closest('#sidebar a, #sidebar button:not(#profileButton)');
+                    if (sidebarLink) {
+                        document.body.classList.remove('sidebar-open');
+                        document.getElementById('mobileSidebarToggle')?.setAttribute('aria-expanded', 'false');
+                        document.getElementById('sidebarBackdrop')?.classList.add('hidden');
+                    }
                 }
             });
 

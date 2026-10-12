@@ -105,7 +105,7 @@ x-transition:enter-end="opacity-100 translate-x-0"
 x-transition:leave="transition ease-in duration-200"
 x-transition:leave-start="opacity-100 translate-x-0"
 x-transition:leave-end="opacity-0 translate-x-4"
-class="fixed right-3 sm:right-6 top-1/2 -translate-y-1/2 z-40 select-none flex flex-col items-center justify-center cursor-pointer group"
+class="hidden md:flex fixed right-3 sm:right-6 top-1/2 -translate-y-1/2 z-40 select-none flex-col items-center justify-center cursor-pointer group"
 style="display: none;"
 x-cloak
 title="Scroll Progress"

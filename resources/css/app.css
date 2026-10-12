@@ -654,11 +654,15 @@ html.sc-init main {
 
 /* Chat docking and drawer */
 #chatDrawer {
-    transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1),
+                translate 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.chat-open #chatDrawer {
-    transform: translateX(0);
+.chat-open #chatDrawer,
+:is(html, body).chat-open #chatDrawer {
+    transform: translateX(0) !important;
+    translate: 0 0 !important;
+    --tw-translate-x: 0 !important;
 }
 
 /* Desktop: smooth collapse and expand for chat navigation drawer */
@@ -752,6 +756,23 @@ html.sc-init main {
     }
 }
 
+
+/* Prevent chat page viewport bounce/scroll-off on mobile */
+html.is-chat-page,
+body.is-chat-page {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    overscroll-behavior: none !important;
+}
+
+@media (max-width: 768px) {
+    body.is-chat-page {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100% !important;
+    }
+}
 
 /* Invisible scrollbar utility (keeps scroll, hides track) */
 .scrollbar-none {

@@ -37,12 +37,9 @@
     <div class="container mx-auto px-4 py-8 max-w-7xl">
         {{-- Header Centered --}}
         <div class="mb-8 text-center">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-medium text-emerald-400 mb-3">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>Mindfulness & Reflection</span>
-            </div>
             <h1 class="text-3xl sm:text-4xl font-bold text-white mb-2 font-inter tracking-tight">Mental Health & Journaling Insights</h1>
-            <p class="text-gray-400 max-w-2xl mx-auto text-sm sm:text-base">Curated articles presented on an interactive Skiper 52 showcase — hover over any card to reveal the reflection</p>
+            <p class="text-gray-300 max-w-2xl mx-auto text-base sm:text-lg font-medium">Curated articles about mindfulness, mental wellbeing, and personal growth</p>
+            <p class="text-gray-400 text-xs sm:text-sm mt-1">Hover over them to see where they are from and read their reflection</p>
         </div>
 
         {{-- Custom Dashboard-Styled Filters --}}
@@ -53,10 +50,10 @@
                     type="button" 
                     @click="open = !open"
                     class="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border border-white/10 bg-gradient-dark hover:border-white/25 text-white text-xs sm:text-sm font-medium shadow-sm transition-all focus:outline-none min-w-[200px] cursor-pointer group"
-                    :class="{ 'border-emerald-500/40 ring-1 ring-emerald-500/30': open || selectedCategory }"
+                    :class="{ 'border-blue-500/40 ring-1 ring-blue-500/30': open || selectedCategory }"
                 >
                     <div class="flex items-center gap-2 truncate">
-                        <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                         </svg>
                         <span class="truncate" x-text="selectedCategory ? selectedCategory : 'All Categories'">All Categories</span>
@@ -82,11 +79,11 @@
                         type="button"
                         @click="selectedCategory = ''; open = false; hoveredId = null"
                         class="w-full flex items-center justify-between px-3.5 py-2 text-xs sm:text-sm text-left transition-colors cursor-pointer"
-                        :class="!selectedCategory ? 'bg-emerald-500/15 text-emerald-300 font-semibold' : 'text-gray-300 hover:bg-white/10 hover:text-white'"
+                        :class="!selectedCategory ? 'bg-blue-500/15 text-blue-300 font-semibold' : 'text-gray-300 hover:bg-white/10 hover:text-white'"
                     >
                         <span>All Categories</span>
                         <template x-if="!selectedCategory">
-                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                             </svg>
                         </template>
@@ -97,11 +94,11 @@
                             type="button"
                             @click="selectedCategory = @js($category); open = false; hoveredId = null"
                             class="w-full flex items-center justify-between px-3.5 py-2 text-xs sm:text-sm text-left transition-colors cursor-pointer"
-                            :class="selectedCategory === @js($category) ? 'bg-emerald-500/15 text-emerald-300 font-semibold' : 'text-gray-300 hover:bg-white/10 hover:text-white'"
+                            :class="selectedCategory === @js($category) ? 'bg-blue-500/15 text-blue-300 font-semibold' : 'text-gray-300 hover:bg-white/10 hover:text-white'"
                         >
                             <span class="truncate">{{ $category }}</span>
                             <template x-if="selectedCategory === @js($category)">
-                                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                 </svg>
                             </template>
@@ -116,10 +113,10 @@
                     type="button" 
                     @click="open = !open"
                     class="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border border-white/10 bg-gradient-dark hover:border-white/25 text-white text-xs sm:text-sm font-medium shadow-sm transition-all focus:outline-none min-w-[200px] cursor-pointer group"
-                    :class="{ 'border-emerald-500/40 ring-1 ring-emerald-500/30': open || selectedSource }"
+                    :class="{ 'border-blue-500/40 ring-1 ring-blue-500/30': open || selectedSource }"
                 >
                     <div class="flex items-center gap-2 truncate">
-                        <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
                         </svg>
                         <span class="truncate" x-text="selectedSource ? selectedSource : 'All Sources'">All Sources</span>
@@ -145,11 +142,11 @@
                         type="button"
                         @click="selectedSource = ''; open = false; hoveredId = null"
                         class="w-full flex items-center justify-between px-3.5 py-2 text-xs sm:text-sm text-left transition-colors cursor-pointer"
-                        :class="!selectedSource ? 'bg-emerald-500/15 text-emerald-300 font-semibold' : 'text-gray-300 hover:bg-white/10 hover:text-white'"
+                        :class="!selectedSource ? 'bg-blue-500/15 text-blue-300 font-semibold' : 'text-gray-300 hover:bg-white/10 hover:text-white'"
                     >
                         <span>All Sources</span>
                         <template x-if="!selectedSource">
-                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                             </svg>
                         </template>
@@ -160,11 +157,11 @@
                             type="button"
                             @click="selectedSource = @js($source); open = false; hoveredId = null"
                             class="w-full flex items-center justify-between px-3.5 py-2 text-xs sm:text-sm text-left transition-colors cursor-pointer"
-                            :class="selectedSource === @js($source) ? 'bg-emerald-500/15 text-emerald-300 font-semibold' : 'text-gray-300 hover:bg-white/10 hover:text-white'"
+                            :class="selectedSource === @js($source) ? 'bg-blue-500/15 text-blue-300 font-semibold' : 'text-gray-300 hover:bg-white/10 hover:text-white'"
                         >
                             <span class="truncate">{{ $source }}</span>
                             <template x-if="selectedSource === @js($source)">
-                                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                 </svg>
                             </template>
@@ -179,7 +176,7 @@
                 x-transition:enter="transition ease-out duration-200"
                 x-transition:enter-start="opacity-0 scale-90"
                 x-transition:enter-end="opacity-100 scale-100"
-                class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-mono font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20"
+                class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-mono font-medium text-blue-400 bg-blue-500/10 border border-blue-500/20"
                 x-text="filteredBlogs.length + ' ' + (filteredBlogs.length === 1 ? 'article' : 'articles')"
             ></span>
 
@@ -200,8 +197,124 @@
             </button>
         </div>
 
-        {{-- Dynamic Skiper 52 ExpandOnHover Shelves (Only expands on hover, all equal at rest) --}}
-        <div class="relative w-full max-w-6xl mx-auto px-2 sm:px-5 space-y-12">
+        {{-- No Results State (Shared) --}}
+        <div x-show="filteredBlogs.length === 0" class="text-center py-20 bg-white/5 border border-white/10 rounded-2xl max-w-lg mx-auto">
+            <div class="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4 text-gray-400">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-white mb-2">No Articles Found</h3>
+            <p class="text-gray-400 text-sm mb-6">No articles matched your active filters. Try resetting the filters.</p>
+            <button 
+                type="button" 
+                @click="resetFilters()"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-colors cursor-pointer"
+            >
+                <span>Reset Filters</span>
+            </button>
+        </div>
+
+        {{-- Mobile Vertical Card List (Visible on screens < md) --}}
+        <div class="block md:hidden w-full max-w-lg mx-auto px-2 space-y-5" x-show="filteredBlogs.length > 0">
+            @if($isLoading && count($blogs) == 0)
+                {{-- Mobile Skeleton Loader --}}
+                <div class="space-y-4">
+                    @for($i = 0; $i < 3; $i++)
+                        <div class="rounded-2xl border border-white/10 bg-[#070c18]/80 p-4 animate-pulse">
+                            <div class="w-full h-44 bg-white/10 rounded-xl mb-3"></div>
+                            <div class="h-4 bg-white/10 rounded w-3/4 mb-2"></div>
+                            <div class="h-3 bg-white/10 rounded w-1/2 mb-4"></div>
+                            <div class="h-9 bg-white/10 rounded-xl w-full"></div>
+                        </div>
+                    @endfor
+                </div>
+            @else
+                <template x-for="blog in filteredBlogs" :key="'mob-blog-' + blog.id">
+                    <article class="group rounded-2xl border border-white/10 bg-[#070c18]/85 backdrop-blur-xl overflow-hidden shadow-xl transition-all duration-300 hover:border-blue-500/40 hover:shadow-2xl flex flex-col">
+                        {{-- Card Top Media --}}
+                        <div class="relative w-full h-48 sm:h-52 overflow-hidden bg-black/60 shrink-0">
+                            <img 
+                                :src="blog.image" 
+                                :alt="blog.title" 
+                                referrerpolicy="no-referrer"
+                                loading="lazy"
+                                x-on:error="$el.src = blog.fallback"
+                                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                            />
+                            <div class="absolute inset-0 bg-gradient-to-t from-[#070c18] via-transparent to-black/40 pointer-events-none"></div>
+
+                            {{-- Badges --}}
+                            <div class="absolute top-3 inset-x-3 flex items-center justify-between gap-2 pointer-events-none">
+                                <span 
+                                    class="text-[10px] font-mono font-bold uppercase tracking-wider text-blue-400 bg-black/75 px-2.5 py-1 rounded-full border border-blue-500/30 backdrop-blur-md shadow-xs truncate max-w-[55%]"
+                                    x-text="blog.source_name"
+                                ></span>
+                                <template x-if="blog.category">
+                                    <span 
+                                        class="text-[10px] font-medium text-blue-300 bg-blue-950/80 px-2.5 py-1 rounded-full border border-blue-500/40 backdrop-blur-md truncate max-w-[45%]"
+                                        x-text="blog.category"
+                                    ></span>
+                                </template>
+                            </div>
+
+                            {{-- Date & Read Time --}}
+                            <div class="absolute bottom-2.5 inset-x-3 flex items-center justify-between text-[11px] text-white/90 font-mono pointer-events-none">
+                                <span class="inline-flex items-center gap-1.5 bg-black/70 px-2.5 py-0.5 rounded-full border border-white/15 backdrop-blur-sm">
+                                    <svg class="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    <span x-text="blog.date_formatted"></span>
+                                </span>
+                                <span class="bg-black/70 px-2.5 py-0.5 rounded-full border border-white/15 backdrop-blur-sm" x-text="blog.read_time"></span>
+                            </div>
+                        </div>
+
+                        {{-- Card Content --}}
+                        <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3.5">
+                            <div class="space-y-2">
+                                <h3 
+                                    class="text-base sm:text-lg font-bold text-white font-inter leading-snug line-clamp-2"
+                                    x-text="blog.title"
+                                ></h3>
+
+                                <template x-if="blog.description">
+                                    <p 
+                                        class="text-xs sm:text-sm text-gray-300 line-clamp-3 leading-relaxed"
+                                        x-text="blog.description"
+                                    ></p>
+                                </template>
+
+                                <div class="flex flex-wrap items-center gap-1 pt-1">
+                                    <template x-for="tag in blog.tags" :key="tag">
+                                        <span 
+                                            class="inline-flex items-center text-[10px] font-mono text-blue-300 bg-blue-500/15 border border-blue-500/30 px-2 py-0.5 rounded-md"
+                                            x-text="'#' + tag.replace('#', '')"
+                                        ></span>
+                                    </template>
+                                </div>
+                            </div>
+
+                            {{-- Action Button --}}
+                            <div class="pt-2">
+                                <a 
+                                    :href="blog.external_url" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    class="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 active:bg-blue-700 border border-blue-400/40 shadow-lg shadow-blue-950/40 transition-all duration-150"
+                                >
+                                    <span>Read Full Article</span>
+                                    <span>&rarr;</span>
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+                </template>
+            @endif
+        </div>
+
+        {{-- Desktop Skiper 52 ExpandOnHover Shelves (Only expands on hover, all equal at rest) --}}
+        <div class="hidden md:block relative w-full max-w-6xl mx-auto px-2 sm:px-5 space-y-12" x-show="filteredBlogs.length > 0">
             @if($isLoading && count($blogs) == 0)
                 {{-- Skeleton Loader matching Skiper 52 dimensions --}}
                 <div class="flex w-full items-center justify-center gap-2 py-4">
@@ -210,24 +323,6 @@
                     @endfor
                 </div>
             @else
-                {{-- No Results State --}}
-                <div x-show="filteredBlogs.length === 0" class="text-center py-20 bg-white/5 border border-white/10 rounded-2xl max-w-lg mx-auto">
-                    <div class="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4 text-gray-400">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-semibold text-white mb-2">No Articles Found</h3>
-                    <p class="text-gray-400 text-sm mb-6">No articles matched your active filters. Try resetting the filters.</p>
-                    <button 
-                        type="button" 
-                        @click="resetFilters()"
-                        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-colors cursor-pointer"
-                    >
-                        <span>Reset Filters</span>
-                    </button>
-                </div>
-
                 {{-- Continuous Shelves via Alpine x-for --}}
                 <template x-for="(shelf, shelfIdx) in shelves" :key="'shelf-' + (selectedCategory || 'all') + '-' + (selectedSource || 'all') + '-' + shelfIdx">
                     <div class="w-full">
@@ -248,7 +343,7 @@
                                             ? 'width: 24rem; height: 24rem;' 
                                             : 'width: 4.5rem; height: 24rem;'"
                                         :class="hoveredId === blog.id 
-                                            ? 'shadow-[0_20px_50px_rgba(0,0,0,0.95)] ring-1 ring-emerald-400/40 border-white/30' 
+                                            ? 'shadow-[0_20px_50px_rgba(0,0,0,0.95)] ring-1 ring-blue-400/40 border-white/30' 
                                             : 'hover:opacity-100 opacity-90 shadow-[0_8px_20px_rgba(0,0,0,0.5)] border-white/10'"
                                         @mouseenter="hoveredId = blog.id"
                                         @click="hoveredId = (hoveredId === blog.id ? null : blog.id)"
@@ -271,7 +366,7 @@
                                             x-show="hoveredId !== blog.id"
                                             class="absolute inset-0 flex flex-col justify-between items-center py-4 z-10 pointer-events-none bg-black/35 group-hover:bg-black/15 transition-colors"
                                         >
-                                            <span 
+                                           <span 
                                                 class="text-[10px] font-mono font-bold text-white/80 bg-black/70 px-1.5 py-0.5 rounded-full border border-white/15 backdrop-blur-sm"
                                                 x-text="blog.code"
                                             ></span>
@@ -309,18 +404,18 @@
                                             <div class="flex items-center justify-between gap-2 flex-wrap">
                                                 <div class="flex items-center gap-1.5 flex-wrap">
                                                     <span 
-                                                        class="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-bold bg-white/10 px-2.5 py-0.5 rounded-full border border-white/20 backdrop-blur-md shadow-xs"
+                                                        class="text-[10px] font-mono uppercase tracking-wider text-blue-400 font-bold bg-white/10 px-2.5 py-0.5 rounded-full border border-white/20 backdrop-blur-md shadow-xs"
                                                         x-text="blog.code + ' • ' + blog.source_name"
                                                     ></span>
                                                     <template x-if="blog.category">
                                                         <span 
-                                                            class="text-[10px] font-medium text-emerald-300 bg-emerald-500/25 px-2.5 py-0.5 rounded-full border border-emerald-500/35"
+                                                            class="text-[10px] font-medium text-blue-300 bg-blue-500/25 px-2.5 py-0.5 rounded-full border border-blue-500/35"
                                                             x-text="blog.category"
                                                         ></span>
                                                     </template>
                                                 </div>
                                                 <div class="flex items-center gap-1.5 text-[10px] text-white/90 font-mono shrink-0 bg-black/70 px-2.5 py-0.5 rounded-full border border-white/20 backdrop-blur-sm">
-                                                    <svg class="w-3 h-3 text-emerald-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                                    <svg class="w-3 h-3 text-blue-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                                     <span :title="blog.date_title" x-text="blog.date_formatted"></span>
                                                     <span class="text-white/40">&bull;</span>
                                                     <span x-text="blog.read_time"></span>
@@ -344,7 +439,7 @@
                                                 <div class="flex flex-wrap items-center gap-1 pt-1">
                                                     <template x-for="tag in blog.tags" :key="tag">
                                                         <span 
-                                                            class="inline-flex items-center text-[9px] font-mono text-emerald-300 bg-emerald-500/20 border border-emerald-500/35 px-2 py-0.5 rounded-md"
+                                                            class="inline-flex items-center text-[9px] font-mono text-blue-300 bg-blue-500/20 border border-blue-500/35 px-2 py-0.5 rounded-md"
                                                             x-text="'#' + tag.replace('#', '')"
                                                         ></span>
                                                     </template>
@@ -357,7 +452,7 @@
                                                     :href="blog.external_url" 
                                                     target="_blank" 
                                                     rel="noopener noreferrer"
-                                                    class="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 border border-emerald-400/40 shadow-xl backdrop-blur-md transition-all duration-200 group/btn"
+                                                    class="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 border border-blue-400/40 shadow-xl backdrop-blur-md transition-all duration-200 group/btn"
                                                 >
                                                     <span>Read Article</span>
                                                     <span class="group-hover/btn:translate-x-1 transition-transform">&rarr;</span>
@@ -372,7 +467,7 @@
                         {{-- Subtle Architectural Shelf Ledge Divider Between Rows --}}
                         <template x-if="shelfIdx < shelves.length - 1">
                             <div class="relative w-full max-w-5xl mx-auto h-2 my-8 rounded-full bg-gradient-to-r from-transparent via-white/10 to-transparent border-t border-white/15 flex items-center justify-center">
-                                <div class="w-1/3 h-[1px] bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent blur-xs"></div>
+                                <div class="w-1/3 h-[1px] bg-gradient-to-r from-transparent via-blue-400/40 to-transparent blur-xs"></div>
                             </div>
                         </template>
                     </div>

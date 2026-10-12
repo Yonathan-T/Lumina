@@ -644,8 +644,8 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
     .hero-time-art[piece="night-coast"],
     [data-scene="night-coast"] .page-time-art,
     [data-scene="night-coast"] .hero-time-art {
-      opacity: 0.88 !important;
-      filter: blur(0.5px) brightness(1.3) contrast(1.12) !important;
+      opacity: 0.85 !important;
+      filter: blur(1.8px) brightness(1.15) contrast(1.08) !important;
     }
     .page-time-art[piece="night-coast"] canvas,
     .hero-time-art[piece="night-coast"] canvas,
@@ -656,10 +656,10 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
 
     /* Water down dark overlays specifically for night-coast so it is not pitch black */
     [data-scene="night-coast"] .page-time-tint {
-      opacity: 0.22 !important;
+      opacity: 0.28 !important;
     }
     [data-scene="night-coast"] .page-time-vignette {
-      opacity: 0.55 !important;
+      opacity: 0.60 !important;
     }
     .footer-atmospheric-blur {
       backdrop-filter: blur(24px) saturate(180%);

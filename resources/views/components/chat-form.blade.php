@@ -23,7 +23,7 @@
             class="w-full bg-gray-700 border bg-gradient-dark rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent disabled:opacity-50 overflow-hidden resize-none max-h-[200px]"
             {{ $isDisabled || $isTyping ? 'disabled' : '' }}
             oninput="this.style.height='auto'; this.style.height=(this.scrollHeight)+'px';"
-            onkeydown="if(event.key==='Enter' && !event.ctrlKey && !event.metaKey){event.preventDefault(); this.closest('form').dispatchEvent(new Event('submit', {bubbles: true, cancelable: true}));}"></textarea>
+            onkeydown="if(event.key==='Enter' && !event.shiftKey && !event.ctrlKey && !event.metaKey){event.preventDefault(); const form = this.closest('form'); if(form){ if(typeof form.requestSubmit === 'function'){ form.requestSubmit(); } else { form.dispatchEvent(new Event('submit', {bubbles: true, cancelable: true})); } }}"></textarea>
     </div>
     <div>
         <button type="submit"

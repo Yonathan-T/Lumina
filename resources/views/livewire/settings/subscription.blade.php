@@ -34,15 +34,15 @@
         ];
 @endphp
 
-<div class="space-y-8">
-    <div class="relative overflow-hidden rounded-2xl border {{ $current['tone'] }} bg-gradient-dark p-8 card-highlight">
+<div class="space-y-6 sm:space-y-8">
+    <div class="relative overflow-hidden rounded-2xl border {{ $current['tone'] }} bg-gradient-dark p-5 sm:p-8 card-highlight">
         <div class="absolute right-0 top-0 h-40 w-40 rounded-full {{ $current['glow'] }} blur-3xl"></div>
 
         <div class="relative grid gap-5 lg:grid-cols-[1.6fr_0.9fr]">
             <div class="space-y-4">
                 <p class="text-sm uppercase tracking-[0.25em] text-white/45">Current Plan</p>
                 <div class="flex flex-wrap items-center gap-3">
-                    <h2 class="text-3xl font-bold text-white">{{ $current['label'] ?? 'Free' }}</h2>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-white">{{ $current['label'] ?? 'Free' }}</h2>
                     <span class="rounded-full border border-white/10 px-3 py-1 text-xs font-semibold {{ $current['accent'] ?? 'text-slate-200' }}">
                         {{ ucfirst($currentPlan) }} tier
                     </span>
@@ -65,7 +65,7 @@
                 </div>
             </div>
 
-            <div class="rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm">
+            <div class="rounded-3xl border border-white/10 bg-white/[0.04] p-5 sm:p-6 backdrop-blur-sm">
                 @if($nextPlan)
                     <p class="text-xs uppercase tracking-[0.22em] text-white/40">Next Plan</p>
                     <h3 class="mt-3 text-2xl font-semibold text-white">{{ ($nextPlan['key'] ?? '') === 'pro' ? 'Pro' : ($nextPlan['name'] ?? 'Standard') }}</h3>
@@ -91,7 +91,7 @@
         </div>
     </div>
 
-    <div class="rounded-2xl border border-white/10 bg-gradient-dark p-8 card-highlight">
+    <div class="rounded-2xl border border-white/10 bg-gradient-dark p-5 sm:p-8 card-highlight">
         <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
                 <h2 class="text-2xl font-bold text-white">
@@ -105,7 +105,7 @@
             </div>
         </div>
 
-        <div class="mt-8 rounded-3xl border border-white/10 bg-white/[0.04] p-6">
+        <div class="mt-8 rounded-3xl border border-white/10 bg-white/[0.04] p-5 sm:p-6">
             @if($nextPlan)
                 <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                     <div class="max-w-2xl">
@@ -115,7 +115,7 @@
                             Here is what changes when you move up. One clear upgrade path, one checkout button, and a better summary of what you are actually getting.
                         </p>
                     </div>
-                    <div class="rounded-2xl border border-white/10 bg-white/5 px-5 py-5 min-w-[240px]">
+                    <div class="rounded-2xl border border-white/10 bg-white/5 px-4 sm:px-5 py-5 w-full lg:w-auto lg:min-w-[240px]">
                         <p class="text-xs uppercase tracking-[0.2em] text-white/40">Upgrade Price</p>
                         <p class="mt-2 text-2xl font-bold text-white">{{ $nextPlan['price'] ?? '$9/mo' }}</p>
                         <p class="mt-2 text-sm text-white/55">{{ ($nextPlan['description'] ?? '') ?: 'More room, better tools, and a fuller Lumina experience.' }}</p>

@@ -32,7 +32,7 @@ class Insights extends Component
      */
     private function buildCharts(array $d): array
     {
-        $palette = ['#8B5CF6', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#14B8A6', '#F97316'];
+        $palette = ['#3B82F6', '#60A5FA', '#2563EB', '#1D4ED8', '#93C5FD', '#F59E0B', '#F97316', '#38BDF8'];
         $tick = '#9CA3AF';
         $grid = 'rgba(255,255,255,0.06)';
 
@@ -59,7 +59,7 @@ class Insights extends Component
                     'datasets' => [[
                         'label' => 'Entries',
                         'data' => $d['entriesSeries']['data'],
-                        'backgroundColor' => '#8B5CF6',
+                        'backgroundColor' => '#3B82F6',
                         'borderRadius' => 6,
                         'maxBarThickness' => 28,
                     ]],
@@ -99,7 +99,7 @@ class Insights extends Component
                     'datasets' => [[
                         'label' => 'Entries',
                         'data' => $d['dayOfWeek']['data'],
-                        'backgroundColor' => '#10B981',
+                        'backgroundColor' => '#3B82F6',
                         'borderRadius' => 6, 'maxBarThickness' => 34,
                     ]],
                 ],
@@ -116,7 +116,7 @@ class Insights extends Component
                     'labels' => $d['timeOfDay']['labels'],
                     'datasets' => [[
                         'data' => $d['timeOfDay']['data'],
-                        'backgroundColor' => ['#6366F1', '#F59E0B', '#3B82F6', '#8B5CF6'],
+                        'backgroundColor' => ['#3B82F6', '#60A5FA', '#2563EB', '#1D4ED8'],
                         'borderWidth' => 0,
                     ]],
                 ],

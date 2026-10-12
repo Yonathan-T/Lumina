@@ -105,25 +105,26 @@ Route::view('/security', 'pages.security')->name('security');
 // Route::get('/dashboard', function () {
 //     return view('entries.index');
 // });
-Route::get('/auth/register', [RegisteredUserController::class, 'create']);
-Route::post('/auth/register', [RegisteredUserController::class, 'store']);
+// Guest-only Routes (Redirect already logged-in users directly to /dashboard)
+Route::middleware('guest')->group(function () {
+    Route::get('/auth/register', [RegisteredUserController::class, 'create'])->name('register');
+    Route::post('/auth/register', [RegisteredUserController::class, 'store']);
 
-Route::get('/auth/login', [SessionController::class, 'create'])->name('login');
-Route::post('/auth/login', [SessionController::class, 'store']);
+    Route::get('/auth/login', [SessionController::class, 'create'])->name('login');
+    Route::post('/auth/login', [SessionController::class, 'store']);
+
+    Route::get('/auth/{provider}/redirect', [SocialLoginController::class, 'redirectToProvider']);
+    Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'handleProviderCallback']);
+
+    Route::get('password/reset', [PasswordResetController::class, 'showLinkRequestForm'])->name('password.request');
+    Route::post('password/email', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.email');
+    Route::get('password/reset/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
+    Route::post('password/reset', [PasswordResetController::class, 'reset'])->name('password.update');
+});
+
 Route::post('/auth/logout', [SessionController::class, 'destroy'])->name('logout');
 
-Route::get('/auth/{provider}/redirect', [SocialLoginController::class, 'redirectToProvider']);
-Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'handleProviderCallback']);
-
 Route::get('/search', [SearchController::class, 'search'])->name('search');
-
-Route::get('password/reset', [PasswordResetController::class, 'showLinkRequestForm'])->name('password.request');
-
-Route::post('password/email', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.email');
-
-Route::get('password/reset/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
-
-Route::post('password/reset', [PasswordResetController::class, 'reset'])->name('password.update');
 
 Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
 Route::middleware('auth')->post('/chat/stream', [ChatController::class, 'stream'])->name('chat.stream');

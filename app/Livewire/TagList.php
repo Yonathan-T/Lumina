@@ -19,12 +19,43 @@ class TagList extends Component
 
     public function showTagEntries($tagId)
     {
-        $this->selectedTagId = $tagId;
-        $tag = Tag::withCount(['entries' => function ($query) {
-            $query->where('user_id', auth()->id());
-        }])->find($tagId);
-        $this->selectedTagName = $tag?->name;
-        $this->selectedTagCount = $tag?->entries_count;
+        $this->selectedTagId = (int) $tagId;
+    }
+
+    public function Reflect($entryId)
+    {
+        try {
+            $userDataService = app(\App\Services\UserDataService::class);
+            $reflectionData = $userDataService->reflectOnEntry($entryId);
+
+            if (! $reflectionData) {
+                $this->dispatch('notify', message: 'Entry not found', type: 'error');
+                return;
+            }
+
+            $conversation = \App\Models\Conversation::create([
+                'user_id' => auth()->id(),
+                'title' => $reflectionData['conversation_title'],
+                'type' => 'reflection',
+                'message_count' => 1,
+                'last_activity' => now(),
+            ]);
+
+            $entry = $reflectionData['entry'];
+            $titleSnippet = !empty($entry->title) ? " around \"{$entry->title}\"" : '';
+            $initialMessage = "I've reviewed your journal entry{$titleSnippet}. Take a moment to settle in—how are you feeling about what you wrote, and what would you like to reflect on together?";
+
+            \App\Models\Message::create([
+                'conversation_id' => $conversation->id,
+                'content' => $initialMessage,
+                'is_ai_response' => true,
+            ]);
+
+            return $this->redirect(route('chat.index', ['conversation' => $conversation->id]), navigate: true);
+        } catch (\Exception $e) {
+            \Log::error('Reflection Error: '.$e->getMessage());
+            $this->dispatch('notify', message: 'Unable to start reflection. Please try again.', type: 'error');
+        }
     }
 
     public function updatingSort()
@@ -61,16 +92,17 @@ class TagList extends Component
 
         $tagEntries = collect();
         if ($this->selectedTagId) {
-            $tag = Tag::find($this->selectedTagId);
-            if ($tag && ! $this->selectedTagName) {
+            $tag = Tag::select(['id', 'name'])->find($this->selectedTagId);
+            if ($tag) {
                 $this->selectedTagName = $tag->name;
+                $tagEntries = $tag->entries()
+                    ->where('user_id', $userId)
+                    ->select(['entries.id', 'entries.title', 'entries.content', 'entries.created_at', 'entries.user_id'])
+                    ->with(['tags:id,name'])
+                    ->latest('entries.created_at')
+                    ->get();
+                $this->selectedTagCount = $tagEntries->count();
             }
-            $tagEntries = $tag ? $tag->entries()
-                ->where('user_id', $userId)
-                ->select(['entries.id', 'entries.title', 'entries.content', 'entries.created_at', 'entries.user_id'])
-                ->with(['tags:id,name'])
-                ->latest('entries.created_at')
-                ->get() : collect();
         }
 
         return view('livewire.tag-list', [

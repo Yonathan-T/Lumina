@@ -62,9 +62,12 @@ return [
     'ai' => [
         'provider' => env('AI_PROVIDER', 'gemini'),
     ],
-      'elevenlabs' => [
+    'elevenlabs' => [
         'key' => env('ELEVENLABS_API_KEY'),
     ],
 
+    'google_analytics' => [
+        'id' => env('GOOGLE_ANALYTICS_ID', 'G-RE91MN34D4'),
+    ],
 
 ];
