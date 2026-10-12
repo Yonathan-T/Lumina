@@ -21,7 +21,11 @@ class Appearance extends Component
                 'dark_mode' => false,
                 'entry_font_size' => 16,
             ];
-            $user->update(['settings' => $settings]);
+            try {
+                $user->update(['settings' => $settings]);
+            } catch (\Throwable $e) {
+                \Log::warning('Failed initializing appearance settings: ' . $e->getMessage());
+            }
         }
 
         $this->darkMode = $settings['dark_mode'] ?? false;

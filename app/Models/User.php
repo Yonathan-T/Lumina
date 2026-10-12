@@ -216,29 +216,34 @@ class User extends Authenticatable
             return $this->memoizedCurrentPlan;
         }
 
-        $this->refreshBillingStateIfNeeded();
+        try {
+            $this->refreshBillingStateIfNeeded();
 
-        $subscription = $this->qualifyingSubscriptionQuery()
-            ->latest()
-            ->first();
+            $subscription = $this->qualifyingSubscriptionQuery()
+                ->latest()
+                ->first();
 
-        if (! $subscription) {
+            if (! $subscription) {
+                return $this->memoizedCurrentPlan = 'free';
+            }
+
+            $productId = $subscription->product_id;
+
+            // Simple mapping using config and .env variables
+            if ($productId && $productId === config('services.polar.standard_product_id', env('POLAR_STANDARD_PRODUCT_ID'))) {
+                return $this->memoizedCurrentPlan = 'standard';
+            }
+
+            if ($productId && $productId === config('services.polar.pro_product_id', env('POLAR_PRO_PRODUCT_ID'))) {
+                return $this->memoizedCurrentPlan = 'pro';
+            }
+
+            // Default to standard if it's an active subscription but unknown product ID
+            return $this->memoizedCurrentPlan = 'standard';
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Error resolving user plan: ' . $e->getMessage());
             return $this->memoizedCurrentPlan = 'free';
         }
-
-        $productId = $subscription->product_id;
-
-        // Simple mapping using config and .env variables
-        if ($productId && $productId === config('services.polar.standard_product_id', env('POLAR_STANDARD_PRODUCT_ID'))) {
-            return $this->memoizedCurrentPlan = 'standard';
-        }
-
-        if ($productId && $productId === config('services.polar.pro_product_id', env('POLAR_PRO_PRODUCT_ID'))) {
-            return $this->memoizedCurrentPlan = 'pro';
-        }
-
-        // Default to standard if it's an active subscription but unknown product ID
-        return $this->memoizedCurrentPlan = 'standard';
     }
 
     public function clearMemoizedPlan(): void

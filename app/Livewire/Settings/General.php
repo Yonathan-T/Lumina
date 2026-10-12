@@ -25,7 +25,11 @@ class General extends Component
                 'streak_alerts' => false,
                 'blog_updates' => false
             ];
-            $user->update(['settings' => $settings]);
+            try {
+                $user->update(['settings' => $settings]);
+            } catch (\Throwable $e) {
+                \Log::warning('Failed initializing user settings: ' . $e->getMessage());
+            }
         }
 
         $this->dailyReminder = $settings['daily_reminder'] ?? false;
