@@ -160,7 +160,7 @@
                 @click.stop>
 
                 {{-- Header --}}
-                <div class="p-6 border-b border-white/10 flex items-center justify-between">
+                <div class="p-6 border-b border-white/10 flex items-center justify-between shrink-0">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
                             <x-icon name="scroll-text" class="w-5 h-5" />
@@ -180,7 +180,7 @@
                 </div>
 
                 {{-- Content --}}
-                <div class="p-6 overflow-y-auto max-h-[60vh] space-y-4 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                <div class="p-6 overflow-y-auto flex-1 min-h-0 space-y-4 overscroll-contain scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                     <div wire:loading wire:target="loadWeeklySummary" class="flex flex-col items-center justify-center py-12 text-center">
                         <div class="w-10 h-10 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mb-4"></div>
                         <p class="text-sm text-muted">Analyzing your week & preparing report...</p>
@@ -215,7 +215,7 @@
                 </div>
 
                 {{-- Footer --}}
-                <div class="p-4 border-t border-white/10 flex justify-end bg-black/20">
+                <div class="p-4 border-t border-white/10 flex justify-end bg-black/20 shrink-0">
                     <button type="button" @click="show = false; $wire.closeSummaryModal()"
                         class="px-4 py-2 text-sm font-medium text-white border border-white/10 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
                         Close
