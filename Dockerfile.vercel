@@ -87,7 +87,13 @@ ENV PORT=80 \
     LOG_CHANNEL=stderr \
     CACHE_STORE=database \
     SESSION_DRIVER=database \
-    QUEUE_CONNECTION=sync
+    QUEUE_CONNECTION=sync \
+    FILESYSTEM_DISK=s3 \
+    AWS_DEFAULT_REGION=eu-west-1 \
+    AWS_BUCKET=uploads \
+    AWS_ENDPOINT="https://wcmumoudftsbgsyjufye.storage.supabase.co/storage/v1/s3" \
+    AWS_USE_PATH_STYLE_ENDPOINT=true \
+    AWS_URL="https://wcmumoudftsbgsyjufye.supabase.co/storage/v1/object/public/uploads"
 
 USER www-data
 
