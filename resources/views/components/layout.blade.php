@@ -36,8 +36,7 @@
 
         // Persistent Sanctuary Ambient Audio Manager (Survives all Livewire SPA navigations)
         window.SanctuaryAudio = window.SanctuaryAudio || (function () {
-            let audio = null;
-            let preloader = null;
+            const audioPool = {};
             let isPlaying = false;
             let isLooping = false;
             let audioCtx = null;
@@ -66,81 +65,77 @@
                 return playlist[currentTrackIdx] || playlist[0];
             }
 
-            function preloadAdjacentTracks() {
-                try {
-                    const nextIdx = (currentTrackIdx + 1) % playlist.length;
-                    const nextUrl = playlist[nextIdx].url;
-                    if (!preloader) {
-                        preloader = new Audio();
-                        preloader.preload = 'auto';
-                        preloader.volume = 0;
-                    }
-                    if (preloader.src !== window.location.origin + nextUrl && preloader.src !== nextUrl) {
-                        preloader.src = nextUrl;
-                        preloader.load();
-                    }
-                    if (window.fetch) {
-                        fetch(nextUrl, { cache: 'force-cache' }).catch(function () {});
-                    }
-                } catch (e) { }
-            }
+            function getTrackAudio(idx) {
+                const trackIdx = (idx + playlist.length) % playlist.length;
+                if (!audioPool[trackIdx]) {
+                    const a = new Audio();
+                    a.preload = 'auto';
+                    a.volume = 0.7;
+                    a.src = playlist[trackIdx].url;
 
-            function getAudioInstance() {
-                if (!audio) {
-                    audio = new Audio();
-                    audio.loop = isLooping;
-                    audio.preload = 'auto';
-                    audio.volume = 0.7;
-                    audio.src = getCurrentTrack().url;
-
-                    audio.addEventListener('play', function () {
-                        isPlaying = true;
-                        notifyState();
-                        preloadAdjacentTracks();
+                    a.addEventListener('play', function () {
+                        if (currentTrackIdx === trackIdx) {
+                            isPlaying = true;
+                            notifyState();
+                        }
                     });
-                    audio.addEventListener('pause', function () {
-                        if (!audio.ended) {
+                    a.addEventListener('pause', function () {
+                        if (currentTrackIdx === trackIdx && !a.ended) {
                             isPlaying = false;
                             notifyState();
                         }
                     });
-                    audio.addEventListener('ended', function () {
-                        if (isLooping) {
-                            audio.currentTime = 0;
-                            audio.play().catch(function() {});
-                        } else {
-                            // Seamless continuous playback: auto-advance to next track and play
+                    a.addEventListener('ended', function () {
+                        if (currentTrackIdx === trackIdx) {
+                            if (isLooping) {
+                                a.currentTime = 0;
+                                a.play().catch(function () {});
+                            } else {
+                                next(true);
+                            }
+                        }
+                    });
+                    a.addEventListener('error', function (err) {
+                        console.warn('Track audio error for', playlist[trackIdx].title, err);
+                        if (currentTrackIdx === trackIdx) {
                             next(true);
                         }
                     });
-                    audio.addEventListener('error', function (err) {
-                        console.warn('Sanctuary audio source error, switching to next track', err);
-                        next(true);
-                    });
+
+                    audioPool[trackIdx] = a;
                 }
-                return audio;
+                return audioPool[trackIdx];
+            }
+
+            function getCurrentAudio() {
+                return getTrackAudio(currentTrackIdx);
             }
 
             function loadTrack(idx, autoPlay = true) {
+                const prevIdx = currentTrackIdx;
                 currentTrackIdx = (idx + playlist.length) % playlist.length;
                 try {
                     sessionStorage.setItem('sanctuary_audio_track', currentTrackIdx);
                 } catch (e) { }
 
-                const track = getCurrentTrack();
-                const a = getAudioInstance();
-                
-                a.src = track.url;
-                a.currentTime = 0;
-                a.loop = isLooping;
+                // Stop and reset previous track audio element
+                if (prevIdx !== currentTrackIdx && audioPool[prevIdx]) {
+                    audioPool[prevIdx].pause();
+                    audioPool[prevIdx].currentTime = 0;
+                }
+
+                const current = getCurrentAudio();
+                current.loop = isLooping;
 
                 if (autoPlay) {
                     play();
                 } else {
                     notifyState();
                 }
-                
-                preloadAdjacentTracks();
+
+                // Pre-warm the next 2 adjacent tracks immediately in pool
+                getTrackAudio(currentTrackIdx + 1);
+                getTrackAudio(currentTrackIdx + 2);
             }
 
             function next(forceAutoPlay) {
@@ -155,8 +150,9 @@
 
             function toggleLoop() {
                 isLooping = !isLooping;
-                if (audio) {
-                    audio.loop = isLooping;
+                const current = getCurrentAudio();
+                if (current) {
+                    current.loop = isLooping;
                 }
                 notifyState();
                 return isLooping;
@@ -183,8 +179,9 @@
             function play() {
                 isPlaying = true;
                 stopSynth();
-                const a = getAudioInstance();
-                const playPromise = a.play();
+                const current = getCurrentAudio();
+                current.loop = isLooping;
+                const playPromise = current.play();
                 if (playPromise !== undefined) {
                     playPromise.then(function () {
                         isPlaying = true;
@@ -198,8 +195,9 @@
 
             function pause() {
                 isPlaying = false;
-                if (audio) {
-                    audio.pause();
+                const current = getCurrentAudio();
+                if (current) {
+                    current.pause();
                 }
                 stopSynth();
                 notifyState();
@@ -214,7 +212,8 @@
             }
 
             function getIsPlaying() {
-                return Boolean(isPlaying || (audio && !audio.paused && audio.currentTime > 0) || (synthNodes && synthNodes.length > 0));
+                const current = audioPool[currentTrackIdx];
+                return Boolean(isPlaying || (current && !current.paused && current.currentTime > 0) || (synthNodes && synthNodes.length > 0));
             }
 
             function startSynth() {
@@ -258,17 +257,28 @@
                 }
             }
 
-            // Silently warm up first track and preloader in background for instant 0ms playback
+            // Progressive background pool pre-warming: pre-instantiate pool for all tracks
             try {
                 if (typeof window !== 'undefined') {
-                    const warmUp = function () {
-                        getAudioInstance();
-                        preloadAdjacentTracks();
+                    const warmUpPool = function () {
+                        // Immediately prime current track and next track
+                        getTrackAudio(currentTrackIdx);
+                        getTrackAudio(currentTrackIdx + 1);
+
+                        // Progressively prime all remaining tracks at 250ms intervals
+                        playlist.forEach(function (_, i) {
+                            if (i !== currentTrackIdx && i !== ((currentTrackIdx + 1) % playlist.length)) {
+                                setTimeout(function () {
+                                    getTrackAudio(i);
+                                }, (i + 1) * 250);
+                            }
+                        });
                     };
+
                     if ('requestIdleCallback' in window) {
-                        requestIdleCallback(warmUp);
+                        requestIdleCallback(warmUpPool);
                     } else {
-                        setTimeout(warmUp, 600);
+                        setTimeout(warmUpPool, 400);
                     }
                 }
             } catch (e) { }
@@ -283,7 +293,7 @@
                 getIsLooping: getIsLooping,
                 getCurrentTrack: getCurrentTrack,
                 getIsPlaying: getIsPlaying,
-                getInstance: getAudioInstance
+                getInstance: getCurrentAudio
             };
         })();
     </script>
