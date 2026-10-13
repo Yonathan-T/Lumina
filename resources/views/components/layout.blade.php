@@ -120,7 +120,6 @@
                 a.src = track.url;
                 a.currentTime = 0;
                 a.loop = isLooping;
-                a.load();
 
                 if (autoPlay || isPlaying) {
                     play();
@@ -240,6 +239,21 @@
                     synthNodes = [];
                 }
             }
+
+            // Silently warm up first track and preloader in background for instant 0ms playback
+            try {
+                if (typeof window !== 'undefined') {
+                    const warmUp = function () {
+                        getAudioInstance();
+                        preloadAdjacentTracks();
+                    };
+                    if ('requestIdleCallback' in window) {
+                        requestIdleCallback(warmUp);
+                    } else {
+                        setTimeout(warmUp, 600);
+                    }
+                }
+            } catch (e) { }
 
             return {
                 play: play,
