@@ -288,13 +288,18 @@ class BlogLoader extends Component
             $publishedDate = isset($blog['published_at']) ? Carbon::parse($blog['published_at']) : now();
             $readMinutes = max(2, min(7, (int) ceil(str_word_count(($blog['title'] ?? '') . ' ' . ($blog['description'] ?? '')) / 25) + 1));
 
+            $cleanTitle = mb_convert_encoding((string) ($blog['title'] ?? ''), 'UTF-8', 'UTF-8');
+            $cleanDescription = mb_convert_encoding((string) ($blog['description'] ?? ''), 'UTF-8', 'UTF-8');
+            $cleanSource = mb_convert_encoding((string) ($blog['source_name'] ?? 'Mindful'), 'UTF-8', 'UTF-8');
+            $cleanCategory = mb_convert_encoding((string) ($blog['category'] ?? ''), 'UTF-8', 'UTF-8');
+
             return [
                 'id' => (string) ($blog['id'] ?? $index),
-                'title' => (string) ($blog['title'] ?? ''),
-                'description' => (string) ($blog['description'] ?? ''),
+                'title' => $cleanTitle,
+                'description' => $cleanDescription,
                 'external_url' => (string) ($blog['external_url'] ?? '#'),
-                'source_name' => (string) ($blog['source_name'] ?? 'Mindful'),
-                'category' => (string) ($blog['category'] ?? ''),
+                'source_name' => $cleanSource,
+                'category' => $cleanCategory,
                 'image' => (string) $feedImage,
                 'fallback' => (string) $fallbackImages[($index + 2) % count($fallbackImages)],
                 'tags' => array_values(array_slice($rawTags, 0, 3)),

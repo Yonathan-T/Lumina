@@ -158,8 +158,8 @@ class FetchBlogContent extends Command
         $tags = $this->extractTags($title . ' ' . $description);
 
         Blog::create([
-            'title' => $title,
-            'description' => substr($description, 0, 500),
+            'title' => mb_convert_encoding($title, 'UTF-8', 'UTF-8'),
+            'description' => mb_substr(mb_convert_encoding($description, 'UTF-8', 'UTF-8'), 0, 500, 'UTF-8'),
             'external_url' => $externalUrl,
             'source_name' => $sourceName,
             'source_url' => $sourceUrl,
