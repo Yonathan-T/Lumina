@@ -28,6 +28,7 @@ class NewEntry extends Component
 
     public $savedEntryId = null;
     public $savedEntryTitle = '';
+    public $savedEntryContent = '';
 
     // Quick chat properties
     public $quickChatMessages = [];
@@ -95,6 +96,7 @@ class NewEntry extends Component
         // Store lightweight scalar properties
         $this->savedEntryId = $entry->id;
         $this->savedEntryTitle = $entry->title;
+        $this->savedEntryContent = $entry->content;
 
         $this->reset(['title', 'content', 'selectedTags', 'banner']);
 
@@ -134,13 +136,15 @@ class NewEntry extends Component
     /**
      * Send message in quick chat with entry context
      */
-    public function sendQuickChat()
+    public function sendQuickChat($message = null)
     {
-        if (empty(trim($this->quickChatInput))) {
+        $messageToSend = $message !== null && trim($message) !== '' ? trim($message) : trim($this->quickChatInput);
+
+        if (empty($messageToSend)) {
             return;
         }
 
-        $userMessage = trim($this->quickChatInput);
+        $userMessage = $messageToSend;
 
         $this->quickChatMessages[] = [
             'sender' => 'user',
@@ -154,8 +158,8 @@ class NewEntry extends Component
         try {
             // Include entry context in the AI prompt with clearer instructions
             $entryContext = "The user just wrote a journal entry. Here's the context for our conversation:\n";
-            $entryContext .= "Title: {$this->savedEntry->title}\n";
-            $entryContext .= "Content: {$this->savedEntry->content}\n\n";
+            $entryContext .= "Title: {$this->savedEntryTitle}\n";
+            $entryContext .= "Content: {$this->savedEntryContent}\n\n";
 
             $prompt = $entryContext.'You are having a natural, supportive conversation about their journal entry. '
                 .'Respond as if you are a therapist by reading their entry and you are genuinely interested in their thoughts. '
