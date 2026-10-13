@@ -234,8 +234,8 @@
         description="Your journal is for your eyes only. Entries are encrypted and your privacy is our priority." />
       <x-benefit-card svg="svg/calendar-days.svg" title="Daily Prompts"
         description="Get inspired with thoughtful prompts tailored to foster self-discovery and reflection." />
-      <x-benefit-card svg="svg/smile.svg" title="Mood Tracker"
-        description="Visualize your emotional journey and identify patterns for greater self-awareness." />
+      <x-benefit-card svg="svg/sparkles.svg" title="Weekly AI Insights"
+        description="Receive automated weekly summaries and personalized reflections to discover themes and milestones across your recent entries." />
 
     </div>
 
