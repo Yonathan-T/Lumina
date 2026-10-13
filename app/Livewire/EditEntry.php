@@ -169,7 +169,23 @@ class EditEntry extends Component
 
     public function confirmDelete()
     {
+        $bannerPath = $this->entry->banner_path;
         $this->entry->delete();
+
+        if ($bannerPath) {
+            dispatch(function () use ($bannerPath) {
+                try {
+                    $disk = Entry::getStorageDisk();
+                    Storage::disk($disk)->delete($bannerPath);
+                    if ($disk !== 'public') {
+                        Storage::disk('public')->delete($bannerPath);
+                    }
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('Background banner deletion failed: '.$e->getMessage());
+                }
+            })->afterResponse();
+        }
+
         session()->flash('message', 'Entry deleted successfully!');
 
         return $this->redirect(route('archive.entries'), navigate: true);

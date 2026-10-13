@@ -369,7 +369,7 @@
                     Cancel
                 </button>
                 <button type="button" wire:click="confirmDelete" @click="showDeleteModal = false"
-                    class="flex-1 px-4 py-3 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors">
+                    class="flex-1 px-4 py-3 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors inline-flex items-center justify-center gap-2">
                     Delete Entry
                 </button>
             </div>
