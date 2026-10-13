@@ -33,6 +33,7 @@
         // Persistent Sanctuary Ambient Audio Manager (Survives all Livewire SPA navigations)
         window.SanctuaryAudio = window.SanctuaryAudio || (function () {
             let audio = null;
+            let preloader = null;
             let isPlaying = false;
             let isLooping = false;
             let audioCtx = null;
@@ -55,6 +56,22 @@
                 return playlist[currentTrackIdx] || playlist[0];
             }
 
+            function preloadAdjacentTracks() {
+                try {
+                    const nextIdx = (currentTrackIdx + 1) % playlist.length;
+                    const nextUrl = playlist[nextIdx].url;
+                    if (!preloader) {
+                        preloader = new Audio();
+                        preloader.preload = 'auto';
+                        preloader.volume = 0;
+                    }
+                    if (preloader.src !== window.location.origin + nextUrl && preloader.src !== nextUrl) {
+                        preloader.src = nextUrl;
+                        preloader.load();
+                    }
+                } catch (e) { }
+            }
+
             function getAudioInstance() {
                 if (!audio) {
                     audio = new Audio();
@@ -66,6 +83,7 @@
                     audio.addEventListener('play', function () {
                         isPlaying = true;
                         notifyState();
+                        preloadAdjacentTracks();
                     });
                     audio.addEventListener('pause', function () {
                         isPlaying = false;
@@ -91,14 +109,20 @@
                 currentTrackIdx = (idx + playlist.length) % playlist.length;
                 const track = getCurrentTrack();
                 const a = getAudioInstance();
+                
+                // Immediately notify state for instant UI update
+                notifyState();
+
                 a.src = track.url;
                 a.currentTime = 0;
                 a.loop = isLooping;
+                a.load();
+
                 if (autoPlay || isPlaying) {
                     play();
-                } else {
-                    notifyState();
                 }
+                
+                preloadAdjacentTracks();
             }
 
             function next() {
