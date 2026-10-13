@@ -1,4 +1,4 @@
-<form method="POST" action="{{ $action }}" class="space-y-4" x-data="{ submitting: false }" @submit="submitting = true">
+<form method="POST" action="{{ $action }}" class="space-y-4" x-data="{ submitting: false }" @submit="if ($el.checkValidity()) { submitting = true; }">
     @csrf
     <div class="space-y-3.5">
         {{ $slot }}

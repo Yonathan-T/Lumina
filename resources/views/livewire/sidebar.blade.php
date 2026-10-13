@@ -185,13 +185,17 @@
                 </li>
 
                 <li>
-                    <form method="POST" action="{{ route('logout') }}">
+                    <form method="POST" action="{{ route('logout') }}" x-data="{ loggingOut: false }" @submit="loggingOut = true">
                         @csrf
 
-                        <button type="submit"
-                            class="cursor-pointer w-full text-left px-4 py-2 hover:bg-blue-300/15 text-white transition-colors rounded-md flex items-center gap-2">
-                            <x-icon name="log-out" class="w-4 h-4" />
-                            <span>sign out</span>
+                        <button type="submit" :disabled="loggingOut"
+                            class="cursor-pointer w-full text-left px-4 py-2 hover:bg-blue-300/15 text-white transition-colors rounded-md flex items-center gap-2 disabled:opacity-70">
+                            <svg x-show="loggingOut" x-cloak class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            </svg>
+                            <span x-show="!loggingOut"><x-icon name="log-out" class="w-4 h-4" /></span>
+                            <span x-text="loggingOut ? 'signing out...' : 'sign out'">sign out</span>
                         </button>
                     </form>
                 </li>

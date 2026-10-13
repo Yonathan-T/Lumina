@@ -76,12 +76,16 @@
                 <p><strong>Last updated:</strong> {{ auth()->user()->updated_at->diffForHumans() }}</p>
             </div>
 
-            <form method="POST" action="{{ route('logout') }}">
+            <form method="POST" action="{{ route('logout') }}" x-data="{ loggingOut: false }" @submit="loggingOut = true">
                 @csrf
-                <button type="submit"
-                    class="mt-4 px-6 py-2 text-white rounded-lg font-semibold border border-white/10 bg-red-500 hover:bg-red-600 transition flex items-center gap-2">
-                    <x-icon name="log-out" class="w-4 h-4" />
-                    <span>Log out</span>
+                <button type="submit" :disabled="loggingOut"
+                    class="mt-4 px-6 py-2 text-white rounded-lg font-semibold border border-white/10 bg-red-500 hover:bg-red-600 transition flex items-center gap-2 disabled:opacity-70">
+                    <svg x-show="loggingOut" x-cloak class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                    <span x-show="!loggingOut"><x-icon name="log-out" class="w-4 h-4" /></span>
+                    <span x-text="loggingOut ? 'Logging out...' : 'Log out'">Log out</span>
                 </button>
             </form>
         </div>
