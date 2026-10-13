@@ -32,3 +32,28 @@ Route::get('/ping', function (\Illuminate\Http\Request $request) {
         'timestamp' => now()->toIso8601String(),
     ]);
 });
+
+Route::get('/blogs/fetch', function (\Illuminate\Http\Request $request) {
+    $expectedToken = config('services.health.token');
+    $providedToken = $request->query('token') ?: $request->bearerToken() ?: $request->header('X-Health-Token');
+
+    if (empty($expectedToken) || !hash_equals((string) $expectedToken, (string) $providedToken)) {
+        abort(404);
+    }
+
+    try {
+        \Illuminate\Support\Facades\Artisan::call('blogs:fetch');
+        $output = \Illuminate\Support\Facades\Artisan::output();
+
+        return response()->json([
+            'status' => 'success',
+            'output' => trim($output),
+            'timestamp' => now()->toIso8601String(),
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage(),
+        ], 500);
+    }
+});
