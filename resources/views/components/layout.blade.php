@@ -40,10 +40,14 @@
 
             const playlist = [
                 { title: '01-Ladyfingers-Lofi', url: '/audio/01-Ladyfingers-Lofi.m4a' },
-                { title: '02-where-am-i-supposed-to-go', url: '/audio/02-where-am-i-supposed-to-go.m4a' },
-                { title: '03-ridgeclub - biting bullets', url: '/audio/03-ridgeclub%20-%20biting%20bullets.m4a' },
-                { title: '04-falling-forwards', url: '/audio/04-falling-forwards.m4a' },
-                { title: '05-Solace', url: '/audio/05-Solace.m4a' }
+                { title: '02-Golden-Brown', url: '/audio/02-Golden-Brown.m4a' },
+                { title: '03-where-am-i-supposed-to-go', url: '/audio/03-where-am-i-supposed-to-go.m4a' },
+                { title: '04-ridgeclub - biting bullets', url: '/audio/04-ridgeclub%20-%20biting%20bullets.m4a' },
+                { title: '05-falling-forwards', url: '/audio/05-falling-forwards.m4a' },
+                { title: '06-Solace', url: '/audio/06-Solace.m4a' },
+                { title: '07-Idea-22', url: '/audio/07-Idea-22.m4a' },
+                { title: '08-Idea-7', url: '/audio/08-Idea-7.m4a' },
+                { title: '09-Idea-10', url: '/audio/09-Idea-10.m4a' }
             ];
             let currentTrackIdx = 0;
 
