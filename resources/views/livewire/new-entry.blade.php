@@ -5,8 +5,7 @@
         <div class="mt-4 flex items-center justify-between">
             <h1 class="text-3xl font-bold tracking-tight">New Entry</h1>
             <div class="text-sm text-muted">
-                {{ \Carbon\Carbon::now(timezone: 'Africa/Addis_Ababa')->format('l, F j, Y • H:i A') }}
-                <!-- this should be based on location instead of hard coding the timezone my self   -->
+                {{ \Carbon\Carbon::now()->format('l, F j, Y • H:i A') }}
             </div>
         </div>
         <!-- <form method="POST" action="/entries"> Should i use livewire or controller -->

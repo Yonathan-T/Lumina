@@ -27,6 +27,10 @@
                 if (localStorage.getItem('chat-nav-collapsed') === '1' && window.innerWidth >= 768) {
                     document.documentElement.classList.add('chat-nav-collapsed');
                 }
+                const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                if (tz && !document.cookie.includes('user_timezone=' + encodeURIComponent(tz))) {
+                    document.cookie = 'user_timezone=' + encodeURIComponent(tz) + '; path=/; max-age=31536000; SameSite=Lax';
+                }
             } catch (e) { }
         })();
 
