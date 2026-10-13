@@ -100,12 +100,17 @@ class EditEntry extends Component
         ];
 
         if ($this->banner) {
-            $disk = config('filesystems.default') === 's3' ? 's3' : 'public';
+            $disk = Entry::getStorageDisk();
             try {
                 if ($this->entry->banner_path) {
                     try {
                         Storage::disk($disk)->delete($this->entry->banner_path);
                     } catch (\Throwable $e) {}
+                    if ($disk !== 'public') {
+                        try {
+                            Storage::disk('public')->delete($this->entry->banner_path);
+                        } catch (\Throwable $e) {}
+                    }
                 }
                 $updateData['banner_path'] = $this->banner->store('banners', $disk);
             } catch (\Throwable $e) {
@@ -148,8 +153,15 @@ class EditEntry extends Component
     public function removeBanner()
     {
         if ($this->entry->banner_path) {
-            $disk = config('filesystems.default') === 's3' ? 's3' : 'public';
-            Storage::disk($disk)->delete($this->entry->banner_path);
+            $disk = Entry::getStorageDisk();
+            try {
+                Storage::disk($disk)->delete($this->entry->banner_path);
+            } catch (\Throwable $e) {}
+            if ($disk !== 'public') {
+                try {
+                    Storage::disk('public')->delete($this->entry->banner_path);
+                } catch (\Throwable $e) {}
+            }
             $this->entry->update(['banner_path' => null]);
             session()->flash('message', 'Banner removed successfully!');
         }

@@ -93,9 +93,9 @@
                                             </label>
                                         </div>
                                     </div>
-                                @elseif($entry->banner_path)
+                                @elseif($entry->banner_path && $entry->banner_url)
                                     <div class="relative w-full h-64 rounded-xl overflow-hidden border border-white/10 shadow-2xl">
-                                        <img src="{{ Storage::url($entry->banner_path) }}" class="w-full h-full object-cover">
+                                        <img src="{{ $entry->banner_url }}" class="w-full h-full object-cover">
                                         <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
                                         <button type="button" wire:click="removeBanner"
                                             class="absolute top-4 right-4 bg-red-600/80 text-white p-2 rounded-full hover:bg-red-700 transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm"
@@ -196,9 +196,9 @@
                     </form>
                 @else
 
-                    @if($entry->banner_path)
+                    @if($entry->banner_path && $entry->banner_url)
                         <div class="w-full h-64 rounded-lg overflow-hidden mb-6 border border-white/10">
-                            <img src="{{ Storage::url($entry->banner_path) }}" class="w-full h-full object-cover" alt="Entry Banner">
+                            <img src="{{ $entry->banner_url }}" class="w-full h-full object-cover" alt="Entry Banner" onerror="this.parentElement.style.display='none'">
                         </div>
                     @endif
 

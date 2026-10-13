@@ -143,9 +143,9 @@
     </table>
 
     <!-- Banner Image -->
-    @if($entry->banner_path)
+    @if($entry->banner_path && ($entry->banner_url || file_exists(public_path('storage/' . $entry->banner_path))))
         <div class="banner-container">
-            <img src="{{ public_path('storage/' . $entry->banner_path) }}" class="banner-img">
+            <img src="{{ file_exists(public_path('storage/' . $entry->banner_path)) ? public_path('storage/' . $entry->banner_path) : $entry->banner_url }}" class="banner-img">
         </div>
     @endif
 

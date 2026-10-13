@@ -54,11 +54,11 @@ class NewEntry extends Component
 
         $bannerPath = null;
         if ($this->banner) {
-            $disk = config('filesystems.default') === 's3' ? 's3' : 'public';
+            $disk = Entry::getStorageDisk();
             try {
                 $bannerPath = $this->banner->store('banners', $disk);
             } catch (\Throwable $e) {
-                \Log::warning('Banner upload failed on primary disk, trying public: ' . $e->getMessage());
+                \Log::warning('Banner upload failed on primary disk, trying public fallback: ' . $e->getMessage());
                 try {
                     $bannerPath = $this->banner->store('banners', 'public');
                 } catch (\Throwable $e2) {
