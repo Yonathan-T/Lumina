@@ -36,6 +36,12 @@ class SessionController extends Controller
 
         request()->session()->regenerate();
 
+        if (request()->wantsJson()) {
+            return response()->json([
+                'redirect' => redirect()->intended('/dashboard')->getTargetUrl(),
+            ]);
+        }
+
         return redirect()->intended('/dashboard');
     }
 
@@ -45,6 +51,12 @@ class SessionController extends Controller
 
         request()->session()->invalidate();
         request()->session()->regenerateToken();
+
+        if (request()->wantsJson()) {
+            return response()->json([
+                'redirect' => url('/'),
+            ]);
+        }
 
         return redirect('/');
     }

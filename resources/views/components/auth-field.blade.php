@@ -19,6 +19,8 @@
         <input id="{{ $name }}" name="{{ $name }}" 
             :type="'{{ $type }}' === 'password' ? (show ? 'text' : 'password') : '{{ $type }}'"
             value="{{ $value }}"
+            @input="if ($data.errors && $data.errors['{{ $name }}']) delete $data.errors['{{ $name }}']"
+            :class="($data.errors && $data.errors['{{ $name }}']) ? '!border-red-500/60 focus:!border-red-500' : ''"
             {{ $attributes->merge(['class' => "w-full px-3.5 py-2.5 bg-[#171a21]/90 hover:bg-[#1c202a] border " . ($errors->has($name) ? "border-red-500/60 focus:border-red-500" : "border-white/10 hover:border-white/20 focus:border-white/30") . " rounded-xl text-white text-sm placeholder:text-gray-500 focus:outline-none transition-all " . ($type === 'password' ? 'pr-10' : '')]) }}
             placeholder="{{ $placeholder }}" />
 

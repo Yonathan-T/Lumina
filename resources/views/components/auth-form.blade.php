@@ -1,4 +1,49 @@
-<form method="POST" action="{{ $action }}" class="space-y-4" x-data="{ submitting: false }" @submit="if ($el.checkValidity()) { submitting = true; }">
+<form method="POST" action="{{ $action }}" class="space-y-4"
+    x-data="{
+        submitting: false,
+        errors: {},
+        async submitAuth() {
+            const form = this.$el;
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            this.submitting = true;
+            this.errors = {};
+
+            try {
+                const formData = new FormData(form);
+                const csrfToken = form.querySelector('input[name=_token]')?.value || '';
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    window.location.href = data.redirect || '/dashboard';
+                    return;
+                }
+
+                if (response.status === 422) {
+                    const data = await response.json();
+                    this.errors = data.errors || {};
+                    this.submitting = false;
+                    return;
+                }
+
+                form.submit();
+            } catch (err) {
+                form.submit();
+            }
+        }
+    }"
+    @submit.prevent="submitAuth()">
     @csrf
     <div class="space-y-3.5">
         {{ $slot }}

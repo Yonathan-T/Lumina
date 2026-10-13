@@ -34,9 +34,9 @@ class RegisteredUserController extends Controller
         );
 
         if (User::whereRaw('LOWER(email) = ?', [request('email')])->exists()) {
-            return back()
-                ->withInput(request()->except('password', 'password_confirmation'))
-                ->withErrors(['email' => 'There is a user with that email address already.']);
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'email' => 'There is a user with that email address already.',
+            ]);
         }
 
         $user = User::create([
@@ -45,6 +45,12 @@ class RegisteredUserController extends Controller
             'password' => request('password'),
         ]);
         auth()->login($user);
+
+        if (request()->wantsJson()) {
+            return response()->json([
+                'redirect' => url('/dashboard'),
+            ]);
+        }
 
         return redirect('/dashboard');
 
