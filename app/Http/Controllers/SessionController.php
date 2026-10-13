@@ -38,7 +38,7 @@ class SessionController extends Controller
 
         if (request()->wantsJson()) {
             return response()->json([
-                'redirect' => redirect()->intended('/dashboard')->getTargetUrl(),
+                'redirect' => '/dashboard',
             ]);
         }
 

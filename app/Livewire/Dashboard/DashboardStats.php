@@ -71,20 +71,20 @@ class DashboardStats extends Component
         $userId = auth()->id();
         $userDataService = app(UserDataService::class);
 
-        $this->totalEntries = Entry::where('user_id', $userId)->count();
-
         $thisWeekStart = now()->startOfWeek();
         $thisWeekEnd = now()->endOfWeek();
-        $thisWeekEntries = Entry::where('user_id', $userId)
-            ->whereBetween('created_at', [$thisWeekStart, $thisWeekEnd])
-            ->count();
-
         $lastWeekStart = now()->subWeek()->startOfWeek();
         $lastWeekEnd = now()->subWeek()->endOfWeek();
-        $lastWeekEntries = Entry::where('user_id', $userId)
-            ->whereBetween('created_at', [$lastWeekStart, $lastWeekEnd])
-            ->count();
 
+        $entryStats = Entry::where('user_id', $userId)
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw('COUNT(CASE WHEN created_at >= ? AND created_at <= ? THEN 1 END) as this_week', [$thisWeekStart, $thisWeekEnd])
+            ->selectRaw('COUNT(CASE WHEN created_at >= ? AND created_at <= ? THEN 1 END) as last_week', [$lastWeekStart, $lastWeekEnd])
+            ->first();
+
+        $this->totalEntries = (int) ($entryStats->total ?? 0);
+        $thisWeekEntries = (int) ($entryStats->this_week ?? 0);
+        $lastWeekEntries = (int) ($entryStats->last_week ?? 0);
         $this->entriesFromLastWeek = $thisWeekEntries - $lastWeekEntries;
 
         // Tag Section
@@ -176,9 +176,8 @@ class DashboardStats extends Component
     protected function loadNotifications()
     {
         $user = auth()->user();
-        // Fetch all notifications, but we'll show unread ones first
         $this->notifications = $user->notifications()->latest()->take(10)->get();
-        $this->unreadCount = $user->unreadNotifications()->count();
+        $this->unreadCount = $this->notifications->whereNull('read_at')->count();
     }
 
     /**
