@@ -70,4 +70,8 @@ return [
         'id' => env('GOOGLE_ANALYTICS_ID', 'G-RE91MN34D4'),
     ],
 
+    'health' => [
+        'token' => env('HEALTH_CHECK_TOKEN'),
+    ],
+
 ];
