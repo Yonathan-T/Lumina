@@ -29,9 +29,14 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
-        $userTimezone = request()->cookie('user_timezone') ?: config('app.timezone');
-        if ($userTimezone && in_array($userTimezone, timezone_identifiers_list(), true)) {
-            date_default_timezone_set($userTimezone);
+        if ($this->app->bound('request')) {
+            $request = $this->app->make('request');
+            if ($request instanceof \Illuminate\Http\Request) {
+                $userTimezone = $request->cookie('user_timezone') ?: config('app.timezone');
+                if ($userTimezone && in_array($userTimezone, timezone_identifiers_list(), true)) {
+                    date_default_timezone_set($userTimezone);
+                }
+            }
         }
     }
 }
