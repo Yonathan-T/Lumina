@@ -65,6 +65,22 @@
                 return playlist[currentTrackIdx] || playlist[0];
             }
 
+            let isAdvancing = false;
+
+            function onTrackEnded(fromIdx) {
+                if (isAdvancing) return;
+                isAdvancing = true;
+                setTimeout(function () { isAdvancing = false; }, 600);
+
+                if (isLooping) {
+                    const current = getCurrentAudio();
+                    current.currentTime = 0;
+                    current.play().catch(function () {});
+                } else {
+                    next(true);
+                }
+            }
+
             function getTrackAudio(idx) {
                 const trackIdx = (idx + playlist.length) % playlist.length;
                 if (!audioPool[trackIdx]) {
@@ -79,26 +95,38 @@
                             notifyState();
                         }
                     });
+
+                    // Near-end timeupdate detection catches songs before browsers abruptly halt
+                    a.addEventListener('timeupdate', function () {
+                        if (currentTrackIdx === trackIdx && isPlaying && a.duration && a.duration > 1) {
+                            if (a.currentTime >= (a.duration - 0.25)) {
+                                onTrackEnded(trackIdx);
+                            }
+                        }
+                    });
+
                     a.addEventListener('pause', function () {
-                        if (currentTrackIdx === trackIdx && !a.ended) {
+                        // If paused at or near completion, treat as natural track end
+                        if (a.duration && a.currentTime >= (a.duration - 0.5)) {
+                            onTrackEnded(trackIdx);
+                            return;
+                        }
+                        if (currentTrackIdx === trackIdx && !isAdvancing) {
                             isPlaying = false;
                             notifyState();
                         }
                     });
+
                     a.addEventListener('ended', function () {
                         if (currentTrackIdx === trackIdx) {
-                            if (isLooping) {
-                                a.currentTime = 0;
-                                a.play().catch(function () {});
-                            } else {
-                                next(true);
-                            }
+                            onTrackEnded(trackIdx);
                         }
                     });
+
                     a.addEventListener('error', function (err) {
                         console.warn('Track audio error for', playlist[trackIdx].title, err);
                         if (currentTrackIdx === trackIdx) {
-                            next(true);
+                            onTrackEnded(trackIdx);
                         }
                     });
 
@@ -139,12 +167,12 @@
             }
 
             function next(forceAutoPlay) {
-                const shouldPlay = (typeof forceAutoPlay === 'boolean') ? forceAutoPlay : (isPlaying || getIsPlaying());
+                const shouldPlay = (typeof forceAutoPlay === 'boolean') ? forceAutoPlay : true;
                 loadTrack(currentTrackIdx + 1, shouldPlay);
             }
 
             function prev(forceAutoPlay) {
-                const shouldPlay = (typeof forceAutoPlay === 'boolean') ? forceAutoPlay : (isPlaying || getIsPlaying());
+                const shouldPlay = (typeof forceAutoPlay === 'boolean') ? forceAutoPlay : true;
                 loadTrack(currentTrackIdx - 1, shouldPlay);
             }
 
