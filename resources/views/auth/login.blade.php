@@ -6,7 +6,7 @@
 
     <x-auth-field name="password" type="password" label="Password" placeholder="Enter your password" required autocomplete="current-password" />
 
-    <div class="flex items-center justify-between text-xs pt-1">
+    <div class="flex items-center justify-between text-xs pt-2 mt-1">
       <label class="flex items-center gap-2 text-gray-300 cursor-pointer select-none">
         <input id="remember" name="remember" type="checkbox"
           class="h-4 w-4 rounded bg-[#171a21] border-white/20 text-indigo-500 focus:ring-0 cursor-pointer" />
