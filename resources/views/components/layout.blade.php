@@ -55,6 +55,12 @@
                 { title: '09-Idea-10', url: '/audio/09-Idea-10.m4a' }
             ];
             let currentTrackIdx = 0;
+            try {
+                const savedTrack = sessionStorage.getItem('sanctuary_audio_track');
+                if (savedTrack !== null) {
+                    currentTrackIdx = (parseInt(savedTrack, 10) || 0) % playlist.length;
+                }
+            } catch (e) { }
 
             function getCurrentTrack() {
                 return playlist[currentTrackIdx] || playlist[0];
@@ -73,6 +79,9 @@
                         preloader.src = nextUrl;
                         preloader.load();
                     }
+                    if (window.fetch) {
+                        fetch(nextUrl, { cache: 'force-cache' }).catch(function () {});
+                    }
                 } catch (e) { }
             }
 
@@ -90,20 +99,23 @@
                         preloadAdjacentTracks();
                     });
                     audio.addEventListener('pause', function () {
-                        isPlaying = false;
-                        notifyState();
+                        if (!audio.ended) {
+                            isPlaying = false;
+                            notifyState();
+                        }
                     });
                     audio.addEventListener('ended', function () {
                         if (isLooping) {
                             audio.currentTime = 0;
                             audio.play().catch(function() {});
                         } else {
-                            next();
+                            // Seamless continuous playback: auto-advance to next track and play
+                            next(true);
                         }
                     });
                     audio.addEventListener('error', function (err) {
                         console.warn('Sanctuary audio source error, switching to next track', err);
-                        next();
+                        next(true);
                     });
                 }
                 return audio;
@@ -111,29 +123,34 @@
 
             function loadTrack(idx, autoPlay = true) {
                 currentTrackIdx = (idx + playlist.length) % playlist.length;
+                try {
+                    sessionStorage.setItem('sanctuary_audio_track', currentTrackIdx);
+                } catch (e) { }
+
                 const track = getCurrentTrack();
                 const a = getAudioInstance();
                 
-                // Immediately notify state for instant UI update
-                notifyState();
-
                 a.src = track.url;
                 a.currentTime = 0;
                 a.loop = isLooping;
 
-                if (autoPlay || isPlaying) {
+                if (autoPlay) {
                     play();
+                } else {
+                    notifyState();
                 }
                 
                 preloadAdjacentTracks();
             }
 
-            function next() {
-                loadTrack(currentTrackIdx + 1, isPlaying);
+            function next(forceAutoPlay) {
+                const shouldPlay = (typeof forceAutoPlay === 'boolean') ? forceAutoPlay : (isPlaying || getIsPlaying());
+                loadTrack(currentTrackIdx + 1, shouldPlay);
             }
 
-            function prev() {
-                loadTrack(currentTrackIdx - 1, isPlaying);
+            function prev(forceAutoPlay) {
+                const shouldPlay = (typeof forceAutoPlay === 'boolean') ? forceAutoPlay : (isPlaying || getIsPlaying());
+                loadTrack(currentTrackIdx - 1, shouldPlay);
             }
 
             function toggleLoop() {
@@ -152,6 +169,7 @@
             function notifyState() {
                 try {
                     sessionStorage.setItem('sanctuary_audio_active', isPlaying ? '1' : '0');
+                    sessionStorage.setItem('sanctuary_audio_track', currentTrackIdx);
                 } catch (e) { }
                 window.dispatchEvent(new CustomEvent('sanctuary-audio-state', {
                     detail: { 

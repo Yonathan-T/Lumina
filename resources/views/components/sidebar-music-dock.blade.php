@@ -74,7 +74,7 @@
 
         nextTrack() {
             if (window.SanctuaryAudio && typeof window.SanctuaryAudio.next === 'function') {
-                window.SanctuaryAudio.next();
+                window.SanctuaryAudio.next(true);
                 const cur = typeof window.SanctuaryAudio.getCurrentTrack === 'function' ? window.SanctuaryAudio.getCurrentTrack() : null;
                 if (cur && cur.title) {
                     this.trackTitle = cur.title;
@@ -85,7 +85,7 @@
 
         prevTrack() {
             if (window.SanctuaryAudio && typeof window.SanctuaryAudio.prev === 'function') {
-                window.SanctuaryAudio.prev();
+                window.SanctuaryAudio.prev(true);
                 const cur = typeof window.SanctuaryAudio.getCurrentTrack === 'function' ? window.SanctuaryAudio.getCurrentTrack() : null;
                 if (cur && cur.title) {
                     this.trackTitle = cur.title;
