@@ -1,5 +1,10 @@
 import './bootstrap';
 import Chart from 'chart.js/auto';
+import { inject, track } from '@vercel/analytics';
+
+// Initialize Vercel Web Analytics
+inject();
+window.trackVercelEvent = track;
 
 // Make Chart.js globally available
 window.Chart = Chart;

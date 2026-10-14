@@ -515,12 +515,6 @@
     </script>
 
 
-
-</body>
-
-
-
-</html>
 <script>
     (function () {
         function updateSidebarTitles() {
@@ -690,3 +684,5 @@
         }
     })();
 </script>
+</body>
+</html>

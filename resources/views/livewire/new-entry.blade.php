@@ -8,8 +8,7 @@
                 {{ \Carbon\Carbon::now()->format('l, F j, Y • H:i A') }}
             </div>
         </div>
-        <!-- <form method="POST" action="/entries"> Should i use livewire or controller -->
-        <form wire:submit="save">
+        <form action="{{ route('entries.store') }}" method="POST" wire:submit="save">
             @csrf
             <div class="space-y-4">
                 <div class="relative group" x-data="{
@@ -114,13 +113,13 @@
                 </div>
 
                 <div>
-                    <input type="text" wire:model.defer="title"
+                    <input type="text" name="title" wire:model="title"
                         class="flex h-10 w-full rounded-md px-3 py-2 bg-background text-2xl font-semibold placeholder:text-[rgb(65,74,90)] border-none focus:outline-none focus:ring-0"
                         placeholder="Title your entry" />
                     <x-form-error name="title" />
                 </div>
 
-                <textarea wire:model.defer="content"
+                <textarea name="content" wire:model="content"
                     class="flex w-full rounded-md border bg-background px-3 py-2 text-sm sm:min-h-[200px] md:min-h-[300px] lg:min-h-[400px] resize-none border-none  placeholder:text-[rgb(65,74,90)] focus:outline-none focus:ring-0"
                     placeholder="What's on your mind today!"></textarea>
                 <x-form-error name="content" />

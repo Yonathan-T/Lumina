@@ -32,24 +32,35 @@ class EntryController extends Controller
      */
     public function store()
     {
-        // request()->validate([
-        //     "title" => ["required", "string"],
-        //     "content" => ["required"],
-        // ]);
-        // $entry = Entry::create([
-        //     "title" => request()->title,
-        //     "content" => request()->content,
-        //     "user_id" => auth()->id(),
-        // ]);
-        // preg_match_all('/#(\w+)/', request()->content, $matches);
-        // $tags = array_unique(array_map('strtolower', $matches[1]));
+        request()->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'content' => ['required', 'string'],
+        ]);
 
-        // // --- Attach tags to entry ---
-        // foreach ($tags as $tagName) {
-        //     $tag = Tag::firstOrCreate(['name' => $tagName]);
-        //     $entry->tags()->attach($tag);
-        // }
-        // return redirect('/entries');
+        $entry = Entry::create([
+            'title' => request('title'),
+            'content' => trim(request('content')),
+            'user_id' => auth()->id(),
+        ]);
+
+        preg_match_all('/(?<=\s|^)#([A-Za-z][\w]{1,30})/', request('content'), $matches);
+        $tags = array_unique(array_map('strtolower', $matches[1] ?? []));
+
+        foreach ($tags as $tagName) {
+            if (empty($tagName)) {
+                continue;
+            }
+            $tag = Tag::firstOrCreate([
+                'slug' => \Illuminate\Support\Str::slug($tagName),
+            ], [
+                'name' => $tagName,
+            ]);
+            $entry->tags()->attach($tag->id);
+        }
+
+        dispatch(fn () => app(\App\Services\EntrySearchService::class)->updateEntryIndex($entry))->afterResponse();
+
+        return redirect()->route('dashboard')->with('message', 'Entry created successfully!');
     }
 
     /**
