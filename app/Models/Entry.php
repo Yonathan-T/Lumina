@@ -72,4 +72,43 @@ class Entry extends Model
             return null;
         }
     }
+
+    /**
+     * Get the base64-encoded data URI for the entry's banner (for PDF and offline rendering).
+     */
+    public function getBannerBase64Attribute(): ?string
+    {
+        if (empty($this->banner_path)) {
+            return null;
+        }
+
+        try {
+            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($this->banner_path)) {
+                $bytes = \Illuminate\Support\Facades\Storage::disk('public')->get($this->banner_path);
+                $mime = \Illuminate\Support\Facades\Storage::disk('public')->mimeType($this->banner_path) ?: 'image/jpeg';
+                return 'data:' . $mime . ';base64,' . base64_encode($bytes);
+            }
+        } catch (\Throwable $e) {}
+
+        try {
+            $disk = self::getStorageDisk();
+            if (\Illuminate\Support\Facades\Storage::disk($disk)->exists($this->banner_path)) {
+                $bytes = \Illuminate\Support\Facades\Storage::disk($disk)->get($this->banner_path);
+                $mime = \Illuminate\Support\Facades\Storage::disk($disk)->mimeType($this->banner_path) ?: 'image/jpeg';
+                return 'data:' . $mime . ';base64,' . base64_encode($bytes);
+            }
+        } catch (\Throwable $e) {}
+
+        try {
+            if ($this->banner_url) {
+                $resp = \Illuminate\Support\Facades\Http::timeout(5)->get($this->banner_url);
+                if ($resp->successful()) {
+                    $mime = $resp->header('Content-Type') ?: 'image/jpeg';
+                    return 'data:' . $mime . ';base64,' . base64_encode($resp->body());
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        return null;
+    }
 }

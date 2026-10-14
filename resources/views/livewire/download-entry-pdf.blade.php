@@ -40,24 +40,18 @@
         }
         .banner-container {
             width: 100%;
-            height: 256px; /* h-64 */
-            margin-bottom: 30px;
-            border-radius: 12px; /* rounded-xl */
+            max-height: 240px;
+            margin-bottom: 25px;
+            border-radius: 8px;
             overflow: hidden;
             background-color: #1e293b;
-            border: 1px solid rgba(255, 255, 255, 0.1); /* border-white/10 */
-            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
         }
         .banner-img {
             width: 100%;
-            height: auto;
-            min-height: 100%;
+            max-height: 240px;
             display: block;
-            /* Center the image vertically if it's too tall */
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
         }
         h1 {
             font-size: 32px;
@@ -143,9 +137,12 @@
     </table>
 
     <!-- Banner Image -->
-    @if($entry->banner_path && ($entry->banner_url || file_exists(public_path('storage/' . $entry->banner_path))))
+    @php
+        $bannerSrc = $entry->banner_base64 ?? (file_exists(public_path('storage/' . $entry->banner_path)) ? public_path('storage/' . $entry->banner_path) : $entry->banner_url);
+    @endphp
+    @if($entry->banner_path && $bannerSrc)
         <div class="banner-container">
-            <img src="{{ file_exists(public_path('storage/' . $entry->banner_path)) ? public_path('storage/' . $entry->banner_path) : $entry->banner_url }}" class="banner-img">
+            <img src="{{ $bannerSrc }}" class="banner-img">
         </div>
     @endif
 
