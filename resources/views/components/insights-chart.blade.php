@@ -2,13 +2,14 @@
     'id',
     'title',
     'subtitle' => '',
+    'subtitleAttr' => '',
     'height' => '300px',
 ])
 
 <div {{ $attributes->merge(['class' => 'card-highlight rounded-lg border border-white/5 bg-gradient-dark p-6']) }}>
     <h3 class="mb-1 text-lg font-semibold text-white">{{ $title }}</h3>
-    @if($subtitle)
-        <p class="mb-4 text-sm text-gray-400">{{ $subtitle }}</p>
+    @if($subtitle || $subtitleAttr)
+        <p class="mb-4 text-sm text-gray-400" @if($subtitleAttr) x-text="{{ $subtitleAttr }}" @endif>{{ $subtitle }}</p>
     @endif
 
     {{-- Canvas is JS-owned: wire:ignore keeps Livewire from morphing it on updates. --}}

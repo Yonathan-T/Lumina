@@ -286,12 +286,21 @@ class InsightsService
 
     private function timeOfDayDistribution(Collection $dates): array
     {
-        // Night 0-5, Morning 6-11, Afternoon 12-17, Evening 18-23.
-        $labels = ['Night', 'Morning', 'Afternoon', 'Evening'];
-        $data = array_fill(0, 4, 0);
+        // Chronological: Morning 6am-12pm, Afternoon 12pm-6pm, Evening 6pm-10pm, Night 10pm-6am
+        $labels = ['Morning (6am–12pm)', 'Afternoon (12pm–6pm)', 'Evening (6pm–10pm)', 'Night (10pm–6am)'];
+        $data = [0, 0, 0, 0];
 
         foreach ($dates as $d) {
-            $data[intdiv($d->hour, 6)]++;
+            $h = $d->hour;
+            if ($h >= 6 && $h < 12) {
+                $data[0]++;
+            } elseif ($h >= 12 && $h < 18) {
+                $data[1]++;
+            } elseif ($h >= 18 && $h < 22) {
+                $data[2]++;
+            } else {
+                $data[3]++;
+            }
         }
 
         return ['labels' => $labels, 'data' => $data];

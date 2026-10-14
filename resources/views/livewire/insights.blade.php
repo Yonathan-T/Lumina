@@ -230,16 +230,24 @@
     <!-- Charts -->
     <div class="grid gap-4 lg:grid-cols-2">
         <x-insights-chart id="entriesChart" title="Entries Over Time"
+            subtitleAttr="current.entriesSubtitle"
             subtitle="How many entries you wrote each {{ $selectedPeriod === 'week' ? 'day' : ($selectedPeriod === 'year' ? 'month' : ($selectedPeriod === 'all' ? 'year' : 'day')) }}"
             class="lg:col-span-2" />
 
         <x-insights-chart id="wordChart" title="Words Written" subtitle="Your writing volume over time" />
-        <x-insights-chart id="dowChart" title="Day of the Week" subtitle="Which days you write most, {{ $data['periodLabel'] ?? '' }}" />
+        <x-insights-chart id="dowChart" title="Day of the Week"
+            subtitleAttr="current.dowSubtitle"
+            subtitle="Which days you write most, {{ $data['periodLabel'] ?? '' }}" />
 
-        <x-insights-chart id="todChart" title="Time of Day" subtitle="When during the day you tend to journal" height="260px" />
-        <x-insights-chart id="tagChart" title="Top Tags" subtitle="What you write about most, {{ $data['periodLabel'] ?? '' }}" height="260px" />
+        <x-insights-chart id="todChart" title="Time of Day"
+            subtitleAttr="current.todSubtitle"
+            subtitle="When during the day you tend to journal" height="260px" />
+        <x-insights-chart id="tagChart" title="Top Tags"
+            subtitleAttr="current.tagSubtitle"
+            subtitle="What you write about most, {{ $data['periodLabel'] ?? '' }}" height="260px" />
 
         <x-insights-chart id="streakChart" title="Writing Streak"
+            subtitleAttr="current.streakSubtitle"
             subtitle="Your consecutive-day streak {{ $selectedPeriod === 'week' ? 'this past week' : ($selectedPeriod === 'month' ? 'over the last 30 days' : ($selectedPeriod === 'year' ? 'over the last year' : 'across your whole history')) }}"
             class="lg:col-span-2" />
     </div>
