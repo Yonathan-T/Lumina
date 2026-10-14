@@ -174,6 +174,7 @@ class Insights extends Component
         return view('livewire.insights', [
             'data' => $data,
             'charts' => $this->buildCharts($data),
+            'selectedPeriod' => $this->selectedPeriod,
         ]);
     }
 }

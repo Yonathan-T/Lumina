@@ -3,9 +3,6 @@
     $asciiArt = \App\Services\AsciiArtService::frames();
 @endphp
 
-<script>
-    window.__asciiArt = @json($asciiArt);
-</script>
 <div class="space-y-6" x-data="{
         dayOpen: false,
         dayLoading: false,
@@ -509,11 +506,13 @@
         });
     };
 
+    window.__asciiArt = @json($asciiArt);
     renderInsightsCharts(@js($charts));
 
     $wire.on('insights-refreshed', (event) => {
         const payload = Array.isArray(event) ? event[0] : event;
-        renderInsightsCharts(payload.charts);
+        const charts = (payload && payload.charts) ? payload.charts : payload;
+        renderInsightsCharts(charts);
     });
 </script>
 @endscript
