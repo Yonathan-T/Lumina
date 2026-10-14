@@ -15,10 +15,38 @@ class Insights extends Component
     public function setPeriod(string $period): void
     {
         $this->selectedPeriod = in_array($period, InsightsService::PERIODS, true) ? $period : 'week';
+    }
 
-        // Charts live in wire:ignore containers owned by JS; hand them the
-        // freshly-built configs so they re-render without a full DOM diff.
-        $this->dispatch('insights-refreshed', charts: $this->buildCharts($this->insights()));
+    private function allPeriods(): array
+    {
+        $service = app(InsightsService::class);
+        $userId = auth()->id();
+
+        $periods = [];
+        foreach (InsightsService::PERIODS as $period) {
+            $data = $service->forPeriod($userId, $period);
+            $periods[$period] = [
+                'summary' => $data['summary'],
+                'periodLabel' => $data['periodLabel'],
+                'charts' => $this->buildCharts($data),
+                'entriesSubtitle' => match ($period) {
+                    'week' => 'How many entries you wrote each day',
+                    'year' => 'How many entries you wrote each month',
+                    'all' => 'How many entries you wrote each year',
+                    default => 'How many entries you wrote each day',
+                },
+                'streakSubtitle' => match ($period) {
+                    'week' => 'Your consecutive-day streak this past week',
+                    'month' => 'Your consecutive-day streak over the last 30 days',
+                    'year' => 'Your consecutive-day streak over the last year',
+                    default => 'Your consecutive-day streak across your whole history',
+                },
+                'dowSubtitle' => 'Which days you write most, ' . ($data['periodLabel'] ?? ''),
+                'tagSubtitle' => 'What you write about most, ' . ($data['periodLabel'] ?? ''),
+            ];
+        }
+
+        return $periods;
     }
 
     private function insights(): array
@@ -169,12 +197,16 @@ class Insights extends Component
 
     public function render()
     {
+        $allPeriods = $this->allPeriods();
+        $selectedPeriod = in_array($this->selectedPeriod, InsightsService::PERIODS, true) ? $this->selectedPeriod : 'week';
+        $current = $allPeriods[$selectedPeriod] ?? $allPeriods['week'];
         $data = $this->insights();
 
         return view('livewire.insights', [
             'data' => $data,
-            'charts' => $this->buildCharts($data),
-            'selectedPeriod' => $this->selectedPeriod,
+            'allPeriods' => $allPeriods,
+            'charts' => $current['charts'] ?? $this->buildCharts($data),
+            'selectedPeriod' => $selectedPeriod,
         ]);
     }
 }

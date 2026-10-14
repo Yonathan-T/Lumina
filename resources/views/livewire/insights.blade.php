@@ -4,6 +4,8 @@
 @endphp
 
 <div class="space-y-6" x-data="{
+        period: '{{ in_array($selectedPeriod, ['week', 'month', 'year', 'all']) ? $selectedPeriod : 'week' }}',
+        allPeriods: {{ \Illuminate\Support\Js::from($allPeriods) }},
         dayOpen: false,
         dayLoading: false,
         dayLabel: '',
@@ -12,10 +14,39 @@
         activeBadgeIdx: 0,
         badges: {{ \Illuminate\Support\Js::from($data['achievements'] ?? []) }},
         frameIdx: 0,
+
+        get current() {
+            return (this.allPeriods && this.allPeriods[this.period]) ? this.allPeriods[this.period] : (this.allPeriods ? this.allPeriods['week'] : {});
+        },
+        get s() {
+            return (this.current && this.current.summary) ? this.current.summary : {};
+        },
+
         init() {
             setInterval(() => {
                 this.frameIdx = (this.frameIdx + 1) % 4;
             }, 280);
+
+            this.$nextTick(() => {
+                if (window.renderInsightsCharts && this.current && this.current.charts) {
+                    window.renderInsightsCharts(this.current.charts);
+                }
+            });
+        },
+        setPeriod(p) {
+            if (this.period === p) return;
+            this.period = p;
+            try {
+                const url = new URL(window.location.href);
+                url.searchParams.set('range', p);
+                window.history.replaceState({}, '', url.toString());
+            } catch(e) {}
+
+            this.$nextTick(() => {
+                if (window.renderInsightsCharts && this.current && this.current.charts) {
+                    window.renderInsightsCharts(this.current.charts);
+                }
+            });
         },
         openBadge(idx) {
             this.activeBadgeIdx = idx;
@@ -59,14 +90,14 @@
         </div>
 
         <div class="flex items-center gap-3">
-            <span wire:loading class="text-xs text-gray-400 animate-pulse">Updating…</span>
             <div class="inline-flex rounded-lg border border-white/10 bg-white/5 p-1">
                 @foreach(['week' => 'Week', 'month' => 'Month', 'year' => 'Year', 'all' => 'All Time'] as $val => $label)
-                    <button type="button" wire:click="setPeriod('{{ $val }}')" wire:loading.attr="disabled"
-                        class="rounded-md px-3 py-1.5 text-sm font-medium transition
-                            {{ $selectedPeriod === $val
-                                ? 'bg-blue-600 text-white shadow shadow-blue-500/20'
-                                : 'text-gray-400 hover:text-white' }}">
+                    <button type="button" 
+                        @click="setPeriod('{{ $val }}')" 
+                        class="rounded-md px-3 py-1.5 text-sm font-medium transition cursor-pointer select-none"
+                        :class="period === '{{ $val }}'
+                            ? 'bg-blue-600 text-white shadow shadow-blue-500/20'
+                            : 'text-gray-400 hover:text-white'">
                         {{ $label }}
                     </button>
                 @endforeach
@@ -78,35 +109,36 @@
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div class="card-highlight rounded-lg border border-white/5 bg-gradient-dark p-4">
             <div class="text-sm font-medium text-gray-400">Words Written</div>
-            <div class="text-2xl font-bold text-white">{{ number_format($s['totalWords'] ?? 0) }}</div>
+            <div class="text-2xl font-bold text-white" x-text="Number(s.totalWords || 0).toLocaleString()">{{ number_format($s['totalWords'] ?? 0) }}</div>
             <p class="text-xs text-gray-500">
-                @php($chg = $s['wordsChange'] ?? 0)
-                @if($chg > 0)
-                    <span class="text-emerald-400">▲ {{ number_format($chg) }}</span> vs last {{ $data['periodLabel'] ?? 'period' }}
-                @elseif($chg < 0)
-                    <span class="text-rose-400">▼ {{ number_format(abs($chg)) }}</span> vs last {{ $data['periodLabel'] ?? 'period' }}
-                @else
-                    Same as last {{ $data['periodLabel'] ?? 'period' }}
-                @endif
+                <template x-if="(s.wordsChange || 0) > 0">
+                    <span><span class="text-emerald-400">▲ <span x-text="Number(s.wordsChange).toLocaleString()"></span></span> vs last <span x-text="current.periodLabel || 'period'"></span></span>
+                </template>
+                <template x-if="(s.wordsChange || 0) < 0">
+                    <span><span class="text-rose-400">▼ <span x-text="Number(Math.abs(s.wordsChange)).toLocaleString()"></span></span> vs last <span x-text="current.periodLabel || 'period'"></span></span>
+                </template>
+                <template x-if="(s.wordsChange || 0) === 0">
+                    <span>Same as last <span x-text="current.periodLabel || 'period'"></span></span>
+                </template>
             </p>
         </div>
 
         <div class="card-highlight rounded-lg border border-white/5 bg-gradient-dark p-4">
             <div class="text-sm font-medium text-gray-400">Avg Entry Length</div>
-            <div class="text-2xl font-bold text-white">{{ number_format($s['avgWords'] ?? 0) }} <span class="text-base font-normal text-gray-400">words</span></div>
-            <p class="text-xs text-gray-500">Longest: {{ number_format($s['longestEntryWords'] ?? 0) }} words</p>
+            <div class="text-2xl font-bold text-white"><span x-text="Number(s.avgWords || 0).toLocaleString()">{{ number_format($s['avgWords'] ?? 0) }}</span> <span class="text-base font-normal text-gray-400">words</span></div>
+            <p class="text-xs text-gray-500">Longest: <span x-text="Number(s.longestEntryWords || 0).toLocaleString()">{{ number_format($s['longestEntryWords'] ?? 0) }}</span> words</p>
         </div>
 
         <div class="card-highlight rounded-lg border border-white/5 bg-gradient-dark p-4">
             <div class="text-sm font-medium text-gray-400">Current Streak</div>
-            <div class="text-2xl font-bold text-white">{{ $s['currentStreak'] ?? 0 }} <span class="text-base font-normal text-gray-400">days</span></div>
-            <p class="text-xs text-gray-500">{{ $s['streakMessage'] ?? '' }}</p>
+            <div class="text-2xl font-bold text-white"><span x-text="s.currentStreak ?? 0">{{ $s['currentStreak'] ?? 0 }}</span> <span class="text-base font-normal text-gray-400">days</span></div>
+            <p class="text-xs text-gray-500" x-text="s.streakMessage || ''">{{ $s['streakMessage'] ?? '' }}</p>
         </div>
 
         <div class="card-highlight rounded-lg border border-white/5 bg-gradient-dark p-4">
             <div class="text-sm font-medium text-gray-400">Longest Streak</div>
-            <div class="text-2xl font-bold text-white">{{ $s['longestStreak'] ?? 0 }} <span class="text-base font-normal text-gray-400">days</span></div>
-            <p class="text-xs text-gray-500">{{ number_format($s['activeDays'] ?? 0) }} active days total</p>
+            <div class="text-2xl font-bold text-white"><span x-text="s.longestStreak ?? 0">{{ $s['longestStreak'] ?? 0 }}</span> <span class="text-base font-normal text-gray-400">days</span></div>
+            <p class="text-xs text-gray-500"><span x-text="Number(s.activeDays || 0).toLocaleString()">{{ number_format($s['activeDays'] ?? 0) }}</span> active days total</p>
         </div>
     </div>
 
@@ -114,23 +146,23 @@
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div class="card-highlight rounded-lg border border-white/5 bg-gradient-dark p-4">
             <div class="text-sm font-medium text-gray-400">Total Entries</div>
-            <div class="text-2xl font-bold text-white">{{ number_format($s['totalEntries'] ?? 0) }}</div>
-            <p class="text-xs text-gray-500">{{ ($s['periodEntries'] ?? 0) }} {{ $data['periodLabel'] ?? '' }}</p>
+            <div class="text-2xl font-bold text-white" x-text="Number(s.totalEntries || 0).toLocaleString()">{{ number_format($s['totalEntries'] ?? 0) }}</div>
+            <p class="text-xs text-gray-500"><span x-text="s.periodEntries ?? 0">{{ $s['periodEntries'] ?? 0 }}</span> <span x-text="current.periodLabel || '{{ $data['periodLabel'] ?? '' }}'">{{ $data['periodLabel'] ?? '' }}</span></p>
         </div>
         <div class="card-highlight rounded-lg border border-white/5 bg-gradient-dark p-4">
             <div class="text-sm font-medium text-gray-400">Most Active Day</div>
-            <div class="text-2xl font-bold text-white">{{ $s['peakDay'] ?? '—' }}</div>
-            <p class="text-xs text-gray-500">{{ $s['peakDayCount'] ?? 0 }} entries {{ $data['periodLabel'] ?? '' }}</p>
+            <div class="text-2xl font-bold text-white" x-text="s.peakDay || '—'">{{ $s['peakDay'] ?? '—' }}</div>
+            <p class="text-xs text-gray-500"><span x-text="s.peakDayCount ?? 0">{{ $s['peakDayCount'] ?? 0 }}</span> entries <span x-text="current.periodLabel || '{{ $data['periodLabel'] ?? '' }}'">{{ $data['periodLabel'] ?? '' }}</span></p>
         </div>
         <div class="card-highlight rounded-lg border border-white/5 bg-gradient-dark p-4">
             <div class="text-sm font-medium text-gray-400">Peak Writing Time</div>
-            <div class="text-2xl font-bold text-white">{{ $s['peakHourLabel'] ?? '—' }}</div>
+            <div class="text-2xl font-bold text-white" x-text="s.peakHourLabel || '—'">{{ $s['peakHourLabel'] ?? '—' }}</div>
             <p class="text-xs text-gray-500">when you write most</p>
         </div>
         <div class="card-highlight rounded-lg border border-white/5 bg-gradient-dark p-4">
             <div class="text-sm font-medium text-gray-400">Journaling Since</div>
             <div class="text-2xl font-bold text-white">{{ $s['firstEntry'] ? \Carbon\Carbon::parse($s['firstEntry'])->format('M Y') : '—' }}</div>
-            <p class="text-xs text-gray-500">last entry {{ $s['lastEntryHuman'] ?? '—' }}</p>
+            <p class="text-xs text-gray-500">last entry <span x-text="s.lastEntryHuman || '—'">{{ $s['lastEntryHuman'] ?? '—' }}</span></p>
         </div>
     </div>
 
@@ -469,9 +501,9 @@
 
 @script
 <script>
-    const renderInsightsCharts = (charts) => {
+    window.renderInsightsCharts = (charts) => {
         if (typeof window.Chart === 'undefined') {
-            setTimeout(() => renderInsightsCharts(charts), 100);
+            setTimeout(() => window.renderInsightsCharts(charts), 100);
             return;
         }
 
@@ -507,12 +539,12 @@
     };
 
     window.__asciiArt = @json($asciiArt);
-    renderInsightsCharts(@js($charts));
+    window.renderInsightsCharts(@js($charts));
 
     $wire.on('insights-refreshed', (event) => {
         const payload = Array.isArray(event) ? event[0] : event;
         const charts = (payload && payload.charts) ? payload.charts : payload;
-        renderInsightsCharts(charts);
+        window.renderInsightsCharts(charts);
     });
 </script>
 @endscript
