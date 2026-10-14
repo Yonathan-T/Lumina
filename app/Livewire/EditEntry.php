@@ -42,7 +42,6 @@ class EditEntry extends Component
         'title' => 'required|string|max:255',
         'content' => 'required|string',
         'selectedTags' => 'array',
-        'banner' => 'nullable|image|max:10240', // 10MB Max
     ];
 
     public function mount(Entry $entry)
@@ -100,26 +99,37 @@ class EditEntry extends Component
         ];
 
         if ($this->banner) {
-            $disk = Entry::getStorageDisk();
             try {
-                if ($this->entry->banner_path) {
-                    try {
-                        Storage::disk($disk)->delete($this->entry->banner_path);
-                    } catch (\Throwable $e) {}
-                    if ($disk !== 'public') {
+                $this->validate([
+                    'banner' => 'image|max:10240',
+                ]);
+
+                $disk = Entry::getStorageDisk();
+                try {
+                    if ($this->entry->banner_path) {
                         try {
-                            Storage::disk('public')->delete($this->entry->banner_path);
+                            Storage::disk($disk)->delete($this->entry->banner_path);
                         } catch (\Throwable $e) {}
+                        if ($disk !== 'public') {
+                            try {
+                                Storage::disk('public')->delete($this->entry->banner_path);
+                            } catch (\Throwable $e) {}
+                        }
+                    }
+                    $updateData['banner_path'] = $this->banner->store('banners', $disk);
+                } catch (\Throwable $e) {
+                    \Log::warning('Banner upload failed on primary disk, falling back to public: ' . $e->getMessage());
+                    try {
+                        $updateData['banner_path'] = $this->banner->store('banners', 'public');
+                    } catch (\Throwable $e2) {
+                        \Log::error('Banner upload failed: ' . $e2->getMessage());
                     }
                 }
-                $updateData['banner_path'] = $this->banner->store('banners', $disk);
+            } catch (\Illuminate\Validation\ValidationException $ve) {
+                throw $ve;
             } catch (\Throwable $e) {
-                \Log::warning('Banner upload failed on primary disk, falling back to public: ' . $e->getMessage());
-                try {
-                    $updateData['banner_path'] = $this->banner->store('banners', 'public');
-                } catch (\Throwable $e2) {
-                    \Log::error('Banner upload failed: ' . $e2->getMessage());
-                }
+                \Log::warning('EditEntry banner processing encountered an issue: ' . $e->getMessage());
+                $this->banner = null;
             }
         }
 

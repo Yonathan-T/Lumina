@@ -8,7 +8,7 @@
                 {{ \Carbon\Carbon::now()->format('l, F j, Y • H:i A') }}
             </div>
         </div>
-        <form action="{{ route('entries.store') }}" method="POST" wire:submit="save">
+        <form action="{{ route('entries.store') }}" method="POST" enctype="multipart/form-data" wire:submit="save">
             @csrf
             <div class="space-y-4">
                 <div class="relative group" x-data="{
@@ -72,7 +72,7 @@
                     }">
 
                     {{-- Single hidden file input controlled by refs --}}
-                    <input type="file" x-ref="bannerFileInput" x-on:change="selectFile($event)" class="hidden" accept="image/*">
+                    <input type="file" name="banner" x-ref="bannerFileInput" x-on:change="selectFile($event)" class="hidden" accept="image/*">
 
                     {{-- Preview Container --}}
                     <div x-show="preview" x-cloak class="relative w-full h-64 rounded-xl overflow-hidden border border-white/10 shadow-2xl">

@@ -43,11 +43,10 @@ class NewEntry extends Component
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'selectedTags' => 'array',
-            'banner' => 'nullable|image|max:10240', // 10MB Max
         ]);
 
         preg_match_all('/(?<=\s|^)#([A-Za-z][\w]{1,30})/', $this->content, $matches);
-        $tagsFromContent = array_map('strtolower', $matches[1]);
+        $tagsFromContent = array_map('strtolower', $matches[1] ?? []);
 
         $tagsFromInput = array_map(fn ($tag) => ltrim(strtolower($tag), '#'), $this->selectedTags);
 
@@ -55,17 +54,29 @@ class NewEntry extends Component
 
         $bannerPath = null;
         if ($this->banner) {
-            $disk = Entry::getStorageDisk();
             try {
-                $bannerPath = $this->banner->store('banners', $disk);
-            } catch (\Throwable $e) {
-                \Log::warning('Banner upload failed on primary disk, trying public fallback: ' . $e->getMessage());
+                $this->validate([
+                    'banner' => 'image|max:10240', // 10MB Max
+                ]);
+
+                $disk = Entry::getStorageDisk();
                 try {
-                    $bannerPath = $this->banner->store('banners', 'public');
-                } catch (\Throwable $e2) {
-                    \Log::error('Banner upload failed: ' . $e2->getMessage());
-                    $bannerPath = null;
+                    $bannerPath = $this->banner->store('banners', $disk);
+                } catch (\Throwable $e) {
+                    \Log::warning('Banner upload failed on primary disk, trying public fallback: ' . $e->getMessage());
+                    try {
+                        $bannerPath = $this->banner->store('banners', 'public');
+                    } catch (\Throwable $e2) {
+                        \Log::error('Banner upload failed: ' . $e2->getMessage());
+                        $bannerPath = null;
+                    }
                 }
+            } catch (\Illuminate\Validation\ValidationException $ve) {
+                throw $ve;
+            } catch (\Throwable $e) {
+                \Log::warning('Banner processing encountered an issue: ' . $e->getMessage());
+                $bannerPath = null;
+                $this->banner = null;
             }
         }
 
@@ -90,8 +101,17 @@ class NewEntry extends Component
 
         $entry->load('tags');
 
-        // Rebuild the search index after the response is flushed
-        dispatch(fn () => app(EntrySearchService::class)->updateEntryIndex($entry))->afterResponse();
+        // Rebuild the search index safely
+        try {
+            dispatch(fn () => app(EntrySearchService::class)->updateEntryIndex($entry))->afterResponse();
+        } catch (\Throwable $e) {
+            \Log::warning('Search index async dispatch failed, attempting direct sync: ' . $e->getMessage());
+            try {
+                app(EntrySearchService::class)->updateEntryIndex($entry);
+            } catch (\Throwable $e2) {
+                \Log::warning('Direct search index update failed: ' . $e2->getMessage());
+            }
+        }
 
         // Store lightweight scalar properties
         $this->savedEntryId = $entry->id;

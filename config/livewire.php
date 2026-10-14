@@ -41,7 +41,7 @@ return [
     |
     */
     'temporary_file_upload' => [
-        'disk' => 'local',
+        'disk' => env('LIVEWIRE_TMP_DISK', (env('FILESYSTEM_DISK') === 's3' || !empty(env('AWS_BUCKET')) ? 's3' : 'local')),
         'rules' => null,
         'directory' => 'livewire-tmp',
         'middleware' => null,

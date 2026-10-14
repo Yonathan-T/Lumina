@@ -37,10 +37,27 @@ class EntryController extends Controller
             'content' => ['required', 'string'],
         ]);
 
+        $bannerPath = null;
+        if (request()->hasFile('banner')) {
+            try {
+                request()->validate([
+                    'banner' => ['image', 'max:10240'],
+                ]);
+                $disk = Entry::getStorageDisk();
+                $bannerPath = request()->file('banner')->store('banners', $disk);
+            } catch (\Illuminate\Validation\ValidationException $ve) {
+                throw $ve;
+            } catch (\Throwable $e) {
+                \Log::warning('Controller banner store failed: ' . $e->getMessage());
+                $bannerPath = null;
+            }
+        }
+
         $entry = Entry::create([
             'title' => request('title'),
             'content' => trim(request('content')),
             'user_id' => auth()->id(),
+            'banner_path' => $bannerPath,
         ]);
 
         preg_match_all('/(?<=\s|^)#([A-Za-z][\w]{1,30})/', request('content'), $matches);
@@ -58,7 +75,16 @@ class EntryController extends Controller
             $entry->tags()->attach($tag->id);
         }
 
-        dispatch(fn () => app(\App\Services\EntrySearchService::class)->updateEntryIndex($entry))->afterResponse();
+        try {
+            dispatch(fn () => app(\App\Services\EntrySearchService::class)->updateEntryIndex($entry))->afterResponse();
+        } catch (\Throwable $e) {
+            \Log::warning('Search index async dispatch failed in controller: ' . $e->getMessage());
+            try {
+                app(\App\Services\EntrySearchService::class)->updateEntryIndex($entry);
+            } catch (\Throwable $e2) {
+                \Log::warning('Direct search index update failed: ' . $e2->getMessage());
+            }
+        }
 
         return redirect()->route('dashboard')->with('message', 'Entry created successfully!');
     }
