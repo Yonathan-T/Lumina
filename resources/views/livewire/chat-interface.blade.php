@@ -4,6 +4,7 @@
         sessionToDelete: null,
         sessionTitleToDelete: '',
         deletedSessionIds: [],
+        activeSessionId: '{{ $activeSession['id'] ?? '' }}',
         mobileDrawerOpen: false,
         desktopNavCollapsed: (function() {
             try { return localStorage.getItem('chat-nav-collapsed') === '1' && window.innerWidth >= 768; } catch(e) { return false; }
@@ -51,7 +52,8 @@
     :class="{ 'chat-nav-collapsed': desktopNavCollapsed }"
     data-stream-endpoint="{{ route('chat.stream') }}"
     data-conversation-id="{{ $activeSession['id'] ?? '' }}"
-    data-user-initial="{{ substr(auth()->user()->name ?? 'U', 0, 1) }}">
+    data-user-initial="{{ substr(auth()->user()->name ?? 'U', 0, 1) }}"
+    data-has-api-key="{{ !empty(auth()->user()->api_key) ? '1' : '0' }}">
     <!-- Chat Drawer / Sidebar -->
     <div id="chatDrawer"
         :class="mobileDrawerOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'"
@@ -59,7 +61,7 @@
         <!-- Header -->
         <div class="p-4 border-b border-gray-700 flex items-center justify-between gap-2">
             <button wire:click="createNewSession"
-                @click="closeMobile(); if (window.__syncConversationUrl) window.__syncConversationUrl(null);"
+                @click="activeSessionId = ''; closeMobile(); if (window.__syncConversationUrl) window.__syncConversationUrl(null);"
                 wire:loading.attr="disabled"
                 wire:target="createNewSession"
                 class="cursor-pointer flex-1 flex items-center justify-center gap-2 bg-gradient-dark text-white rounded-lg px-4 py-2.5 transition-colors border border-white/10 hover:bg-blue-300/15 disabled:opacity-50">
@@ -104,7 +106,7 @@
                     @endphp
                     <div wire:key="chat-session-{{ $session['id'] }}"
                         wire:click="selectSession({{ $session['id'] }})"
-                        @click="closeMobile()"
+                        @click="activeSessionId = String('{{ $session['id'] }}'); closeMobile()"
                         x-show="!deletedSessionIds.includes(String('{{ $session['id'] }}'))"
                         x-transition:leave="transition ease-in duration-150"
                         x-transition:leave-start="opacity-100 scale-100"
@@ -182,14 +184,17 @@
         <div class="bg-gradient-dark border-b border-gray-700 p-3 sm:p-4 rounded-t-none md:rounded-t-lg sticky top-0 z-20">
             <div class="chat-header-inner flex items-center justify-between gap-3 transition-all duration-300">
                 <div class="flex items-center gap-3 min-w-0">
-                    <div class="p-2 rounded-full {{ $activeSession ? 'bg-blue-600' : 'bg-blue-600/30 border border-blue-500/30' }} shrink-0">
-                        <x-icon name="brain" class="w-6 h-6 {{ $activeSession ? 'text-white' : 'text-blue-400' }}" />
+                    <div class="p-2 rounded-full {{ $activeSession ? 'bg-blue-600' : 'bg-blue-600/30 border border-blue-500/30' }} shrink-0"
+                        x-bind:class="(!activeSessionId || deletedSessionIds.includes(String(activeSessionId))) ? 'bg-blue-600/30 border border-blue-500/30' : 'bg-blue-600'">
+                        <x-icon name="brain" class="w-6 h-6 text-white" />
                     </div>
                     <div class="min-w-0">
-                        <h3 class="text-base sm:text-lg font-semibold text-white truncate">
+                        <h3 class="text-base sm:text-lg font-semibold text-white truncate"
+                            x-text="(!activeSessionId || deletedSessionIds.includes(String(activeSessionId))) ? 'AI Reflection Companion' : '{{ addslashes($activeSession['title'] ?? 'AI Reflection Companion') }}'">
                             {{ $activeSession ? $activeSession['title'] : 'AI Reflection Companion' }}
                         </h3>
-                        <p class="text-xs sm:text-sm text-gray-400 truncate">
+                        <p class="text-xs sm:text-sm text-gray-400 truncate"
+                            x-text="(!activeSessionId || deletedSessionIds.includes(String(activeSessionId))) ? 'Your calm space to reflect, think, and explore' : 'AI-powered reflection and insights'">
                             {{ $activeSession ? 'AI-powered reflection and insights' : 'Your calm space to reflect, think, and explore' }}
                         </p>
                     </div>
@@ -219,7 +224,9 @@
             <!-- Messages Area (Scrollable) -->
             <div class="flex-1 overflow-y-auto overscroll-contain p-4 md:p-6 pb-28 md:pb-6" id="messages-scroll">
                 @if($activeSession)
-                    <div wire:key="messages-{{ $activeSession['id'] }}" class="space-y-6" id="messages-container">
+                    <div wire:key="messages-{{ $activeSession['id'] }}"
+                        x-show="activeSessionId && !deletedSessionIds.includes(String(activeSessionId))"
+                        class="space-y-6" id="messages-container">
                         @if ($isLoadingMessages)
                             <div class="flex items-center justify-center py-16">
                                 <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
@@ -228,8 +235,14 @@
                             @foreach($messages as $message)
                                 <div class="flex items-start gap-4 {{ $message['isAi'] ? '' : 'flex-row-reverse' }}">
                                     @if($message['isAi'])
-                                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <x-icon name="flash-outline" class="w-4 h-4 text-white" />
+                                        <div class="w-8 h-8 {{ isset($message['isError']) ? 'bg-red-600' : 'bg-blue-600' }} rounded-full flex items-center justify-center flex-shrink-0">
+                                            @if(isset($message['isError']))
+                                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            @else
+                                                <x-icon name="flash-outline" class="w-4 h-4 text-white" />
+                                            @endif
                                         </div>
                                     @else
                                         <div class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
@@ -239,7 +252,7 @@
 
                                     <div class="max-w-[300px] md:max-w-[400px] lg:max-w-[500px]">
                                         <div
-                                            class="rounded-2xl px-4 py-3 {{ $message['isAi'] ? 'bg-gray-800 text-gray-100' : 'bg-blue-600 text-white' }} {{ isset($message['isError']) ? 'bg-red-600' : '' }}">
+                                            class="rounded-2xl px-4 py-3 {{ $message['isAi'] ? (isset($message['isError']) ? 'bg-red-900/60 border border-red-500/40 text-red-200' : 'bg-gray-800 text-gray-100') : 'bg-blue-600 text-white' }}">
                                             <p class="text-sm leading-relaxed whitespace-pre-wrap break-words">{{ $message['content'] }}</p>
                                         </div>
                                         <div class="flex items-center gap-2 mt-2 {{ $message['isAi'] ? '' : 'justify-end' }}">
@@ -250,29 +263,32 @@
                             @endforeach
                         @endif
                     </div>
-                @else
-                    <!-- Greeting Content Area when no active session -->
-                    <div id="empty-chat-state" class="my-auto py-8 px-4 w-full max-w-3xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                        <div class="text-left max-w-sm">
-                            <h2 class="text-xl md:text-2xl font-normal text-white/90 tracking-tight leading-snug">{{ $greeting }}</h2>
-                        </div>
-
-                        <div class="flex flex-col gap-2.5 w-full md:max-w-xs text-left">
-                            @foreach($starterPrompts as $prompt)
-                                <button type="button"
-                                    onclick="window.setChatPrompt('{{ addslashes($prompt['action']) }}')"
-                                    class="p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer group text-left">
-                                    <span class="text-sm font-normal text-gray-400 group-hover:text-white transition-colors block">
-                                        {{ $prompt['title'] }}
-                                    </span>
-                                    <span class="text-xs text-gray-500 group-hover:text-gray-300 transition-colors block mt-0.5 line-clamp-1">
-                                        {{ $prompt['subtitle'] }}
-                                    </span>
-                                </button>
-                            @endforeach
-                        </div>
-                    </div>
                 @endif
+
+                <!-- Greeting Content Area when no active session or when deleted instantly -->
+                <div id="empty-chat-state"
+                    x-show="!activeSessionId || deletedSessionIds.includes(String(activeSessionId))"
+                    @if($activeSession) style="display: none;" @endif
+                    class="my-auto py-8 px-4 w-full max-w-3xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                    <div class="text-left max-w-sm">
+                        <h2 class="text-xl md:text-2xl font-normal text-white/90 tracking-tight leading-snug">{{ $greeting }}</h2>
+                    </div>
+
+                    <div class="flex flex-col gap-2.5 w-full md:max-w-xs text-left">
+                        @foreach($starterPrompts as $prompt)
+                            <button type="button"
+                                onclick="window.setChatPrompt('{{ addslashes($prompt['action']) }}')"
+                                class="p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer group text-left">
+                                <span class="text-sm font-normal text-gray-400 group-hover:text-white transition-colors block">
+                                    {{ $prompt['title'] }}
+                                </span>
+                                <span class="text-xs text-gray-500 group-hover:text-gray-300 transition-colors block mt-0.5 line-clamp-1">
+                                    {{ $prompt['subtitle'] }}
+                                </span>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
 
                 <!-- Unified Chat Pending Lane (always present, never duplicated, identical full-width styling) -->
                 <div id="chat-pending-lane" wire:ignore class="space-y-6 mt-4"></div>
@@ -324,6 +340,20 @@
                         showDeleteModal = false; 
                         sessionToDelete = null; 
                         sessionTitleToDelete = ''; 
+                        if (String(activeSessionId) === String(idToDelete)) {
+                            activeSessionId = '';
+                            const root = document.getElementById('chatRoot');
+                            if (root) {
+                                root.dataset.conversationId = '';
+                            }
+                            if (window.__syncConversationUrl) {
+                                window.__syncConversationUrl(null);
+                            }
+                            const lane = document.getElementById('chat-pending-lane');
+                            if (lane) {
+                                lane.innerHTML = '';
+                            }
+                        }
                         $wire.deleteSession(idToDelete); 
                     }"
                     class="flex-1 px-4 py-3 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors cursor-pointer">
@@ -617,7 +647,12 @@
             if (failed) {
                 const finalError = errorMessage || 'Sorry, I encountered an error. Please try again.';
                 showStreamingError(finalError);
-                await component.call('failStreamingResponse', conversationId, finalError, userMessage);
+                try {
+                    await component.call('failStreamingResponse', conversationId, finalError, userMessage);
+                    clearPendingExchange();
+                } catch (e) {
+                    console.error('Failed to sync error with Livewire', e);
+                }
                 return;
             }
 
@@ -783,6 +818,12 @@
             setFormBusy(true);
             showPendingExchange(message);
 
+            if (root.dataset.hasApiKey === '0') {
+                showStreamingError('Gemini API key is missing. Please configure your key in Settings > Account > API Integration to chat with Lumi.');
+                setFormBusy(false);
+                return;
+            }
+
             let conversationId = root.dataset.conversationId;
 
             try {
@@ -839,6 +880,9 @@
                     const sessionId = event?.sessionId || (typeof event === 'number' || typeof event === 'string' ? event : null);
                     if (root && sessionId) {
                         root.dataset.conversationId = String(sessionId);
+                        if (root._x_dataStack && root._x_dataStack[0]) {
+                            root._x_dataStack[0].activeSessionId = String(sessionId);
+                        }
                     }
                     syncConversationUrl(sessionId);
                 });
@@ -847,6 +891,9 @@
                     const root = document.getElementById('chatRoot');
                     if (root) {
                         root.dataset.conversationId = '';
+                        if (root._x_dataStack && root._x_dataStack[0]) {
+                            root._x_dataStack[0].activeSessionId = '';
+                        }
                     }
                     syncConversationUrl(null);
                 });

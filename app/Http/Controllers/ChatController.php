@@ -35,6 +35,12 @@ class ChatController extends Controller
             return response()->json(['message' => 'Message cannot be empty.'], 422);
         }
 
+        if (empty($request->user()->api_key)) {
+            return response()->json([
+                'message' => 'Gemini API key is missing. Please configure your key in Settings > Account > API Integration to chat with Lumi.',
+            ], 400);
+        }
+
         $conversation = Conversation::where('id', $validated['conversation_id'])
             ->where('user_id', $request->user()->id)
             ->firstOrFail();
