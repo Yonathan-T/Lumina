@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Crypt;
 use App\Models\Entry;
+use App\Models\User;
 use App\Mail\DataExportReady;
 
 class DataPrivacy extends Component
@@ -60,7 +61,7 @@ class DataPrivacy extends Component
 
             Storage::disk('local')->put('exports/' . $filename, $json);
 
-            $expiresAt = now()->addHours(24)->timestamp;
+            $expiresAt = now()->addHour()->timestamp;
             $token = Crypt::encrypt([
                 'user_id' => $user->id,
                 'filename' => $filename,
@@ -73,13 +74,13 @@ class DataPrivacy extends Component
                 $user->name,
                 $entries->count(),
                 $downloadUrl,
-                now()->addHours(24)->format('F j, Y \a\t g:i A'),
+                now()->addHour()->format('F j, Y \a\t g:i A'),
                 'entries'
             ));
 
             $this->isExporting = false;
 
-            session()->flash('success', '🎉 Export ready! Check your email for the download link.');
+            session()->flash('success', '🎉 Export ready! Check your inbox (or spam/junk folder) for the download link.');
 
         } catch (\Exception $e) {
             $this->isExporting = false;
@@ -180,7 +181,7 @@ class DataPrivacy extends Component
             throw new \Exception('Failed to save export file to storage');
         }
 
-        $expiresAt = now()->addHours(24)->timestamp;
+        $expiresAt = now()->addHour()->timestamp;
         $token = Crypt::encrypt([
             'user_id' => $user->id,
             'filename' => $filename,
@@ -193,12 +194,12 @@ class DataPrivacy extends Component
             $user->name,
             $conversations->count(),
             $downloadUrl,
-            now()->addHours(24)->format('F j, Y \a\t g:i A'),
+            now()->addHour()->format('F j, Y \a\t g:i A'),
             'conversations'
         ));
 
         $this->isExporting = false;
-        session()->flash('success', '🎉 Chat export ready! Check your email for the download link.');
+        session()->flash('success', '🎉 Chat export ready! Check your inbox (or spam/junk folder) for the download link.');
 
     } catch (\Exception $e) {
         $this->isExporting = false;
@@ -208,7 +209,78 @@ class DataPrivacy extends Component
 
     public function deleteAccount()
     {
-        session()->flash('message', 'Account deletion is not yet implemented.');
+        $user = Auth::user();
+
+        if (! $user) {
+            return $this->redirect('/auth/register', navigate: true);
+        }
+
+        Auth::logout();
+        if (request()->hasSession()) {
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            session()->flash('message', 'Your account has been permanently deleted.');
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($user) {
+            // 1. Delete all entry search terms
+            if (\Illuminate\Support\Facades\Schema::hasTable('entry_search_terms')) {
+                \Illuminate\Support\Facades\DB::table('entry_search_terms')->where('user_id', $user->id)->delete();
+            }
+
+            // 2. Delete entries and detach tags
+            $entries = Entry::where('user_id', $user->id)->get();
+            foreach ($entries as $entry) {
+                if ($entry->banner_path && Storage::disk('public')->exists($entry->banner_path)) {
+                    Storage::disk('public')->delete($entry->banner_path);
+                }
+                $entry->tags()->detach();
+                $entry->delete();
+            }
+
+            // 3. Delete conversations and messages
+            $conversations = Conversation::where('user_id', $user->id)->get();
+            foreach ($conversations as $conversation) {
+                \App\Models\Message::where('conversation_id', $conversation->id)->delete();
+                $conversation->delete();
+            }
+
+            // 4. Delete notifications & push subscriptions if tables exist
+            if (\Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+                \Illuminate\Support\Facades\DB::table('notifications')->where('notifiable_type', User::class)->where('notifiable_id', $user->id)->delete();
+            }
+            if (\Illuminate\Support\Facades\Schema::hasTable('push_subscriptions')) {
+                \Illuminate\Support\Facades\DB::table('push_subscriptions')->where('subscribable_type', User::class)->where('subscribable_id', $user->id)->delete();
+            }
+
+            // 5. Delete Polar billing data if exists
+            if (\Illuminate\Support\Facades\Schema::hasTable('polar_subscriptions')) {
+                \Illuminate\Support\Facades\DB::table('polar_subscriptions')->where('billable_id', $user->id)->delete();
+            }
+            if (\Illuminate\Support\Facades\Schema::hasTable('polar_orders')) {
+                \Illuminate\Support\Facades\DB::table('polar_orders')->where('billable_id', $user->id)->delete();
+            }
+            if (\Illuminate\Support\Facades\Schema::hasTable('polar_customers')) {
+                \Illuminate\Support\Facades\DB::table('polar_customers')->where('billable_id', $user->id)->delete();
+            }
+
+            // 6. Delete exports in storage
+            try {
+                $exportFiles = Storage::disk('local')->files('exports');
+                foreach ($exportFiles as $file) {
+                    if (str_contains($file, '-' . $user->id . '-')) {
+                        Storage::disk('local')->delete($file);
+                    }
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Failed deleting export files for user: ' . $user->id);
+            }
+
+            // 7. Delete user record
+            $user->delete();
+        });
+
+        return $this->redirect('/auth/register', navigate: true);
     }
 
     public function render()

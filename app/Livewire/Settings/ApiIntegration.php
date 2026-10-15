@@ -11,6 +11,7 @@ class ApiIntegration extends Component
 {
     // Gemini API Key State
     public $apiKey = '';
+    public $originalSavedGeminiKey = '';
     public $status = 'idle';
     public $statusMessage = '';
     public $isKeyVerified = false;
@@ -19,11 +20,68 @@ class ApiIntegration extends Component
 
     // ElevenLabs API Key State
     public $elevenLabsKey = '';
+    public $originalSavedElevenLabsKey = '';
     public $elevenLabsStatus = 'idle';
     public $elevenLabsStatusMessage = '';
     public $isElevenLabsKeyVerified = false;
     public $hasElevenLabsTestedSuccessfully = false;
     public $hasSavedElevenLabsKey = false;
+
+    // ElevenLabs Voice Selection State
+    public $selectedVoiceId = 'EXAVITQu4vr4xnSDxMaL';
+    public $customVoiceId = '';
+    public $voiceSavedMessage = '';
+
+    public static array $presetVoices = [
+        [
+            'id' => 'EXAVITQu4vr4xnSDxMaL',
+            'name' => 'Bella (Default)',
+            'description' => 'Female, gentle, natural',
+            'tier' => 'Free',
+        ],
+        [
+            'id' => 'pNInz6obpgDQGcFmaJgB',
+            'name' => 'Adam',
+            'description' => 'Male, deep, narrative',
+            'tier' => 'Free',
+        ],
+        [
+            'id' => 'ErXwobaYiN019PkySvjV',
+            'name' => 'Antoni',
+            'description' => 'Male, warm, conversational',
+            'tier' => 'Free',
+        ],
+        [
+            'id' => 'VR6AewLTigWG4xSOukaG',
+            'name' => 'Arnold',
+            'description' => 'Male, crisp, confident',
+            'tier' => 'Free',
+        ],
+        [
+            'id' => '21m00Tcm4TlvDq8ikWAM',
+            'name' => 'Rachel',
+            'description' => 'Female, calm, professional',
+            'tier' => 'Paid credits',
+        ],
+        [
+            'id' => 'AZnzlk1XvdvUeBnXmlld',
+            'name' => 'Domi',
+            'description' => 'Female, strong, lively',
+            'tier' => 'Paid credits',
+        ],
+        [
+            'id' => 'MF3mGyEYCl7XYWbV9V6O',
+            'name' => 'Elli',
+            'description' => 'Female, emotional, thoughtful & young',
+            'tier' => 'Paid credits',
+        ],
+        [
+            'id' => 'TxGEqnHWrfWFTfGW9XjX',
+            'name' => 'Josh',
+            'description' => 'Male, resonant, thoughtful & storytelling',
+            'tier' => 'Paid credits',
+        ],
+    ];
 
     public function mount()
     {
@@ -33,6 +91,7 @@ class ApiIntegration extends Component
         if ($user->api_key) {
             try {
                 $this->apiKey = Crypt::decryptString($user->api_key);
+                $this->originalSavedGeminiKey = $this->apiKey;
                 $this->hasSavedGeminiKey = true;
                 $this->isKeyVerified = !is_null($user->api_key_verified_at);
             } catch (\Throwable $e) {
@@ -42,15 +101,18 @@ class ApiIntegration extends Component
                 $this->hasSavedGeminiKey = false;
                 $this->isKeyVerified = false;
                 $this->apiKey = '';
+                $this->originalSavedGeminiKey = '';
             }
         } else {
             $this->apiKey = '';
+            $this->originalSavedGeminiKey = '';
         }
 
         // Load ElevenLabs Key state
         if ($user->elevenlabs_api_key) {
             try {
                 $this->elevenLabsKey = Crypt::decryptString($user->elevenlabs_api_key);
+                $this->originalSavedElevenLabsKey = $this->elevenLabsKey;
                 $this->hasSavedElevenLabsKey = true;
                 $this->isElevenLabsKeyVerified = !is_null($user->elevenlabs_api_key_verified_at);
             } catch (\Throwable $e) {
@@ -60,10 +122,91 @@ class ApiIntegration extends Component
                 $this->hasSavedElevenLabsKey = false;
                 $this->isElevenLabsKeyVerified = false;
                 $this->elevenLabsKey = '';
+                $this->originalSavedElevenLabsKey = '';
             }
         } else {
             $this->elevenLabsKey = '';
+            $this->originalSavedElevenLabsKey = '';
         }
+
+        // Load ElevenLabs Voice preference
+        $userVoice = $user->getElevenLabsVoiceId();
+        $presetIds = array_column(self::$presetVoices, 'id');
+        if (in_array($userVoice, $presetIds, true)) {
+            $this->selectedVoiceId = $userVoice;
+            $this->customVoiceId = '';
+        } else {
+            $this->selectedVoiceId = 'custom';
+            $this->customVoiceId = $userVoice;
+        }
+    }
+
+    public function updatedApiKey($value)
+    {
+        $trimmed = trim($value ?? '');
+        $saved = trim($this->originalSavedGeminiKey ?? '');
+
+        if ($trimmed !== $saved) {
+            $this->isKeyVerified = false;
+            $this->hasTestedSuccessfully = false;
+            $this->status = 'idle';
+            $this->statusMessage = '';
+        } else {
+            $this->isKeyVerified = !is_null(auth()->user()->api_key_verified_at);
+            $this->hasTestedSuccessfully = false;
+            $this->status = 'idle';
+            $this->statusMessage = '';
+        }
+    }
+
+    public function updatedElevenLabsKey($value)
+    {
+        $trimmed = trim($value ?? '');
+        $saved = trim($this->originalSavedElevenLabsKey ?? '');
+
+        if ($trimmed !== $saved) {
+            $this->isElevenLabsKeyVerified = false;
+            $this->hasElevenLabsTestedSuccessfully = false;
+            $this->elevenLabsStatus = 'idle';
+            $this->elevenLabsStatusMessage = '';
+        } else {
+            $this->isElevenLabsKeyVerified = !is_null(auth()->user()->elevenlabs_api_key_verified_at);
+            $this->hasElevenLabsTestedSuccessfully = false;
+            $this->elevenLabsStatus = 'idle';
+            $this->elevenLabsStatusMessage = '';
+        }
+    }
+
+    public function canSaveGeminiKey(): bool
+    {
+        $currentKey = trim($this->apiKey ?? '');
+
+        if (empty($currentKey)) {
+            return false;
+        }
+
+        // If key is already saved and unchanged, Save button cannot be clicked
+        if ($this->hasSavedGeminiKey && $currentKey === trim($this->originalSavedGeminiKey ?? '')) {
+            return false;
+        }
+
+        return (bool) $this->isKeyVerified;
+    }
+
+    public function canSaveElevenLabsKey(): bool
+    {
+        $currentKey = trim($this->elevenLabsKey ?? '');
+
+        if (empty($currentKey)) {
+            return false;
+        }
+
+        // If key is already saved and unchanged, Save button cannot be clicked
+        if ($this->hasSavedElevenLabsKey && $currentKey === trim($this->originalSavedElevenLabsKey ?? '')) {
+            return false;
+        }
+
+        return (bool) $this->isElevenLabsKeyVerified;
     }
 
     // -------------------------------------------------------------
@@ -101,10 +244,12 @@ class ApiIntegration extends Component
                 $this->hasTestedSuccessfully = true;
                 $this->isKeyVerified = true;
 
-                $user->update([
-                    'api_key_verified_at' => now(),
-                    'api_key_tested_at' => now(),
-                ]);
+                if ($this->hasSavedGeminiKey && $keyToTest === $this->originalSavedGeminiKey) {
+                    $user->update([
+                        'api_key_verified_at' => now(),
+                        'api_key_tested_at' => now(),
+                    ]);
+                }
 
                 $this->status = 'success';
                 $this->statusMessage = 'Connection successful! You can now save.';
@@ -112,10 +257,12 @@ class ApiIntegration extends Component
                 $this->hasTestedSuccessfully = false;
                 $this->isKeyVerified = false;
 
-                $user->update([
-                    'api_key_verified_at' => null,
-                    'api_key_tested_at' => now(),
-                ]);
+                if ($this->hasSavedGeminiKey && $keyToTest === $this->originalSavedGeminiKey) {
+                    $user->update([
+                        'api_key_verified_at' => null,
+                        'api_key_tested_at' => now(),
+                    ]);
+                }
 
                 $this->status = 'error';
                 $this->statusMessage = 'Invalid or restricted Gemini API key.';
@@ -130,37 +277,25 @@ class ApiIntegration extends Component
 
     public function saveApiKey()
     {
-        $newKey = trim($this->apiKey);
-        $user = auth()->user();
-
-        if (empty($newKey) && !$user->api_key) {
-            $this->status = 'error';
-            $this->statusMessage = 'Gemini API key cannot be empty';
+        if (!$this->canSaveGeminiKey()) {
             return;
         }
 
-        if (!empty($newKey)) {
-            $encrypted = Crypt::encryptString($newKey);
-            $user->api_key = $encrypted;
+        $newKey = trim($this->apiKey);
+        $user = auth()->user();
 
-            if (!$this->hasTestedSuccessfully) {
-                $user->api_key_verified_at = null;
-                $user->api_key_tested_at = now();
-                $this->isKeyVerified = false;
-            } else {
-                $user->api_key_verified_at = now();
-                $this->isKeyVerified = true;
-            }
+        $encrypted = Crypt::encryptString($newKey);
+        $user->api_key = $encrypted;
+        $user->api_key_verified_at = now();
+        $user->save();
 
-            $user->save();
-            $this->hasSavedGeminiKey = true;
-            $this->apiKey = $newKey;
-        }
+        $this->hasSavedGeminiKey = true;
+        $this->originalSavedGeminiKey = $newKey;
+        $this->apiKey = $newKey;
+        $this->isKeyVerified = true;
 
         $this->status = 'success';
-        $this->statusMessage = $this->isKeyVerified
-            ? 'Gemini API key saved and active!'
-            : 'Gemini API key saved. Test connection to activate.';
+        $this->statusMessage = 'Gemini API key saved and active!';
 
         $this->dispatch('key-saved');
     }
@@ -174,6 +309,7 @@ class ApiIntegration extends Component
         ]);
 
         $this->apiKey = '';
+        $this->originalSavedGeminiKey = '';
         $this->hasSavedGeminiKey = false;
         $this->isKeyVerified = false;
         $this->hasTestedSuccessfully = false;
@@ -225,10 +361,12 @@ class ApiIntegration extends Component
                 $this->hasElevenLabsTestedSuccessfully = true;
                 $this->isElevenLabsKeyVerified = true;
 
-                $user->update([
-                    'elevenlabs_api_key_verified_at' => now(),
-                    'elevenlabs_api_key_tested_at' => now(),
-                ]);
+                if ($this->hasSavedElevenLabsKey && $keyToTest === $this->originalSavedElevenLabsKey) {
+                    $user->update([
+                        'elevenlabs_api_key_verified_at' => now(),
+                        'elevenlabs_api_key_tested_at' => now(),
+                    ]);
+                }
 
                 $this->elevenLabsStatus = 'success';
                 $this->elevenLabsStatusMessage = 'Connection successful! Your ElevenLabs key is valid.';
@@ -236,10 +374,12 @@ class ApiIntegration extends Component
                 $this->hasElevenLabsTestedSuccessfully = false;
                 $this->isElevenLabsKeyVerified = false;
 
-                $user->update([
-                    'elevenlabs_api_key_verified_at' => null,
-                    'elevenlabs_api_key_tested_at' => now(),
-                ]);
+                if ($this->hasSavedElevenLabsKey && $keyToTest === $this->originalSavedElevenLabsKey) {
+                    $user->update([
+                        'elevenlabs_api_key_verified_at' => null,
+                        'elevenlabs_api_key_tested_at' => now(),
+                    ]);
+                }
 
                 $this->elevenLabsStatus = 'error';
                 $this->elevenLabsStatusMessage = 'Invalid or unauthorized ElevenLabs API key.';
@@ -254,37 +394,25 @@ class ApiIntegration extends Component
 
     public function saveElevenLabsKey()
     {
-        $newKey = trim($this->elevenLabsKey);
-        $user = auth()->user();
-
-        if (empty($newKey) && !$user->elevenlabs_api_key) {
-            $this->elevenLabsStatus = 'error';
-            $this->elevenLabsStatusMessage = 'ElevenLabs API key cannot be empty';
+        if (!$this->canSaveElevenLabsKey()) {
             return;
         }
 
-        if (!empty($newKey)) {
-            $encrypted = Crypt::encryptString($newKey);
-            $user->elevenlabs_api_key = $encrypted;
+        $newKey = trim($this->elevenLabsKey);
+        $user = auth()->user();
 
-            if (!$this->hasElevenLabsTestedSuccessfully) {
-                $user->elevenlabs_api_key_verified_at = null;
-                $user->elevenlabs_api_key_tested_at = now();
-                $this->isElevenLabsKeyVerified = false;
-            } else {
-                $user->elevenlabs_api_key_verified_at = now();
-                $this->isElevenLabsKeyVerified = true;
-            }
+        $encrypted = Crypt::encryptString($newKey);
+        $user->elevenlabs_api_key = $encrypted;
+        $user->elevenlabs_api_key_verified_at = now();
+        $user->save();
 
-            $user->save();
-            $this->hasSavedElevenLabsKey = true;
-            $this->elevenLabsKey = $newKey;
-        }
+        $this->hasSavedElevenLabsKey = true;
+        $this->originalSavedElevenLabsKey = $newKey;
+        $this->elevenLabsKey = $newKey;
+        $this->isElevenLabsKeyVerified = true;
 
         $this->elevenLabsStatus = 'success';
-        $this->elevenLabsStatusMessage = $this->isElevenLabsKeyVerified
-            ? 'ElevenLabs API key saved and active!'
-            : 'ElevenLabs API key saved. Test connection to activate.';
+        $this->elevenLabsStatusMessage = 'ElevenLabs API key saved and active!';
 
         $this->dispatch('elevenlabs-key-saved');
     }
@@ -298,6 +426,7 @@ class ApiIntegration extends Component
         ]);
 
         $this->elevenLabsKey = '';
+        $this->originalSavedElevenLabsKey = '';
         $this->hasSavedElevenLabsKey = false;
         $this->isElevenLabsKeyVerified = false;
         $this->hasElevenLabsTestedSuccessfully = false;
@@ -310,6 +439,54 @@ class ApiIntegration extends Component
     public function hasElevenLabsKey(): bool
     {
         return !empty(auth()->user()->elevenlabs_api_key);
+    }
+
+    public function updatedSelectedVoiceId($value)
+    {
+        $this->voiceSavedMessage = '';
+        if ($value !== 'custom') {
+            $this->saveVoiceSetting($value);
+        }
+    }
+
+    public function saveCustomVoice()
+    {
+        $customId = trim($this->customVoiceId);
+        if (empty($customId)) {
+            $this->selectedVoiceId = 'EXAVITQu4vr4xnSDxMaL';
+            $this->saveVoiceSetting('EXAVITQu4vr4xnSDxMaL');
+            return;
+        }
+
+        $this->saveVoiceSetting($customId);
+    }
+
+    protected function saveVoiceSetting(string $voiceId): void
+    {
+        $user = auth()->user();
+        $settings = $user->settings ?? [];
+        $settings['elevenlabs_voice_id'] = $voiceId;
+        $user->settings = $settings;
+        $user->save();
+
+        $this->voiceSavedMessage = 'Voice preference saved!';
+        $this->dispatch('voice-preference-saved');
+    }
+
+    public function getPresetVoicesProperty(): array
+    {
+        return self::$presetVoices;
+    }
+
+    public function getCurrentVoiceProperty(): ?array
+    {
+        foreach (self::$presetVoices as $voice) {
+            if ($voice['id'] === $this->selectedVoiceId) {
+                return $voice;
+            }
+        }
+
+        return null;
     }
 
     public function render()

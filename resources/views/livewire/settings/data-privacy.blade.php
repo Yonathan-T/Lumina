@@ -112,7 +112,7 @@
             </button>
 
             <p class="text-xs text-gray-500 px-1 mt-3">
-                Your data will be exported in JSON format and sent to your email. The download link expires in 24 hours.
+                Your data will be exported in JSON format and sent to your email. The download link expires in 1 hour. (If you don't see it after a few minutes, please check your spam or junk folder).
             </p>
         </div>
     </div>
@@ -150,17 +150,20 @@
             <div x-show="showDeleteConfirm" x-cloak class="mt-4 bg-red-900/20 border border-red-500/30 p-4 rounded-lg">
                 <div class="mb-2 font-bold text-red-400">⚠️ Are you absolutely sure?</div>
                 <div class="text-gray-400 text-sm mb-4">
-                    This will permanently delete your account, all your journal entries, tags, conversations, and any
-                    other
-                    data. This action cannot be undone.
+                    This will permanently delete your account, all your journal entries, tags, conversations, and any other data. This action cannot be undone.
                 </div>
                 <div class="flex flex-wrap gap-2">
-                    <button type="button" wire:click="deleteAccount" @click="showDeleteConfirm = false"
-                        class="px-4 py-2 bg-red-600 text-white text-xs sm:text-sm rounded-lg hover:bg-red-700 transition">
-                        Yes, Delete Everything
+                    <button type="button" wire:click="deleteAccount" wire:loading.attr="disabled" wire:target="deleteAccount"
+                        class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-semibold rounded-lg transition inline-flex items-center gap-2 disabled:opacity-50 cursor-pointer">
+                        <svg wire:loading wire:target="deleteAccount" class="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span wire:loading.remove wire:target="deleteAccount">Yes, Delete Everything</span>
+                        <span wire:loading wire:target="deleteAccount">Deleting Account...</span>
                     </button>
-                    <button type="button" @click="showDeleteConfirm = false"
-                        class="px-4 py-2 bg-gray-600 text-white text-xs sm:text-sm rounded-lg hover:bg-gray-700 transition">
+                    <button type="button" @click="showDeleteConfirm = false" wire:loading.attr="disabled" wire:target="deleteAccount"
+                        class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-xs sm:text-sm rounded-lg transition cursor-pointer">
                         Cancel
                     </button>
                 </div>

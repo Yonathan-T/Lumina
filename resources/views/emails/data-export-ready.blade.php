@@ -41,7 +41,7 @@
 
 <div class="warning-box">
     <p>
-        <strong>⚠️ Security Notice:</strong> This download link will expire in 24 hours for your security.
+        <strong>⚠️ Security Notice:</strong> This download link will expire in 1 hour for your security.
         The file contains all your @if($exportType === 'conversations') chat conversations @else journal
         entries @endif, so keep it safe!
     </p>
@@ -292,7 +292,7 @@
 
             <div class="warning-box">
                 <p>
-                    <strong>⚠️ Security Notice:</strong> This download link will expire in 24 hours for your security.
+                    <strong>⚠️ Security Notice:</strong> This download link will expire in 1 hour for your security.
                     The file contains all your @if($exportType === 'conversations') chat conversations @else journal
                     entries @endif, so keep it safe!
                 </p>
