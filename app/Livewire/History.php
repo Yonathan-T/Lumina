@@ -16,9 +16,9 @@ class History extends Component
 
     public $sort = 'newest';
 
-    public $queryString = ['sort'];
+    public $perPage = 5;
 
-    public $userDataService;
+    public $queryString = ['sort'];
 
     public ?string $isProcessing = null;
 
@@ -29,13 +29,20 @@ class History extends Component
         $this->isProcessing = 'reflection';
         $this->processingEntryId = $entryId;
         try {
+            if (empty(auth()->user()->api_key)) {
+                $this->isProcessing = null;
+                $this->processingEntryId = null;
+                session()->flash('error', 'Gemini API key is required to start an AI reflection session. Please add your key in Settings → Account.');
+                return;
+            }
+
             $userDataService = app(UserDataService::class);
             $reflectionData = $userDataService->reflectOnEntry($entryId);
 
             if (! $reflectionData) {
                 $this->isProcessing = null;
                 $this->processingEntryId = null;
-                $this->dispatch('notify', message: 'Entry not found', type: 'error');
+                session()->flash('error', 'Entry not found');
 
                 return;
             }
@@ -70,45 +77,61 @@ class History extends Component
             \Log::error('Reflection Error: '.$e->getMessage());
             $this->isProcessing = null;
             $this->processingEntryId = null;
-            $this->dispatch('notify', message: 'Unable to start reflection. Please try again.', type: 'error');
+            session()->flash('error', 'Unable to start reflection. Please try again.');
         }
     }
 
     public function updatingSort()
     {
+        $userId = auth()->id();
+        $total = \Illuminate\Support\Facades\Cache::remember(
+            "user_{$userId}_entries_count",
+            60,
+            fn () => Entry::where('user_id', $userId)->count()
+        );
+
+        if ($total > 0) {
+            $this->resetPage();
+        }
+    }
+
+    public function updatingPerPage()
+    {
         $this->resetPage();
     }
 
-    // public function render()
-    // {
-    //     $query = Entry::with('tags')->where('user_id', auth()->id());
-
-    //     switch ($this->sort) {
-    //         case 'oldest':
-    //             $query->orderBy('created_at', 'asc');
-    //             break;
-    //         case 'longest':
-    //             $query->orderByRaw('LENGTH(content) DESC');
-    //             break;
-    //         case 'shortest':
-    //             $query->orderByRaw('LENGTH(content) ASC');
-    //             break;
-    //         case 'newest':
-    //         default:
-    //             $query->orderBy('created_at', 'desc');
-    //     }
-
-    //     $recentEntries = $query->paginate(5)->withQueryString();
-
-    //     return view('livewire.history', [
-    //         'recentEntries' => $recentEntries
-    //     ]);
-    // }
     public function render()
     {
+        $userId = auth()->id();
+
+        // Cache the total count for 60s to avoid duplicate COUNT(*) on page navigation
+        $total = \Illuminate\Support\Facades\Cache::remember(
+            "user_{$userId}_entries_count",
+            60,
+            fn () => Entry::where('user_id', $userId)->count()
+        );
+
+        if ($total === 0) {
+            $recentEntries = new \Illuminate\Pagination\LengthAwarePaginator(
+                collect([]),
+                0,
+                $this->perPage,
+                1,
+                [
+                    'path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath(),
+                    'pageName' => 'page',
+                ]
+            );
+
+            return view('livewire.history', [
+                'recentEntries' => $recentEntries,
+                'totalEntries' => 0,
+            ]);
+        }
+
         $query = Entry::with('tags:id,name')
             ->select(['id', 'title', 'content', 'created_at', 'user_id'])
-            ->where('user_id', auth()->id());
+            ->where('user_id', $userId);
 
         match ($this->sort) {
             'oldest' => $query->oldest(),
@@ -117,10 +140,20 @@ class History extends Component
             default => $query->latest(),
         };
 
-        $recentEntries = $query->paginate(5)->withQueryString();
+        $perPage = 5;
 
-        // PRE-PROCESS – runs once, not per Blade line
-        $recentEntries->getCollection()->transform(function ($entry) {
+        // Cache the total count for 60s to avoid duplicate COUNT(*) on page navigation
+        $total = \Illuminate\Support\Facades\Cache::remember(
+            "user_{$userId}_entries_count",
+            60,
+            fn () => Entry::where('user_id', $userId)->count()
+        );
+
+        $currentPage = $this->getPage();
+        $items = $query->forPage($currentPage, $perPage)->get();
+
+        // PRE-PROCESS – runs once for only the current page items
+        $items->transform(function ($entry) {
             $plain = strip_tags($entry->content);
             $entry->content_html = nl2br(e(\Str::limit($plain, 200)));
             $entry->date_month = $entry->created_at->format('M');
@@ -131,7 +164,18 @@ class History extends Component
             return $entry;
         });
 
-        // return view('livewire.history', compact('recentEntries'));
+        $recentEntries = new \Illuminate\Pagination\LengthAwarePaginator(
+            $items,
+            $total,
+            $perPage,
+            $currentPage,
+            [
+                'path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath(),
+                'pageName' => 'page',
+            ]
+        );
+        $recentEntries->withQueryString();
+
         return view('livewire.history', [
             'recentEntries' => $recentEntries,
         ]);
