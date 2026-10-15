@@ -30,16 +30,34 @@ class FetchBlogContent extends Command
         $this->info('Starting blog content fetch...');
 
         $totalFetched = 0;
+        $newlyCreatedBlogs = [];
 
         foreach ($this->rssSources as $sourceName => $rssUrl) {
             $this->info("Fetching from {$sourceName}...");
 
             try {
-                $count = $this->parseRssFeed($sourceName, $rssUrl);
-                $totalFetched += $count;
-                $this->info("✓ Fetched {$count} articles from {$sourceName}");
+                $created = $this->parseRssFeed($sourceName, $rssUrl);
+                $newlyCreatedBlogs = array_merge($newlyCreatedBlogs, $created);
+                $totalFetched += count($created);
+                $this->info("✓ Fetched " . count($created) . " articles from {$sourceName}");
             } catch (\Exception $e) {
                 $this->error("✗ Failed to fetch from {$sourceName}: " . $e->getMessage());
+            }
+        }
+
+        // Notify users who have turned on Blog Updates
+        if (!empty($newlyCreatedBlogs)) {
+            $usersToNotify = \App\Models\User::whereNotNull('email')->get()->filter(function ($user) {
+                $settings = $user->settings ?? [];
+                return !empty($settings['blog_updates']);
+            });
+
+            if ($usersToNotify->isNotEmpty()) {
+                $featuredBlog = $newlyCreatedBlogs[0];
+                foreach ($usersToNotify as $user) {
+                    $user->notify(new \App\Notifications\NewBlogNotification($featuredBlog));
+                }
+                $this->info("Sent new blog notification to {$usersToNotify->count()} users.");
             }
         }
 
@@ -66,15 +84,16 @@ class FetchBlogContent extends Command
             throw new \Exception("Invalid RSS format");
         }
 
-        $count = 0;
+        $created = [];
 
         foreach ($xml->channel->item as $item) {
-            if ($this->storeBlogItem($sourceName, $item, $rssUrl)) {
-                $count++;
+            $blog = $this->storeBlogItem($sourceName, $item, $rssUrl);
+            if ($blog instanceof Blog) {
+                $created[] = $blog;
             }
         }
 
-        return $count;
+        return $created;
     }
 
     private function storeBlogItem($sourceName, $item, $sourceUrl)
@@ -83,7 +102,7 @@ class FetchBlogContent extends Command
 
         // Skip if we already have this article
         if (Blog::where('external_url', $externalUrl)->exists()) {
-            return false;
+            return null;
         }
 
         $title = (string) $item->title;
@@ -157,7 +176,7 @@ class FetchBlogContent extends Command
         // Extract tags based on content
         $tags = $this->extractTags($title . ' ' . $description);
 
-        Blog::create([
+        return Blog::create([
             'title' => mb_convert_encoding($title, 'UTF-8', 'UTF-8'),
             'description' => mb_substr(mb_convert_encoding($description, 'UTF-8', 'UTF-8'), 0, 500, 'UTF-8'),
             'external_url' => $externalUrl,
@@ -169,8 +188,6 @@ class FetchBlogContent extends Command
             'image_url' => $imageUrl,
             'cached_at' => now()
         ]);
-
-        return true;
     }
 
     private function categorizeContent($content)

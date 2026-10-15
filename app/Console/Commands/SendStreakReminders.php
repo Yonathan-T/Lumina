@@ -28,21 +28,25 @@ class SendStreakReminders extends Command
      */
     public function handle()
     {
-        // Find users whose last journal entry was yesterday and have an active streak.
-        $users = User::whereHas('entries', function ($query) {
-            $query->whereDate('created_at', today()->subDay());
-        })->get();
+        $users = User::whereNotNull('email')->get();
+        $notifiedCount = 0;
 
-        // Notify each user who has a streak
         foreach ($users as $user) {
-            $currentStreak = StreakService::getCurrentStreak($user->id);
-            
-            if ($currentStreak > 0) {
-                $user->notify(new StreakReminder($currentStreak));
-                $this->info("Streak reminder sent to user {$user->id} with streak {$currentStreak}");
+            $settings = $user->settings ?? [];
+            if (empty($settings['streak_alerts'])) {
+                continue;
+            }
+
+            $jeopardyStreak = StreakService::getStreakInJeopardy($user->id);
+
+            if ($jeopardyStreak > 0) {
+                $user->notify(new StreakReminder($jeopardyStreak));
+                $this->info("Streak reminder sent to user {$user->id} ({$user->email}) with streak {$jeopardyStreak}");
+                $notifiedCount++;
             }
         }
 
-        $this->info('Streak reminders sent successfully!');
+        $this->info("Streak reminders process completed. Total sent: {$notifiedCount}");
+        return self::SUCCESS;
     }
 }

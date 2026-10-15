@@ -3,12 +3,9 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
-use NotificationChannels\WebPush\WebPushMessage;
-use NotificationChannels\WebPush\WebPushChannel;
 
-class StreakReminder extends Notification implements ShouldQueue
+class StreakReminder extends Notification
 {
     use Queueable;
 
@@ -36,22 +33,11 @@ class StreakReminder extends Notification implements ShouldQueue
         $settings = $notifiable->settings ?? [];
         $streakAlerts = $settings['streak_alerts'] ?? false;
 
-        return $streakAlerts ? [WebPushChannel::class, 'database'] : ['database'];
-    }
+        if (!$streakAlerts) {
+            return [];
+        }
 
-    /**
-     * Get the web push representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return \NotificationChannels\WebPush\WebPushMessage
-     */
-    public function toWebPush($notifiable, $notification)
-    {
-        return (new WebPushMessage)
-            ->title('Streak Reminder!')
-            ->body("Your {$this->streak}-day journaling streak ends tonight. Write now!")
-            ->icon('/icon.png')
-            ->data(['url' => route('entries.create')]);
+        return ['database'];
     }
 
     /**
@@ -63,21 +49,8 @@ class StreakReminder extends Notification implements ShouldQueue
     public function toDatabase($notifiable)
     {
         return [
-            'message' => "Your {$this->streak}-day streak ends tonight. Write now!",
+            'message' => "Don't break your {$this->streak}-day streak! Write a quick reflection before midnight.",
             'url' => route('entries.create')
         ];
-    }
-
-    /**
-     * This method ensures the notification is dispatched after the database transaction is committed.
-     * The framework automatically looks for and calls this method if the notification is dispatched
-     * within a database transaction.
-     *
-     * @return void
-     */
-    public function afterCommit()
-    {
-        // No code is needed here. The mere existence of this method tells the framework
-        // to wait for the transaction to complete before queuing the notification.
     }
 }
