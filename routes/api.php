@@ -33,16 +33,71 @@ Route::get('/ping', function (\Illuminate\Http\Request $request) {
     ]);
 });
 
-Route::get('/blogs/fetch', function (\Illuminate\Http\Request $request) {
-    $expectedToken = config('services.health.token');
+$verifyCronToken = function (\Illuminate\Http\Request $request): void {
+    $expectedTokens = array_filter([
+        config('services.health.token'),
+        env('CRON_SECRET'),
+    ]);
     $providedToken = $request->query('token') ?: $request->bearerToken() ?: $request->header('X-Health-Token');
 
-    if (empty($expectedToken) || !hash_equals((string) $expectedToken, (string) $providedToken)) {
+    $isValid = false;
+    foreach ($expectedTokens as $expected) {
+        if (!empty($expected) && !empty($providedToken) && hash_equals((string) $expected, (string) $providedToken)) {
+            $isValid = true;
+            break;
+        }
+    }
+
+    if (!$isValid) {
         abort(404);
     }
+};
+
+Route::get('/blogs/fetch', function (\Illuminate\Http\Request $request) use ($verifyCronToken) {
+    $verifyCronToken($request);
 
     try {
         \Illuminate\Support\Facades\Artisan::call('blogs:fetch');
+        $output = \Illuminate\Support\Facades\Artisan::output();
+
+        return response()->json([
+            'status' => 'success',
+            'output' => trim($output),
+            'timestamp' => now()->toIso8601String(),
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage(),
+        ], 500);
+    }
+});
+
+Route::get('/reminders/daily', function (\Illuminate\Http\Request $request) use ($verifyCronToken) {
+    $verifyCronToken($request);
+
+    try {
+        \Illuminate\Support\Facades\Artisan::call('reminders:daily');
+        $output = \Illuminate\Support\Facades\Artisan::output();
+
+        return response()->json([
+            'status' => 'success',
+            'output' => trim($output),
+            'timestamp' => now()->toIso8601String(),
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage(),
+        ], 500);
+    }
+});
+
+Route::get('/reminders/streak', function (\Illuminate\Http\Request $request) use ($verifyCronToken) {
+    $verifyCronToken($request);
+
+    try {
+        \Illuminate\Support\Facades\Artisan::call('reminders:streak');
         $output = \Illuminate\Support\Facades\Artisan::output();
 
         return response()->json([
