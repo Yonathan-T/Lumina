@@ -11,7 +11,7 @@
             <x-skiper25-music-button />
 
             <!-- Notifications Dropdown -->
-            <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+            <div class="relative" x-data="{ open: false, deletedIds: [] }" @click.outside="open = false">
                 <button type="button" @click="open = ! open"
                     class="cursor-pointer p-2 rounded-full hover:bg-white/10 transition-colors">
                     <x-icon name="bell" class="w-8 h-8" />
@@ -60,6 +60,7 @@
                 <div class="bg-gradient-dark max-h-60 overflow-y-auto">
                     @forelse($notifications as $notification)
                         <div
+                            x-show="!deletedIds.includes('{{ $notification->id }}')"
                             class="px-4 py-3 hover:bg-blue-300/15 cursor-pointer transition-colors border-b border-gray-100/30 dark:border-gray-800/30 last:border-b-0 @if(!$notification->read_at) bg-blue-50/80 dark:bg-blue-900/20 @endif">
                             <div class="flex justify-between items-start gap-3">
                                 <a href="{{ $notification->data['url'] ?? '#' }}"
@@ -71,8 +72,9 @@
                                         {{ $notification->created_at->diffForHumans() }}
                                     </div>
                                 </a>
-                                <button wire:click="deleteNotification('{{ $notification->id }}')"
-                                    class="text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors p-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20">
+                                <button type="button"
+                                    @click.stop="deletedIds.push('{{ $notification->id }}'); $wire.deleteNotification('{{ $notification->id }}')"
+                                    class="text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors p-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                                         stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -89,13 +91,23 @@
                             <div class="text-gray-500 dark:text-gray-400 text-sm">No notifications yet</div>
                         </div>
                     @endforelse
+
+                    @if($notifications->count() > 0)
+                        <div x-show="deletedIds.length >= {{ $notifications->count() }}" class="px-4 py-8 text-center" style="display: none;">
+                            <div class="text-gray-400 dark:text-gray-500 mb-2">
+                                <x-icon name="bell" class="w-8 h-8 mx-auto opacity-50" />
+                            </div>
+                            <div class="text-gray-500 dark:text-gray-400 text-sm">No notifications yet</div>
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Footer -->
                 @if($notifications->count() > 0)
-                    <div class="p-4 border-t border-gray-100/50 dark:border-gray-800/50">
+                    <div x-show="deletedIds.length < {{ $notifications->count() }}" class="p-4 border-t border-gray-100/50 dark:border-gray-800/50">
                         <button wire:click="deleteAllNotifications"
-                            class="w-full text-center text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors text-sm font-medium py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
+                            @click="deletedIds = @js($notifications->pluck('id'))"
+                            class="w-full text-center text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors text-sm font-medium py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer">
                             Clear all notifications
                         </button>
                     </div>

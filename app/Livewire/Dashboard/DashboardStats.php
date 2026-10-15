@@ -153,7 +153,7 @@ class DashboardStats extends Component
      */
     public function deleteNotification(string $notificationId)
     {
-        DatabaseNotification::find($notificationId)->delete();
+        auth()->user()->notifications()->where('id', $notificationId)->delete();
         $this->loadNotifications();
     }
 
