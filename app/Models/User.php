@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\Payment\PolarSubscription;
 use App\Notifications\CustomResetPassword;
 use App\Services\PolarBillingService;
@@ -16,7 +16,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use NotificationChannels\WebPush\HasPushSubscriptions;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use Billable, HasFactory, HasPushSubscriptions, Notifiable;
@@ -61,6 +61,14 @@ class User extends Authenticatable
             \Log::error('ElevenLabs API key decryption failed: '.$e->getMessage());
             return null;
         }
+    }
+
+    public function getElevenLabsVoiceId(): string
+    {
+        $settings = $this->settings ?? [];
+        $voiceId = $settings['elevenlabs_voice_id'] ?? null;
+
+        return !empty($voiceId) ? trim($voiceId) : 'EXAVITQu4vr4xnSDxMaL';
     }
 
     public function hasEntryToday()
@@ -141,6 +149,11 @@ class User extends Authenticatable
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new CustomResetPassword($token));
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new \App\Notifications\CustomVerifyEmail);
     }
 
     /**

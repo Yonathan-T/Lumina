@@ -48,6 +48,9 @@ class SocialLoginController extends Controller
                 ->first();
 
             if ($user) {
+                if (! $user->email_verified_at) {
+                    $user->update(['email_verified_at' => now()]);
+                }
                 Auth::login($user);
             } else {
                 $user = User::whereRaw('LOWER(email) = ?', [$normalizedEmail])->first();
@@ -57,6 +60,7 @@ class SocialLoginController extends Controller
                         'provider' => $provider,
                         'provider_id' => $socialUser->getId(),
                         'avatar' => $socialUser->getAvatar(),
+                        'email_verified_at' => $user->email_verified_at ?? now(),
                     ]);
                 } else {
                     $user = User::create([
@@ -66,6 +70,7 @@ class SocialLoginController extends Controller
                         'provider_id' => $socialUser->getId(),
                         'avatar' => $socialUser->getAvatar(),
                         'password' => bcrypt(str()->random(24)),
+                        'email_verified_at' => now(),
                     ]);
                 }
 

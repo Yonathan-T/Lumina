@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\CheckoutController;
@@ -22,7 +23,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 
 // Protected Routes
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
 
     // Dashboard
     //    Route::get('/dashboard', [DashboardController::class, 'create'])->name('dashboard');
@@ -121,6 +122,15 @@ Route::middleware('guest')->group(function () {
     Route::get('password/reset/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
     Route::post('password/reset', [PasswordResetController::class, 'reset'])->name('password.update');
 });
+
+// Email Verification Routes
+Route::get('/email/verify', [EmailVerificationController::class, 'notice'])->name('verification.notice');
+Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('verification.verify');
+Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])
+    ->middleware(['throttle:6,1'])
+    ->name('verification.send');
 
 Route::post('/auth/logout', [SessionController::class, 'destroy'])->name('logout');
 

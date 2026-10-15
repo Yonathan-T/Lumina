@@ -3,6 +3,7 @@
     'subtitle' => null,
     'footer' => null,
     'mode' => 'login', // 'login' or 'register'
+    'center' => false,
 ])
 
 <x-layout :showSidebar="false" :showNav="false" :patternOnBody="false">
@@ -69,15 +70,15 @@
             <div class="lg:col-span-6 p-6 sm:p-8 lg:p-10 flex flex-col justify-center">
                 <div class="max-w-md w-full mx-auto">
                     {{-- Heading --}}
-                    <div class="mb-6">
-                        <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-tight font-inter"
-                            x-text="currentMode === 'register' ? 'Sign Up Account' : 'Sign In'">
+                    <div class="mb-6 {{ $center ? 'text-center' : '' }}">
+                        <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-tight font-inter">
                             {{ $title }}
                         </h1>
-                        <p class="mt-1 text-sm text-gray-400"
-                           x-text="currentMode === 'register' ? 'Enter your personal data to create your account.' : 'Enter your personal data to access your sanctuary.'">
-                            {{ $subtitle }}
-                        </p>
+                        @if($subtitle)
+                            <p class="mt-1 text-sm text-gray-400">
+                                {{ $subtitle }}
+                            </p>
+                        @endif
                     </div>
 
                     {{-- Dynamic Slot (Login & Register forms handled seamlessly) --}}

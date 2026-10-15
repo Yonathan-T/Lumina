@@ -44,15 +44,23 @@ class RegisteredUserController extends Controller
             'email' => request('email'),
             'password' => request('password'),
         ]);
-        auth()->login($user);
+
+        $user->sendEmailVerificationNotification();
+        event(new \Illuminate\Auth\Events\Registered($user));
+
+        $message = 'Verification link sent to your email! Click the verification link inside the email (check spam) to complete your registration and unlock full access to your sanctuary.';
+
+        session(['unverified_email' => $user->email]);
+        session()->flash('status', $message);
 
         if (request()->wantsJson()) {
             return response()->json([
-                'redirect' => url('/dashboard'),
+                'success' => true,
+                'message' => $message,
             ]);
         }
 
-        return redirect('/dashboard');
+        return back()->with('status', $message);
 
     }
 }

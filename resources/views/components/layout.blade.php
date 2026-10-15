@@ -367,21 +367,36 @@
             </div>
             <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 @auth
-                    <a href="/dashboard"
-                        wire:navigate.hover
-                        class="
-                            border border-white/25 rounded-lg px-2.5 py-1.5 sm:px-3 sm:py-2
-                            bg-[#060b16] text-white font-semibold text-xs sm:text-sm
-                            shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
-                            active:translate-y-[2px]
-                            active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
-                            active:border-gray-600
-                            transition-all duration-200 ease-in-out
-                            select-none
-                            inline-block
-                        ">
-                        Dashboard
-                    </a>
+                    @if(auth()->user()->hasVerifiedEmail())
+                        <a href="/dashboard"
+                            wire:navigate.hover
+                            class="
+                                border border-white/25 rounded-lg px-2.5 py-1.5 sm:px-3 sm:py-2
+                                bg-[#060b16] text-white font-semibold text-xs sm:text-sm
+                                shadow-[1px_1px_rgba(255,255,255,0.15),2px_2px_rgba(255,255,255,0.1),3px_3px_rgba(255,255,255,0.07),4px_4px_rgba(255,255,255,0.05)]
+                                active:translate-y-[2px]
+                                active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.3)]
+                                active:border-gray-600
+                                transition-all duration-200 ease-in-out
+                                select-none
+                                inline-block
+                            ">
+                            Dashboard
+                        </a>
+                    @else
+                        <a href="{{ route('verification.notice') }}"
+                            wire:navigate.hover
+                            class="
+                                border border-amber-500/40 rounded-lg px-2.5 py-1.5 sm:px-3 sm:py-2
+                                bg-amber-950/30 text-amber-300 font-semibold text-xs sm:text-sm
+                                hover:bg-amber-900/40
+                                transition-all duration-200 ease-in-out
+                                select-none
+                                inline-block
+                            ">
+                            Verify Email
+                        </a>
+                    @endif
                 @endauth
                 @guest
                     <a href="/auth/login"
