@@ -4,8 +4,7 @@
   {{-- Skiper 8 Typography Words Preloader (Dennis Snellenberg Style) --}}
   <div id="words-preloader"
        class="fixed inset-0 z-[99999] bg-[#07090e] flex flex-col items-center justify-center pointer-events-auto select-none overflow-hidden transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)]">
-    <div class="relative z-10 flex items-center text-white font-playfair text-3xl sm:text-5xl md:text-6xl font-medium tracking-wide">
-      <span class="inline-block w-3 h-3 rounded-full bg-yellow-400 mr-4 shadow-[0_0_14px_#facc15] animate-pulse"></span>
+    <div class="relative z-10 flex items-center justify-center text-white font-playfair text-3xl sm:text-5xl md:text-6xl font-medium tracking-wide">
       <span id="preloader-word-text" class="transition-all duration-200 inline-block">Hello</span>
     </div>
     
@@ -60,7 +59,10 @@
 
   @php
     $currentHour = (int) now()->format('H');
-    $defaultScene = ($currentHour >= 5 && $currentHour < 12) ? 'alpine-dawn' : (($currentHour >= 12 && $currentHour < 19) ? 'ocean-sunset' : 'night-coast');
+    $timeScene = ($currentHour >= 5 && $currentHour < 17) 
+        ? 'alpine-dawn' 
+        : (($currentHour >= 17 && $currentHour < 23) ? 'night-coast' : 'edge-orbit');
+    $defaultScene = request('scene', $timeScene);
   @endphp
 
   {{-- Full-Page Dynamic Time-Aware ASCII Art Background --}}
@@ -72,9 +74,9 @@
     <div class="absolute inset-0 bg-scanlines opacity-10 pointer-events-none"></div>
 
     {{-- Atmospheric Dark Tint & Vignette Overlays for Crisp Content Contrast --}}
-    <div class="page-time-tint absolute inset-0 bg-[#07090e]/50 pointer-events-none transition-opacity duration-700"></div>
-    <div class="page-time-vignette absolute inset-0 bg-gradient-to-b from-[#0a0c10]/80 via-transparent to-[#0a0c10]/85 pointer-events-none transition-opacity duration-700"></div>
-    <div class="absolute inset-0 bg-gradient-to-r from-[#0a0c10]/40 via-transparent to-[#0a0c10]/40 pointer-events-none"></div>
+    <div class="page-time-tint absolute inset-0 bg-[#07090e] pointer-events-none transition-opacity duration-700"></div>
+    <div class="page-time-vignette absolute inset-0 bg-gradient-to-b from-[#07090e]/80 via-transparent to-[#07090e]/85 pointer-events-none transition-opacity duration-700"></div>
+    <div class="absolute inset-0 bg-gradient-to-r from-[#07090e]/30 via-transparent to-[#07090e]/30 pointer-events-none"></div>
   </div>
 
   {{-- Main Content Layer with guaranteed z-10 stacking context --}}
@@ -86,27 +88,11 @@
       <!-- Text Content Column -->
       <div class="flex-1 py-12 px-8 flex flex-col">
         <div class="mb-7 relative">
-          <!-- BETA BADGE (floating just above the heading) -->
-          <div class="absolute -top-3 -left-10
-           flex items-center gap-1.5
-           bg-[#111]/95 backdrop-blur-sm text-yellow-400 text-[10px] font-bold uppercase tracking-wider
-           px-3 py-1 rounded-full
-           border border-yellow-600/40
-           shadow-xl
-           animate-bounce
-           whitespace-nowrap
-           cursor-pointer
-           hover:scale-110 transition-transform">
-            <div class="w-1.5 h-1.5 rounded-full bg-yellow-400
-             shadow-[0_0_8px_#facc15] animate-ping"></div>
-            <span>Beta Release</span>
-          </div>
-
-          <h1 class="font-playfair text-4xl md:text-5xl lg:text-6xl font-bold leading-none">
+          <h1 class="font-playfair text-4xl md:text-5xl lg:text-6xl font-bold leading-none hero-title-shadow">
             Your story deserves to be written.
           </h1>
 
-          <h2 class="mt-[24px] text-lg md:text-xl text-paper/80 flex items-center  gap-2">
+          <h2 class="mt-[24px] text-lg md:text-xl text-paper/90 flex items-center gap-2 hero-sub-shadow">
             <!-- Reflect -->
             <span class="font-playfair italic relative overflow-hidden cursor-pointer group">
               <span class="inline-block transition-transform duration-300 group-hover:scale-105 group-hover:text-white
@@ -136,7 +122,7 @@
 
           <!--ANIMATion would be nice around here -->
           <p
-            class="mt-[24px] max-w-md text-paper/80 transition-all duration-1000 ease-out opacity-80 hover:opacity-100 hover:text-white hover:drop-shadow-[0_0_10px_rgba(255,255,200,0.3)]">
+            class="mt-[24px] max-w-md text-paper/90 transition-all duration-1000 ease-out opacity-90 hover:opacity-100 hover:text-white hero-sub-shadow">
             A beautiful, private space for your thoughts, dreams, and reflections.
             Lumina helps you cultivate mindfulness and emotional clarity through journaling.
           </p>
@@ -219,10 +205,10 @@
   <!--BENEFITS -->
   <section id="features" class="relative z-10 mt-6 py-12"> <!-- Main container -->
     <div class="text-center max-w-2xl mx-auto mb-6">
-      <h2 class="font-playfair text-3xl md:text-4xl font-bold mb-6 tracking-wide text-white">
+      <h2 class="font-playfair text-3xl md:text-4xl font-bold mb-6 tracking-wide text-white hero-title-shadow">
         Why Lumina?
       </h2>
-      <p class="text-white/70">
+      <p class="text-white/80 hero-sub-shadow">
         Our thoughtfully crafted features make journaling a delightful part of your daily routine.
       </p>
     </div>
@@ -241,10 +227,10 @@
 
   </section>
   <div class="mt-12 text-center max-w-2xl mx-auto mb-10">
-    <h2 class="font-playfair text-3xl md:text-4xl font-bold mb-8 tracking-wide">
+    <h2 class="font-playfair text-3xl md:text-4xl font-bold mb-8 tracking-wide text-white hero-title-shadow">
       From Our Community
     </h2>
-    <p class="text-white/70">
+    <p class="text-white/80 hero-sub-shadow">
       Hear from people who have transformed their journaling practice with Lumina. </p>
   </div>
   <x-testimonials />
@@ -255,10 +241,10 @@
   <section id="faq" class="py-20 px-4">
     <div class="max-w-4xl mx-auto">
       <div class="text-center mb-12">
-        <h2 class="font-playfair text-3xl md:text-4xl font-bold mb-4 tracking-wide">
+        <h2 class="font-playfair text-3xl md:text-4xl font-bold mb-4 tracking-wide text-white hero-title-shadow">
           Frequently Asked Questions
         </h2>
-        <p class="text-white/70 max-w-2xl mx-auto">
+        <p class="text-white/80 max-w-2xl mx-auto hero-sub-shadow">
           Everything you need to know about Lumina and how it can transform your journaling practice
         </p>
       </div>
@@ -575,20 +561,26 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
   </div>
 
   <style>
-    /* Full-Page Time-Aware Atmosphere Backdrop */
+    /* Native Smooth Scrolling */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Full-Page Time-Aware Atmosphere Backdrop - Razor-Sharp, Unblurred ASCII Art */
     .page-time-container,
     .hero-time-container {
       background-color: #07090e;
     }
+    /* Gently dimmed daytime ASCII art (alpine-dawn / ocean-sunset) */
     .page-time-art,
     .hero-time-art {
       width: 100% !important;
       height: 100% !important;
-      opacity: 0.65;
-      filter: blur(1.5px);
-      transform: scale(1.03);
+      opacity: 0.56;
+      filter: none !important;
+      transform: scale(1.02);
       transform-origin: center;
-      transition: filter 500ms ease, opacity 500ms ease;
+      transition: opacity 500ms ease;
     }
     .page-time-art canvas,
     .hero-time-art canvas {
@@ -601,13 +593,21 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
       filter: none !important;
     }
 
-    /* Specifically watered-down blur & luminous contrast for night-coast */
+    /* Daytime overlays: gently atmospheric */
+    .page-time-tint {
+      opacity: 0.32;
+    }
+    .page-time-vignette {
+      opacity: 0.60;
+    }
+
+    /* Dimmed specifically for night-coast scene to prevent white moon/sea glare */
     .page-time-art[piece="night-coast"],
     .hero-time-art[piece="night-coast"],
     [data-scene="night-coast"] .page-time-art,
     [data-scene="night-coast"] .hero-time-art {
-      opacity: 0.85 !important;
-      filter: blur(1.8px) brightness(1.15) contrast(1.08) !important;
+      opacity: 0.52 !important;
+      filter: none !important;
     }
     .page-time-art[piece="night-coast"] canvas,
     .hero-time-art[piece="night-coast"] canvas,
@@ -616,34 +616,40 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
       filter: none !important;
     }
 
-    /* Water down dark overlays specifically for night-coast so it is not pitch black */
     [data-scene="night-coast"] .page-time-tint {
-      opacity: 0.28 !important;
+      opacity: 0.35 !important;
     }
     [data-scene="night-coast"] .page-time-vignette {
-      opacity: 0.60 !important;
+      opacity: 0.55 !important;
     }
+
+    /* Specific tuning for edge-orbit (deep space orbit curvature) */
+    .page-time-art[piece="edge-orbit"],
+    .hero-time-art[piece="edge-orbit"],
+    [data-scene="edge-orbit"] .page-time-art,
+    [data-scene="edge-orbit"] .hero-time-art {
+      opacity: 0.60 !important;
+      filter: none !important;
+    }
+    [data-scene="edge-orbit"] .page-time-tint {
+      opacity: 0.25 !important;
+    }
+    [data-scene="edge-orbit"] .page-time-vignette {
+      opacity: 0.55 !important;
+    }
+
+    /* Text Scrim / Shadow so foreground text never blends into background ASCII */
+    .hero-title-shadow {
+      text-shadow: 0 2px 14px rgba(7, 9, 14, 0.95), 0 1px 4px rgba(7, 9, 14, 0.98);
+    }
+    .hero-sub-shadow {
+      text-shadow: 0 1px 8px rgba(7, 9, 14, 0.9), 0 0 2px rgba(7, 9, 14, 0.85);
+    }
+
     .footer-atmospheric-blur {
       backdrop-filter: blur(24px) saturate(180%);
       -webkit-backdrop-filter: blur(24px) saturate(180%);
       background-color: rgba(6, 8, 14, 0.45);
-    }
-
-    /* Lenis Smooth Momentum Scroller Styles */
-    html.lenis, html.lenis body {
-      height: auto;
-    }
-    .lenis.lenis-smooth {
-      scroll-behavior: auto !important;
-    }
-    .lenis.lenis-smooth [data-lenis-prevent] {
-      overscroll-behavior: contain;
-    }
-    .lenis.lenis-stopped {
-      overflow: hidden;
-    }
-    .lenis.lenis-scrolling iframe {
-      pointer-events: none;
     }
 
     /* Completely hide native browser scrollbars (custom Skiper 95 indicator active) */
@@ -666,8 +672,12 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
   <script>
     (function () {
       function syncHeroTimeScene() {
+        const urlParams = new URLSearchParams(window.location.search);
         const hour = new Date().getHours();
-        const piece = (hour >= 5 && hour < 12) ? 'alpine-dawn' : ((hour >= 12 && hour < 19) ? 'ocean-sunset' : 'night-coast');
+        const timeScene = (hour >= 5 && hour < 17) 
+            ? 'alpine-dawn' 
+            : ((hour >= 17 && hour < 23) ? 'night-coast' : 'edge-orbit');
+        const piece = urlParams.get('scene') || timeScene;
         const container = document.getElementById('page-time-container');
         if (container) {
           container.setAttribute('data-scene', piece);
@@ -686,30 +696,10 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
   {{-- Skiper 95 Vertical Scroll Progress Indicator --}}
   <x-skiper95-scroll-progress />
 
-  <!-- Lenis Silky Smooth Momentum Scroller -->
-  <script src="/lenis.min.js"></script>
+  <!-- Native Fast, Hardware-Accelerated Smooth Anchor Navigation -->
   <script>
     (function () {
-      function initLenis() {
-        if (typeof Lenis === 'undefined') return;
-        if (window.__luminaLenis) {
-          try { window.__luminaLenis.destroy(); } catch (e) {}
-        }
-
-        const lenis = new Lenis({
-          lerp: 0.07,              // Buttery-smooth inertial deceleration
-          wheelMultiplier: 0.72,   // Gentle, controlled scroll speed (never frantic or too fast)
-          touchMultiplier: 1.1,
-          smoothWheel: true,
-          syncTouch: false,
-          orientation: 'vertical',
-          gestureOrientation: 'vertical',
-          autoResize: true,
-        });
-
-        window.__luminaLenis = lenis;
-
-        // Smooth anchor link scrolling for #features, #contact, etc.
+      function initAnchorScroll() {
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
           anchor.addEventListener('click', function (e) {
             const targetId = this.getAttribute('href');
@@ -717,27 +707,19 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
               const targetEl = document.querySelector(targetId);
               if (targetEl) {
                 e.preventDefault();
-                lenis.scrollTo(targetEl, { offset: -40, duration: 1.2 });
+                targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }
             }
           });
         });
-
-        function raf(time) {
-          if (window.__luminaLenis === lenis) {
-            lenis.raf(time);
-            requestAnimationFrame(raf);
-          }
-        }
-        requestAnimationFrame(raf);
       }
 
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initLenis);
+        document.addEventListener('DOMContentLoaded', initAnchorScroll);
       } else {
-        initLenis();
+        initAnchorScroll();
       }
-      document.addEventListener('livewire:navigated', initLenis);
+      document.addEventListener('livewire:navigated', initAnchorScroll);
     })();
   </script>
 </x-layout>

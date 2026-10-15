@@ -301,10 +301,16 @@
                                     :href="blog.external_url" 
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    class="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 active:bg-blue-700 border border-blue-400/40 shadow-lg shadow-blue-950/40 transition-all duration-150"
+                                    class="group/reticle relative inline-flex items-center justify-center gap-2 w-full px-5 py-2.5 rounded-none text-xs sm:text-sm font-semibold tracking-wide text-sky-200 hover:text-slate-950 bg-black/40 hover:bg-sky-400 border border-transparent active:scale-[0.99] active:bg-sky-300 transition-all duration-150 overflow-hidden cursor-pointer select-none"
                                 >
-                                    <span>Read Full Article</span>
-                                    <span>&rarr;</span>
+                                    {{-- Reticle Corner Brackets |_ _| on all 4 corners --}}
+                                    <span class="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-sky-400 group-hover/reticle:border-slate-950 transition-colors pointer-events-none"></span>
+                                    <span class="absolute top-0 right-0 w-2.5 h-2.5 border-t-2 border-r-2 border-sky-400 group-hover/reticle:border-slate-950 transition-colors pointer-events-none"></span>
+                                    <span class="absolute bottom-0 left-0 w-2.5 h-2.5 border-b-2 border-l-2 border-sky-400 group-hover/reticle:border-slate-950 transition-colors pointer-events-none"></span>
+                                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 border-b-2 border-r-2 border-sky-400 group-hover/reticle:border-slate-950 transition-colors pointer-events-none"></span>
+
+                                    <span class="relative z-10 transition-colors">Read Article</span>
+                                    <span class="relative z-10 transition-transform duration-200 group-hover/reticle:translate-x-1">&rarr;</span>
                                 </a>
                             </div>
                         </div>
@@ -452,10 +458,16 @@
                                                     :href="blog.external_url" 
                                                     target="_blank" 
                                                     rel="noopener noreferrer"
-                                                    class="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 border border-blue-400/40 shadow-xl backdrop-blur-md transition-all duration-200 group/btn"
+                                                    class="group/reticle relative inline-flex items-center justify-center gap-2 w-full px-5 py-2.5 rounded-none text-xs sm:text-sm font-semibold tracking-wide text-sky-200 hover:text-slate-950 bg-black/40 hover:bg-sky-400 border border-transparent active:scale-[0.99] active:bg-sky-300 transition-all duration-150 overflow-hidden cursor-pointer select-none"
                                                 >
-                                                    <span>Read Article</span>
-                                                    <span class="group-hover/btn:translate-x-1 transition-transform">&rarr;</span>
+                                                    {{-- Reticle Corner Brackets |_ _| on all 4 corners --}}
+                                                    <span class="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-sky-400 group-hover/reticle:border-slate-950 transition-colors pointer-events-none"></span>
+                                                    <span class="absolute top-0 right-0 w-2.5 h-2.5 border-t-2 border-r-2 border-sky-400 group-hover/reticle:border-slate-950 transition-colors pointer-events-none"></span>
+                                                    <span class="absolute bottom-0 left-0 w-2.5 h-2.5 border-b-2 border-l-2 border-sky-400 group-hover/reticle:border-slate-950 transition-colors pointer-events-none"></span>
+                                                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 border-b-2 border-r-2 border-sky-400 group-hover/reticle:border-slate-950 transition-colors pointer-events-none"></span>
+
+                                                    <span class="relative z-10 transition-colors">Read Article</span>
+                                                    <span class="relative z-10 transition-transform duration-200 group-hover/reticle:translate-x-1">&rarr;</span>
                                                 </a>
                                             </div>
                                         </div>

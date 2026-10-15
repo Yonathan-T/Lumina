@@ -2,6 +2,7 @@
     x-data="{
         submitting: false,
         statusText: '',
+        successMessage: '',
         errors: {},
         async submitAuth() {
             const form = this.$el;
@@ -11,6 +12,7 @@
             }
             this.submitting = true;
             this.statusText = '';
+            this.successMessage = '';
             this.errors = {};
 
             try {
@@ -28,8 +30,18 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    this.statusText = 'Entering sanctuary...';
-                    window.location.replace(data.redirect || '/dashboard');
+                    if (data.redirect) {
+                        this.statusText = 'Entering sanctuary...';
+                        window.location.replace(data.redirect);
+                        return;
+                    }
+                    if (data.message) {
+                        this.successMessage = data.message;
+                        this.submitting = false;
+                        form.reset();
+                        return;
+                    }
+                    window.location.replace('/dashboard');
                     return;
                 }
 
@@ -48,6 +60,39 @@
     }"
     @submit.prevent="submitAuth()">
     @csrf
+
+    {{-- Client-side Dynamic Success Alert (e.g. after Registration) --}}
+    <template x-if="successMessage">
+        <div class="flex items-start gap-2.5 text-xs sm:text-sm font-medium mb-3.5 px-3.5 py-3 rounded-xl shadow-sm text-emerald-200 border"
+             style="background-color: rgba(16, 185, 129, 0.16); border-color: rgba(16, 185, 129, 0.35);">
+            <svg class="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span class="leading-relaxed" x-text="successMessage"></span>
+        </div>
+    </template>
+
+    {{-- Server-rendered Flash Alerts --}}
+    @if (session('status'))
+        <div class="flex items-start gap-2.5 text-xs sm:text-sm font-medium mb-3.5 px-3.5 py-3 rounded-xl shadow-sm text-emerald-200 border"
+             style="background-color: rgba(16, 185, 129, 0.16); border-color: rgba(16, 185, 129, 0.35);">
+            <svg class="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span class="leading-relaxed">{{ session('status') }}</span>
+        </div>
+    @endif
+
+    @if (session('warning'))
+        <div class="flex items-start gap-2.5 text-xs sm:text-sm font-medium mb-3.5 px-3.5 py-3 rounded-xl shadow-sm text-amber-200 border"
+             style="background-color: rgba(245, 158, 11, 0.16); border-color: rgba(245, 158, 11, 0.35);">
+            <svg class="w-4 h-4 shrink-0 text-amber-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <span class="leading-relaxed">{{ session('warning') }}</span>
+        </div>
+    @endif
+
     <div class="space-y-3.5">
         {{ $slot }}
     </div>

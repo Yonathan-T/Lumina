@@ -34,6 +34,18 @@ class SessionController extends Controller
             ]);
         }
 
+        $user = Auth::user();
+
+        if (! $user->hasVerifiedEmail()) {
+            Auth::logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+
+            throw ValidationException::withMessages([
+                'email' => 'Please click the verification link inside your email (check spam) to complete your registration and unlock full access to your sanctuary.',
+            ]);
+        }
+
         request()->session()->regenerate();
 
         if (request()->wantsJson()) {

@@ -59,11 +59,7 @@
         const clickY = event.clientY - rect.top;
         const ratio = Math.max(0, Math.min(1, clickY / rect.height));
 
-        if (window.__luminaLenis && (!this.scrollTarget || this.scrollTarget === window)) {
-            const doc = document.documentElement;
-            const maxScroll = (doc.scrollHeight || document.body.scrollHeight) - window.innerHeight;
-            window.__luminaLenis.scrollTo(ratio * maxScroll, { duration: 1.2 });
-        } else if (this.scrollTarget && this.scrollTarget !== window) {
+        if (this.scrollTarget && this.scrollTarget !== window) {
             const maxScroll = this.scrollTarget.scrollHeight - this.scrollTarget.clientHeight;
             this.scrollTarget.scrollTo({ top: ratio * maxScroll, behavior: 'smooth' });
         } else {

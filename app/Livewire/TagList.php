@@ -25,11 +25,16 @@ class TagList extends Component
     public function Reflect($entryId)
     {
         try {
+            if (empty(auth()->user()->api_key)) {
+                session()->flash('error', 'Gemini API key is required to start an AI reflection session. Please add your key in Settings → Account.');
+                return;
+            }
+
             $userDataService = app(\App\Services\UserDataService::class);
             $reflectionData = $userDataService->reflectOnEntry($entryId);
 
             if (! $reflectionData) {
-                $this->dispatch('notify', message: 'Entry not found', type: 'error');
+                session()->flash('error', 'Entry not found');
                 return;
             }
 
@@ -54,7 +59,7 @@ class TagList extends Component
             return $this->redirect(route('chat.index', ['conversation' => $conversation->id]), navigate: true);
         } catch (\Exception $e) {
             \Log::error('Reflection Error: '.$e->getMessage());
-            $this->dispatch('notify', message: 'Unable to start reflection. Please try again.', type: 'error');
+            session()->flash('error', 'Unable to start reflection. Please try again.');
         }
     }
 

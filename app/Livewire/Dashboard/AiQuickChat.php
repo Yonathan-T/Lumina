@@ -310,6 +310,17 @@ Journal entries to analyze:
         ];
 
         $this->quickChatInput = '';
+
+        if (empty(auth()->user()->api_key)) {
+            $this->quickChatMessages[] = [
+                'sender' => 'ai',
+                'content' => "Gemini API key is missing. Please configure your key in Settings → Account → API Integration to chat with Lumi.",
+                'timestamp' => now()->format('g:i A'),
+            ];
+            $this->quickChatLoading = false;
+            return;
+        }
+
         $this->quickChatLoading = true;
 
         try {

@@ -1,7 +1,10 @@
 <x-layout :isLandingPage="true" :showSidebar="false" :showNav="true" :patternOnBody="false">
     @php
         $currentHour = (int) now()->format('H');
-        $defaultScene = ($currentHour >= 5 && $currentHour < 12) ? 'alpine-dawn' : (($currentHour >= 12 && $currentHour < 19) ? 'ocean-sunset' : 'night-coast');
+        $timeScene = ($currentHour >= 5 && $currentHour < 17) 
+            ? 'alpine-dawn' 
+            : (($currentHour >= 17 && $currentHour < 23) ? 'night-coast' : 'edge-orbit');
+        $defaultScene = request('scene', $timeScene);
     @endphp
 
     {{-- Full-Page Dynamic Time-Aware ASCII Art Background (Exact Match to Landing Page) --}}
@@ -13,9 +16,9 @@
         <div class="absolute inset-0 bg-scanlines opacity-10 pointer-events-none"></div>
 
         {{-- Atmospheric Dark Tint & Vignette Overlays for Crisp Content Contrast --}}
-        <div class="page-time-tint absolute inset-0 bg-[#07090e]/50 pointer-events-none transition-opacity duration-700"></div>
-        <div class="page-time-vignette absolute inset-0 bg-gradient-to-b from-[#0a0c10]/80 via-transparent to-[#0a0c10]/85 pointer-events-none transition-opacity duration-700"></div>
-        <div class="absolute inset-0 bg-gradient-to-r from-[#0a0c10]/40 via-transparent to-[#0a0c10]/40 pointer-events-none"></div>
+        <div class="page-time-tint absolute inset-0 bg-[#07090e] pointer-events-none transition-opacity duration-700"></div>
+        <div class="page-time-vignette absolute inset-0 bg-gradient-to-b from-[#07090e]/80 via-transparent to-[#07090e]/85 pointer-events-none transition-opacity duration-700"></div>
+        <div class="absolute inset-0 bg-gradient-to-r from-[#07090e]/30 via-transparent to-[#07090e]/30 pointer-events-none"></div>
     </div>
 
     {{-- Main Content Layer with guaranteed z-10 stacking context --}}
@@ -24,18 +27,24 @@
     </div>
 
     <style>
-        /* Full-Page Time-Aware Atmosphere Backdrop */
+        /* Native Smooth Scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Full-Page Time-Aware Atmosphere Backdrop - Crisp, Unblurred ASCII */
         .page-time-container {
             background-color: #07090e;
         }
+        /* Gently dimmed daytime ASCII art (alpine-dawn / ocean-sunset) */
         .page-time-art {
             width: 100% !important;
             height: 100% !important;
-            opacity: 0.65;
-            filter: blur(1.5px);
-            transform: scale(1.03);
+            opacity: 0.56;
+            filter: none !important;
+            transform: scale(1.02);
             transform-origin: center;
-            transition: filter 500ms ease, opacity 500ms ease;
+            transition: opacity 500ms ease;
         }
         .page-time-art canvas {
             width: 100% !important;
@@ -47,23 +56,43 @@
             filter: none !important;
         }
 
-        /* Specifically watered-down blur & luminous contrast for night-coast */
+        /* Daytime overlays: gently atmospheric */
+        .page-time-tint {
+            opacity: 0.32;
+        }
+        .page-time-vignette {
+            opacity: 0.60;
+        }
+
+        /* Dimmed specifically for night-coast scene to prevent white moon/sea glare */
         .page-time-art[piece="night-coast"],
         [data-scene="night-coast"] .page-time-art {
-            opacity: 0.85 !important;
-            filter: blur(1.8px) brightness(1.15) contrast(1.08) !important;
+            opacity: 0.52 !important;
+            filter: none !important;
         }
         .page-time-art[piece="night-coast"] canvas,
         [data-scene="night-coast"] .page-time-art canvas {
             filter: none !important;
         }
 
-        /* Water down dark overlays specifically for night-coast so it is not pitch black */
         [data-scene="night-coast"] .page-time-tint {
-            opacity: 0.28 !important;
+            opacity: 0.35 !important;
         }
         [data-scene="night-coast"] .page-time-vignette {
+            opacity: 0.55 !important;
+        }
+
+        /* Specific tuning for edge-orbit */
+        .page-time-art[piece="edge-orbit"],
+        [data-scene="edge-orbit"] .page-time-art {
             opacity: 0.60 !important;
+            filter: none !important;
+        }
+        [data-scene="edge-orbit"] .page-time-tint {
+            opacity: 0.25 !important;
+        }
+        [data-scene="edge-orbit"] .page-time-vignette {
+            opacity: 0.55 !important;
         }
     </style>
 
@@ -72,8 +101,12 @@
     <script>
         (function () {
             function syncHeroTimeScene() {
+                const urlParams = new URLSearchParams(window.location.search);
                 const hour = new Date().getHours();
-                const piece = (hour >= 5 && hour < 12) ? 'alpine-dawn' : ((hour >= 12 && hour < 19) ? 'ocean-sunset' : 'night-coast');
+                const timeScene = (hour >= 5 && hour < 17) 
+                    ? 'alpine-dawn' 
+                    : ((hour >= 17 && hour < 23) ? 'night-coast' : 'edge-orbit');
+                const piece = urlParams.get('scene') || timeScene;
                 const container = document.getElementById('page-time-container');
                 if (container) {
                     container.setAttribute('data-scene', piece);

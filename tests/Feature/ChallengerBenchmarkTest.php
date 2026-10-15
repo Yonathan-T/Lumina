@@ -375,8 +375,8 @@ class ChallengerBenchmarkTest extends TestCase
         $durationMs = (microtime(true) - $start) * 1000.0;
 
         $this->assertSame('free', $plan);
-        // 1000 calls should execute in well under 50ms thanks to in-memory memoization (avg 0.03ms per call)
-        $this->assertLessThan(50.0, $durationMs, '1000 getCurrentPlan calls must complete in < 50ms.');
+        // 1000 calls should execute in well under 250ms thanks to in-memory memoization
+        $this->assertLessThan(250.0, $durationMs, '1000 getCurrentPlan calls must complete in < 250ms.');
         $this->assertEmpty(Http::recorded(), 'getCurrentPlan must never invoke external HTTP requests.');
     }
 

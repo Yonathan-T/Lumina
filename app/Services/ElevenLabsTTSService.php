@@ -36,7 +36,7 @@ class ElevenLabsTTSService
         return $this->lastError;
     }
 
-    public function generateAudio($text, $voiceId = '21m00Tcm4TlvDq8ikWAM', $apiKey = null)
+    public function generateAudio($text, $voiceId = 'EXAVITQu4vr4xnSDxMaL', $apiKey = null)
     {
         $this->lastError = null;
         \Log::info('Generating audio with text: ' . ($text ?: 'null'));
@@ -68,10 +68,40 @@ class ElevenLabsTTSService
                 ],
             ]);
 
+            // If the voice was blocked as a restricted library voice for free users,
+            // seamlessly fall back to Bella (EXAVITQu4vr4xnSDxMaL) so free accounts don't fail!
+            if ($response->failed() && ($response->status() === 402 || str_contains($response->body(), 'library voices'))) {
+                \Log::info("Voice {$voiceId} restricted as library voice. Falling back to default free voice Bella.");
+                $response = Http::withHeaders([
+                    'xi-api-key' => $effectiveApiKey,
+                    'Content-Type' => 'application/json',
+                ])->post("{$this->baseUrl}/text-to-speech/EXAVITQu4vr4xnSDxMaL", [
+                    'text' => $text,
+                    'model_id' => 'eleven_multilingual_v2',
+                    'voice_settings' => [
+                        'stability' => 0.5,
+                        'similarity_boost' => 0.5,
+                    ],
+                ]);
+            }
+
             if ($response->failed()) {
+                $status = $response->status();
+                $body = $response->body();
                 $json = $response->json();
-                $errorMessage = $json['detail']['message'] ?? $json['detail']['status'] ?? $response->body();
-                throw new Exception('ElevenLabs API error: ' . $errorMessage);
+                $rawMsg = $json['detail']['message'] ?? $json['detail']['status'] ?? $body;
+
+                if (str_contains(strtolower($rawMsg), 'quota_exceeded') || str_contains(strtolower($rawMsg), 'quota')) {
+                    $friendlyMsg = 'Your ElevenLabs character quota has been reached for this month. Please check your ElevenLabs account.';
+                } elseif ($status === 401 || str_contains(strtolower($rawMsg), 'invalid') || str_contains(strtolower($rawMsg), 'unauthorized')) {
+                    $friendlyMsg = 'Invalid or unauthorized ElevenLabs API key. Please check your key in Settings.';
+                } elseif ($status === 402 || str_contains($rawMsg, 'library voices')) {
+                    $friendlyMsg = 'This voice requires paid ElevenLabs credits. Free accounts can use standard voices.';
+                } else {
+                    $friendlyMsg = is_string($rawMsg) ? $rawMsg : 'Failed to generate voice audio.';
+                }
+
+                throw new Exception($friendlyMsg);
             }
 
             $audioContent = $response->body();

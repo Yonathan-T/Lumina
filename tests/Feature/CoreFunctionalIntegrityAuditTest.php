@@ -177,7 +177,7 @@ class CoreFunctionalIntegrityAuditTest extends TestCase
 
         $result = $service->generateAudio('Testing audio narration text');
         $this->assertNull($result);
-        $this->assertStringContainsString('Quota exceeded for test key', $service->getLastError());
+        $this->assertStringContainsString('character quota has been reached', $service->getLastError());
     }
 
     /**
@@ -220,5 +220,115 @@ class CoreFunctionalIntegrityAuditTest extends TestCase
         $response = $aiService->generateResponse('Prompt message');
 
         $this->assertSame('Authentic AI reflection response from Gemini.', $response);
+    }
+
+    /**
+     * 6. History Reflect: verifies missing key flashes error and valid key redirects to chat.
+     */
+    public function test_history_reflect_handles_missing_key_and_successful_redirect(): void
+    {
+        $this->user->update(['api_key' => null]);
+        $this->actingAs($this->user->fresh());
+
+        $entry = Entry::create([
+            'user_id' => $this->user->id,
+            'title' => 'History Reflection Test',
+            'content' => 'Deep reflection on personal thoughts.',
+        ]);
+
+        // 1. Missing Gemini key: does not redirect, flashes clear error
+        \Livewire\Livewire::test(\App\Livewire\History::class)
+            ->call('Reflect', $entry->id)
+            ->assertNoRedirect()
+            ->assertSee('Gemini API key is required');
+
+        // 2. With Gemini key: creates reflection conversation and redirects to chat
+        $this->user->update([
+            'api_key' => Crypt::encryptString('valid-gemini-key'),
+        ]);
+        $this->actingAs($this->user->fresh());
+
+        \Livewire\Livewire::test(\App\Livewire\History::class)
+            ->call('Reflect', $entry->id)
+            ->assertRedirect();
+
+        $conversation = Conversation::where('user_id', $this->user->id)->first();
+        $this->assertNotNull($conversation);
+        $this->assertEquals('reflection', $conversation->type);
+    }
+
+    /**
+     * 7. Entry Reflection Missing Key: verifies NewEntry does not stay on thinking and displays missing key alert.
+     */
+    public function test_entry_reflection_shows_clear_missing_key_message(): void
+    {
+        $this->actingAs($this->user);
+
+        // Without Gemini key: startEntryChat populates clear missing-key message
+        $component = \Livewire\Livewire::test(\App\Livewire\NewEntry::class)
+            ->set('savedEntryTitle', 'Test Entry')
+            ->set('savedEntryContent', 'Test Content')
+            ->call('startEntryChat')
+            ->assertSet('showQuickChatModal', true);
+
+        $messages = $component->get('quickChatMessages');
+        $this->assertNotEmpty($messages);
+        $this->assertTrue($messages[0]['isMissingKey'] ?? false);
+        $this->assertStringContainsString('Gemini API key', $messages[0]['content']);
+
+        // Sending message without key also displays clear missing-key message and stops loading
+        $component->call('sendQuickChat', 'Can we reflect on this?')
+            ->assertSet('quickChatLoading', false);
+
+        $updatedMessages = $component->get('quickChatMessages');
+        $lastAiMessage = end($updatedMessages);
+        $this->assertStringContainsString('Gemini API key is missing', $lastAiMessage['content']);
+    }
+
+    /**
+     * 8. History: Full card anchor, isolated Reflect action, and reactive 5-per-page pagination.
+     */
+    public function test_history_pagination_and_full_card_anchor(): void
+    {
+        $this->actingAs($this->user);
+
+        // Create 26 entries to test 5-per-page pagination (e.g. Showing 1 to 5 of 26 results)
+        for ($i = 1; $i <= 26; $i++) {
+            Entry::create([
+                'user_id' => $this->user->id,
+                'title' => "Journal Entry #{$i}",
+                'content' => "Reflecting on thoughts for entry number {$i}.",
+                'created_at' => now()->subMinutes(30 - $i),
+            ]);
+        }
+
+        $component = \Livewire\Livewire::test(\App\Livewire\History::class);
+
+        // Verify default perPage is 5 and no perPage dropdown is present
+        $component->assertSet('perPage', 5)
+            ->assertDontSee('5 / page')
+            ->assertDontSee('10 / page')
+            ->assertDontSee('25 / page')
+            ->assertSee('Newest First')
+            ->assertSee('Oldest First');
+
+        // Verify 5 entries rendered on page 1
+        $viewEntries = $component->viewData('recentEntries');
+        $this->assertCount(5, $viewEntries->items());
+        $this->assertEquals(26, $viewEntries->total());
+
+        // Verify full-card anchor and isolated Reflect button
+        $firstEntry = $viewEntries->first();
+        $component->assertSee(route('entries.show', $firstEntry))
+            ->assertSee("wire:click.stop=\"Reflect({$firstEntry->id})\"", false);
+
+        // Fast Livewire pagination to page 2 (without full page reload: Showing 6 to 10 of 26 results)
+        $component->call('nextPage');
+
+        $this->assertEquals(2, $component->instance()->getPage());
+
+        $page2Entries = $component->viewData('recentEntries');
+        $this->assertEquals(2, $page2Entries->currentPage());
+        $this->assertCount(5, $page2Entries->items());
     }
 }
