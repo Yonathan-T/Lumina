@@ -58,28 +58,33 @@
         <p class="mb-6 text-muted text-sm sm:text-base">Manage and revoke sessions on other devices</p>
 
         @foreach ($sessions as $session)
-            <div class="sm:ml-4 border border-white/5 p-4 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 card-highlight">
-                <div>
-                    <div class="text-base sm:text-lg text-white font-semibold break-all">
-                        {{ $session['device'] }} — {{ $session['ip_address'] }}
+            <div class="sm:ml-4 border border-white/5 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3 card-highlight bg-white/[0.02]">
+                <div class="flex items-start sm:items-center gap-3.5 min-w-0">
+                    <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 shrink-0 mt-0.5 sm:mt-0">
+                        <x-icon name="device" class="w-5 h-5" />
                     </div>
-                    <div class="text-muted text-xs sm:text-sm">
-                        Last active: {{ $session['last_active'] }}
-                        @if ($session['is_current_device'])
-                            <span
-                                class="inline-flex items-center space-x-1 rounded-full bg-green-900/30 border border-green-400 px-1 py-0.5 text-xs font-medium text-green-400 mt-1 sm:mt-0">
-                                <x-icon name="device" class="w-4 h-4" />
-
-                                <span>This Device</span>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-sm sm:text-base font-semibold text-white">
+                                {{ $session['device'] }}
                             </span>
-
-                            <!-- its good if i let the user sign out from here i think -->
-                        @endif
+                            @if ($session['is_current_device'])
+                                <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[11px] font-medium text-emerald-400">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                    <span>This Device</span>
+                                </span>
+                            @endif
+                        </div>
+                        <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted mt-1">
+                            <span class="font-mono text-gray-400">{{ $session['ip_address'] }}</span>
+                            <span class="text-gray-600">&bull;</span>
+                            <span>Last active: {{ $session['last_active'] }}</span>
+                        </div>
                     </div>
                 </div>
                 @if (!$session['is_current_device'])
                     <button wire:click="logoutSession('{{ $session['id'] }}')"
-                        class="self-start sm:self-auto bg-transparent border border-white/5 hover:bg-red-600 text-white px-4 py-2 rounded text-xs sm:text-sm cursor-pointer">
+                        class="self-start sm:self-auto bg-transparent border border-red-500/30 hover:bg-red-500/20 text-red-400 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors">
                         Revoke
                     </button>
                 @endif
