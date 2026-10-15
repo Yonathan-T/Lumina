@@ -125,6 +125,14 @@ class EditEntry extends Component
                         \Log::error('Banner upload failed: ' . $e2->getMessage());
                     }
                 }
+
+                if (!empty($updateData['banner_path']) && method_exists($this->banner, 'delete')) {
+                    try {
+                        $this->banner->delete();
+                    } catch (\Throwable $delEx) {
+                        // Silent cleanup fail
+                    }
+                }
             } catch (\Illuminate\Validation\ValidationException $ve) {
                 throw $ve;
             } catch (\Throwable $e) {
@@ -273,9 +281,11 @@ class EditEntry extends Component
             // Combine title and content for reading
             $textToRead = $this->entry->title.'. '.$this->entry->content;
 
+            $voiceId = auth()->user()->getElevenLabsVoiceId();
+
             $this->audioUrl = $ttsService->generateAudio(
                 $textToRead,
-                '21m00Tcm4TlvDq8ikWAM'
+                $voiceId
             );
 
             if (! $this->audioUrl) {

@@ -3,18 +3,43 @@
     <div class="fixed top-6 right-6 z-50 flex flex-col gap-3 max-w-md w-full px-4 sm:px-0 pointer-events-none">
         @if (session('message'))
             <div id="success-message"
-                class="pointer-events-auto sidebar-gradient card-highlight border border-[#c2b68e]/40 rounded-xl px-5 py-4 shadow-2xl backdrop-blur-md transition-all duration-300">
+                x-data="{
+                    show: true,
+                    timeout: null,
+                    startTimer() {
+                        this.clearTimer();
+                        this.timeout = setTimeout(() => { this.show = false; }, 4000);
+                    },
+                    clearTimer() {
+                        if (this.timeout) {
+                            clearTimeout(this.timeout);
+                            this.timeout = null;
+                        }
+                    }
+                }"
+                x-init="startTimer()"
+                @mouseenter="clearTimer()"
+                @mouseleave="startTimer()"
+                x-show="show"
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0 transform translate-y-2"
+                x-transition:enter-end="opacity-100 transform translate-y-0"
+                x-transition:leave="transition ease-in duration-300"
+                x-transition:leave-start="opacity-100 transform translate-y-0"
+                x-transition:leave-end="opacity-0 transform -translate-y-2"
+                class="pointer-events-auto bg-[#0a1813]/95 border border-emerald-500/40 rounded-xl px-5 py-4 shadow-2xl shadow-emerald-950/50 backdrop-blur-md transition-all duration-300">
                 <div class="flex items-start justify-between gap-3">
                     <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-[#c2b68e]/15 border border-[#c2b68e]/30 flex items-center justify-center flex-shrink-0 text-[#c2b68e] mt-0.5">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 text-emerald-400 mt-0.5">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                             </svg>
                         </div>
-                        <span class="text-sm font-medium text-white leading-snug">{{ session('message') }}</span>
+                        <span class="text-sm font-medium text-emerald-100 leading-snug">{{ session('message') }}</span>
                     </div>
-                    <button onclick="dismissMessage('success-message')"
-                        class="text-gray-400 hover:text-white transition-colors p-1 rounded-md hover:bg-white/10 flex-shrink-0 cursor-pointer">
+                    <button @click="show = false"
+                        class="text-gray-400 hover:text-white transition-colors p-1 rounded-md hover:bg-white/10 flex-shrink-0 cursor-pointer"
+                        aria-label="Dismiss notification">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12" />
@@ -26,7 +51,31 @@
 
         @if (session('error'))
             <div id="error-message"
-                class="pointer-events-auto bg-[#1b0d13]/95 card-highlight rounded-xl px-5 py-4 shadow-2xl backdrop-blur-md border border-red-500/30 transition-all duration-300">
+                x-data="{
+                    show: true,
+                    timeout: null,
+                    startTimer() {
+                        this.clearTimer();
+                        this.timeout = setTimeout(() => { this.show = false; }, 6000);
+                    },
+                    clearTimer() {
+                        if (this.timeout) {
+                            clearTimeout(this.timeout);
+                            this.timeout = null;
+                        }
+                    }
+                }"
+                x-init="startTimer()"
+                @mouseenter="clearTimer()"
+                @mouseleave="startTimer()"
+                x-show="show"
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0 transform translate-y-2"
+                x-transition:enter-end="opacity-100 transform translate-y-0"
+                x-transition:leave="transition ease-in duration-300"
+                x-transition:leave-start="opacity-100 transform translate-y-0"
+                x-transition:leave-end="opacity-0 transform -translate-y-2"
+                class="pointer-events-auto bg-[#1b0d13]/95 border border-red-500/30 rounded-xl px-5 py-4 shadow-2xl backdrop-blur-md transition-all duration-300">
                 <div class="flex items-start justify-between gap-3">
                     <div class="flex items-start gap-3">
                         <div class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0 text-red-400 mt-0.5">
@@ -37,8 +86,9 @@
                         </div>
                         <span class="text-sm font-medium text-white leading-snug">{{ session('error') }}</span>
                     </div>
-                    <button onclick="dismissMessage('error-message')"
-                        class="text-gray-400 hover:text-white transition-colors p-1 rounded-md hover:bg-white/10 flex-shrink-0">
+                    <button @click="show = false"
+                        class="text-gray-400 hover:text-white transition-colors p-1 rounded-md hover:bg-white/10 flex-shrink-0 cursor-pointer"
+                        aria-label="Dismiss notification">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12" />

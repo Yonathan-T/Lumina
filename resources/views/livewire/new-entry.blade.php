@@ -272,6 +272,17 @@
                                     <div
                                         class="max-w-[80%] {{ $message['sender'] === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted/20 text-white' }} rounded-lg p-3">
                                         <p class="text-sm whitespace-pre-wrap">{{ $message['content'] }}</p>
+                                        @if(!empty($message['isMissingKey']))
+                                            <div class="mt-2.5">
+                                                <a href="{{ route('settings.index', ['tab' => 'account']) }}" wire:navigate
+                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors shadow">
+                                                    <span>Add Gemini Key in Settings</span>
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                                    </svg>
+                                                </a>
+                                            </div>
+                                        @endif
                                         <p class="text-xs opacity-70 mt-1">{{ $message['timestamp'] }}</p>
                                     </div>
                                 </div>

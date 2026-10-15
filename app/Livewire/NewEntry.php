@@ -71,6 +71,14 @@ class NewEntry extends Component
                         $bannerPath = null;
                     }
                 }
+
+                if (!empty($bannerPath) && method_exists($this->banner, 'delete')) {
+                    try {
+                        $this->banner->delete();
+                    } catch (\Throwable $delEx) {
+                        // Silent cleanup fail
+                    }
+                }
             } catch (\Illuminate\Validation\ValidationException $ve) {
                 throw $ve;
             } catch (\Throwable $e) {
@@ -132,6 +140,19 @@ class NewEntry extends Component
         $this->showConfirmationModal = false;
         $this->showQuickChatModal = true;
 
+        if (empty(auth()->user()->api_key)) {
+            $this->quickChatMessages = [
+                [
+                    'sender' => 'ai',
+                    'content' => "Welcome! To reflect on your journal entry with Lumi, please configure your personal Gemini API key in Settings > Account > API Integration.",
+                    'timestamp' => now()->format('g:i A'),
+                    'isMissingKey' => true,
+                ],
+            ];
+            $this->quickChatInput = '';
+            return;
+        }
+
         // Initialize chat with context about the newly created entry
         $this->quickChatMessages = [
             [
@@ -173,6 +194,18 @@ class NewEntry extends Component
         ];
 
         $this->quickChatInput = '';
+
+        if (empty(auth()->user()->api_key)) {
+            $this->quickChatMessages[] = [
+                'sender' => 'ai',
+                'content' => "Gemini API key is missing. Please configure your key in Settings > Account > API Integration to reflect on your entries.",
+                'timestamp' => now()->format('g:i A'),
+                'isMissingKey' => true,
+            ];
+            $this->quickChatLoading = false;
+            return;
+        }
+
         $this->quickChatLoading = true;
 
         try {

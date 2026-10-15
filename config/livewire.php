@@ -51,7 +51,7 @@ return [
             'jpg', 'jpeg', 'mpga', 'webp', 'wma',
         ],
         'max_upload_time' => 5,
-        'cleanup' => false,
+        'cleanup' => true,
     ],
 
     /*
