@@ -52,6 +52,55 @@ class StreakService
         return $streak;
     }
 
+    public static function getStreakInJeopardy($userId): int
+    {
+        $today = Carbon::now()->startOfDay();
+        $yesterday = Carbon::yesterday()->startOfDay();
+
+        // If they already wrote today, their streak is safe today!
+        $hasEntryToday = Entry::where('user_id', $userId)
+            ->whereDate('created_at', $today)
+            ->exists();
+
+        if ($hasEntryToday) {
+            return 0;
+        }
+
+        // Count consecutive days ending yesterday
+        $entryDates = Entry::where('user_id', $userId)
+            ->selectRaw('DATE(created_at) as entry_date')
+            ->distinct()
+            ->orderBy('entry_date', 'desc')
+            ->get()
+            ->pluck('entry_date')
+            ->map(fn ($d) => Carbon::parse($d)->startOfDay());
+
+        $hasEntryYesterday = false;
+        foreach ($entryDates as $date) {
+            if ($date->eq($yesterday)) {
+                $hasEntryYesterday = true;
+                break;
+            }
+        }
+
+        if (!$hasEntryYesterday) {
+            return 0;
+        }
+
+        $streak = 0;
+        $checker = $yesterday->copy();
+        foreach ($entryDates as $entryDate) {
+            if ($entryDate->eq($checker)) {
+                $streak++;
+                $checker->subDay();
+            } elseif ($entryDate->lt($checker)) {
+                break;
+            }
+        }
+
+        return $streak;
+    }
+
     public static function getLongestStreak($userId)
     {
         $entryDates = Entry::where('user_id', $userId)
