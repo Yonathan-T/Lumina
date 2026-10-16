@@ -14,25 +14,14 @@ class StreakService
         $streak = 0;
 
         $entryDates = Entry::where('user_id', $userId)
-            ->selectRaw('DATE(created_at) as entry_date')
-            ->distinct()
-            ->orderBy('entry_date', 'desc')
-            ->get()
-            ->pluck('entry_date')
-            ->map(function ($date) {
-                return Carbon::parse($date)->startOfDay();
-            });
+            ->orderBy('created_at', 'desc')
+            ->pluck('created_at')
+            ->map(fn ($d) => $d->copy()->startOfDay())
+            ->unique(fn ($d) => $d->toDateString())
+            ->values();
 
-        $hasEntryToday = false;
-        $hasEntryYesterday = false;
-        foreach ($entryDates as $date) {
-            if ($date->eq($today)) {
-                $hasEntryToday = true;
-            }
-            if ($date->eq($yesterday)) {
-                $hasEntryYesterday = true;
-            }
-        }
+        $hasEntryToday = $entryDates->contains(fn ($d) => $d->eq($today));
+        $hasEntryYesterday = $entryDates->contains(fn ($d) => $d->eq($yesterday));
 
         // If neither today nor yesterday has an entry, streak is broken
         if (!$hasEntryToday && !$hasEntryYesterday) {
@@ -58,32 +47,21 @@ class StreakService
         $today = Carbon::now()->startOfDay();
         $yesterday = Carbon::yesterday()->startOfDay();
 
-        // If they already wrote today, their streak is safe today!
-        $hasEntryToday = Entry::where('user_id', $userId)
-            ->whereDate('created_at', $today)
-            ->exists();
+        $entryDates = Entry::where('user_id', $userId)
+            ->orderBy('created_at', 'desc')
+            ->pluck('created_at')
+            ->map(fn ($d) => $d->copy()->startOfDay())
+            ->unique(fn ($d) => $d->toDateString())
+            ->values();
 
+        // If they already wrote today, their streak is safe today!
+        $hasEntryToday = $entryDates->contains(fn ($d) => $d->eq($today));
         if ($hasEntryToday) {
             return 0;
         }
 
-        // Count consecutive days ending yesterday
-        $entryDates = Entry::where('user_id', $userId)
-            ->selectRaw('DATE(created_at) as entry_date')
-            ->distinct()
-            ->orderBy('entry_date', 'desc')
-            ->get()
-            ->pluck('entry_date')
-            ->map(fn ($d) => Carbon::parse($d)->startOfDay());
-
-        $hasEntryYesterday = false;
-        foreach ($entryDates as $date) {
-            if ($date->eq($yesterday)) {
-                $hasEntryYesterday = true;
-                break;
-            }
-        }
-
+        // Must have written yesterday to have an active streak ending yesterday
+        $hasEntryYesterday = $entryDates->contains(fn ($d) => $d->eq($yesterday));
         if (!$hasEntryYesterday) {
             return 0;
         }
