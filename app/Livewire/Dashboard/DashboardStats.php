@@ -56,8 +56,12 @@ class DashboardStats extends Component
         $this->loadNotifications();
         $this->loadStats();
         $this->currentStreak = StreakService::getCurrentStreak(auth()->id());
+        $hasWrittenToday = auth()->user()->entries()->whereDate('created_at', today())->exists();
+
         if ($this->currentStreak === 0) {
             $this->streakMessage = 'Start your streak today!';
+        } elseif (!$hasWrittenToday) {
+            $this->streakMessage = 'Write today to keep your streak going!';
         } elseif ($this->currentStreak === 1) {
             $this->streakMessage = 'First day of your streak!';
         } else {

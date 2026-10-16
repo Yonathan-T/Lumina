@@ -10,6 +10,7 @@ class StreakService
     public static function getCurrentStreak($userId)
     {
         $today = Carbon::now()->startOfDay();
+        $yesterday = Carbon::yesterday()->startOfDay();
         $streak = 0;
 
         $entryDates = Entry::where('user_id', $userId)
@@ -22,22 +23,24 @@ class StreakService
                 return Carbon::parse($date)->startOfDay();
             });
 
-
         $hasEntryToday = false;
+        $hasEntryYesterday = false;
         foreach ($entryDates as $date) {
             if ($date->eq($today)) {
                 $hasEntryToday = true;
-                break;
+            }
+            if ($date->eq($yesterday)) {
+                $hasEntryYesterday = true;
             }
         }
 
-        if (!$hasEntryToday) {
-            \Log::info('No entry today, current streak is 0', ['userId' => $userId, 'today' => $today->toDateString()]);
+        // If neither today nor yesterday has an entry, streak is broken
+        if (!$hasEntryToday && !$hasEntryYesterday) {
             return 0;
         }
 
-
-        $currentDateChecker = $today->copy();
+        // Start checking from today if written today, otherwise from yesterday
+        $currentDateChecker = $hasEntryToday ? $today->copy() : $yesterday->copy();
         foreach ($entryDates as $entryDate) {
             if ($entryDate->eq($currentDateChecker)) {
                 $streak++;
@@ -45,10 +48,8 @@ class StreakService
             } elseif ($entryDate->lt($currentDateChecker)) {
                 break;
             }
-
         }
 
-        \Log::info('Current streak calculated', ['userId' => $userId, 'streak' => $streak]);
         return $streak;
     }
 
