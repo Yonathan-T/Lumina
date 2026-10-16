@@ -2,13 +2,30 @@
 Route::webhooks('/webhook/polar');
 Route::post('/webhooks/github', [\App\Http\Controllers\GitHubWebhookController::class, 'handle']);
 
-Route::get('/ping', function (\Illuminate\Http\Request $request) {
-    $expectedToken = config('services.health.token');
+$verifyCronToken = function (\Illuminate\Http\Request $request): void {
+    // 1. Automatically trust Vercel's automated Cron scheduler
+    if (str_starts_with((string) $request->userAgent(), 'vercel-cron') || $request->hasHeader('x-vercel-cron-schedule')) {
+        return;
+    }
+
+    // 2. Otherwise verify token query string, Bearer token, or X-Health-Token
+    $expectedTokens = array_filter([
+        config('services.health.token'),
+        env('CRON_SECRET'),
+    ]);
     $providedToken = $request->query('token') ?: $request->bearerToken() ?: $request->header('X-Health-Token');
 
-    if (empty($expectedToken) || !hash_equals((string) $expectedToken, (string) $providedToken)) {
-        abort(404);
+    foreach ($expectedTokens as $expected) {
+        if (!empty($expected) && !empty($providedToken) && hash_equals((string) $expected, (string) $providedToken)) {
+            return;
+        }
     }
+
+    abort(404);
+};
+
+Route::get('/ping', function (\Illuminate\Http\Request $request) use ($verifyCronToken) {
+    $verifyCronToken($request);
 
     $dbStatus = 'ok';
     $dbLatencyMs = 0;
@@ -32,28 +49,6 @@ Route::get('/ping', function (\Illuminate\Http\Request $request) {
         'timestamp' => now()->toIso8601String(),
     ]);
 });
-
-$verifyCronToken = function (\Illuminate\Http\Request $request): void {
-    // 1. Automatically trust Vercel's automated Cron scheduler
-    if (str_starts_with((string) $request->userAgent(), 'vercel-cron') || $request->hasHeader('x-vercel-cron-schedule')) {
-        return;
-    }
-
-    // 2. Otherwise verify token query string, Bearer token, or X-Health-Token
-    $expectedTokens = array_filter([
-        config('services.health.token'),
-        env('CRON_SECRET'),
-    ]);
-    $providedToken = $request->query('token') ?: $request->bearerToken() ?: $request->header('X-Health-Token');
-
-    foreach ($expectedTokens as $expected) {
-        if (!empty($expected) && !empty($providedToken) && hash_equals((string) $expected, (string) $providedToken)) {
-            return;
-        }
-    }
-
-    abort(404);
-};
 
 Route::get('/blogs/fetch', function (\Illuminate\Http\Request $request) use ($verifyCronToken) {
     $verifyCronToken($request);
