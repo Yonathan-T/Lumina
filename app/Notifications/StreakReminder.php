@@ -50,7 +50,7 @@ class StreakReminder extends Notification
     {
         return [
             'message' => "Don't break your {$this->streak}-day streak! Write a quick reflection before midnight.",
-            'url' => route('entries.create')
+            'url' => route('entries.create', absolute: false),
         ];
     }
 }

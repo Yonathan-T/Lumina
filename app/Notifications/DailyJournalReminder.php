@@ -37,7 +37,7 @@ class DailyJournalReminder extends Notification
     {
         return [
             'message' => "Time to write in your journal! Start your day with a reflection.",
-            'url' => route('entries.create')
+            'url' => route('entries.create', absolute: false),
         ];
     }
 }

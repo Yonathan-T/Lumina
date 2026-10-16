@@ -65,7 +65,14 @@
                             wire:key="notif-{{ $notification->id }}"
                             class="px-3.5 py-2.5 hover:bg-blue-300/15 cursor-pointer transition-colors border-b border-gray-100/30 dark:border-gray-800/30 last:border-b-0 @if(!$notification->read_at) bg-blue-50/80 dark:bg-blue-900/20 @endif">
                             <div class="flex justify-between items-start gap-2.5">
-                                <a href="{{ $notification->data['url'] ?? '#' }}"
+                                @php
+                                    $notifUrl = $notification->data['url'] ?? '#';
+                                    if ($notifUrl !== '#' && (str_starts_with($notifUrl, 'http://') || str_starts_with($notifUrl, 'https://'))) {
+                                        $parsedUrl = parse_url($notifUrl);
+                                        $notifUrl = ($parsedUrl['path'] ?? '/') . (isset($parsedUrl['query']) ? '?' . $parsedUrl['query'] : '') . (isset($parsedUrl['fragment']) ? '#' . $parsedUrl['fragment'] : '');
+                                    }
+                                @endphp
+                                <a href="{{ $notifUrl }}"
                                     wire:click="markAsRead('{{ $notification->id }}')" class="flex-1 min-w-0">
                                     <div class="text-xs text-gray-900 dark:text-gray-100 leading-snug">
                                         {{ $notification->data['message'] ?? 'New notification' }}

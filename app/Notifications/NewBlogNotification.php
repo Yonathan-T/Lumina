@@ -51,7 +51,7 @@ class NewBlogNotification extends Notification
     {
         return [
             'message' => "New article: {$this->blog->title}",
-            'url' => route('blogs.index'),
+            'url' => route('blogs.index', absolute: false),
             'blog_id' => $this->blog->id,
         ];
     }
