@@ -16,10 +16,51 @@ class Entry extends Model
         'banner_path',
     ];
 
-    protected $casts = [
-        'content' => 'encrypted',
-        'title' => 'encrypted',
-    ];
+    protected $casts = [];
+
+    public function getContentAttribute($value)
+    {
+        if (empty($value)) {
+            return '';
+        }
+
+        try {
+            return \Illuminate\Support\Facades\Crypt::decryptString($value);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Entry content decryption fallback for entry {$this->id}: " . $e->getMessage());
+            if (is_string($value) && (str_starts_with($value, 'eyJ') || (str_contains($value, '"iv"') && str_contains($value, '"mac"')))) {
+                return 'This reflection was encrypted with a previous key and cannot be decrypted.';
+            }
+            return (string) $value;
+        }
+    }
+
+    public function getTitleAttribute($value)
+    {
+        if (empty($value)) {
+            return 'Untitled Reflection';
+        }
+
+        try {
+            return \Illuminate\Support\Facades\Crypt::decryptString($value);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Entry title decryption fallback for entry {$this->id}: " . $e->getMessage());
+            if (is_string($value) && (str_starts_with($value, 'eyJ') || (str_contains($value, '"iv"') && str_contains($value, '"mac"')))) {
+                return 'Reflection (Key Updated)';
+            }
+            return (string) $value;
+        }
+    }
+
+    public function setContentAttribute($value)
+    {
+        $this->attributes['content'] = \Illuminate\Support\Facades\Crypt::encryptString((string) $value);
+    }
+
+    public function setTitleAttribute($value)
+    {
+        $this->attributes['title'] = \Illuminate\Support\Facades\Crypt::encryptString((string) $value);
+    }
     public function tags()
     {
         return $this->belongsToMany(Tag::class);

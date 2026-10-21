@@ -19,8 +19,28 @@ class Conversation extends Model
 
     protected $casts = [
         'last_activity' => 'datetime',
-        'title' => 'encrypted',
     ];
+
+    public function getTitleAttribute($value)
+    {
+        if (empty($value)) {
+            return 'Conversation';
+        }
+
+        try {
+            return \Illuminate\Support\Facades\Crypt::decryptString($value);
+        } catch (\Throwable $e) {
+            if (is_string($value) && (str_starts_with($value, 'eyJ') || (str_contains($value, '"iv"') && str_contains($value, '"mac"')))) {
+                return 'Conversation (Archived)';
+            }
+            return (string) $value;
+        }
+    }
+
+    public function setTitleAttribute($value)
+    {
+        $this->attributes['title'] = \Illuminate\Support\Facades\Crypt::encryptString((string) $value);
+    }
 
     public function user()
     {

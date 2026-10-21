@@ -85,7 +85,7 @@
                 const trackIdx = (idx + playlist.length) % playlist.length;
                 if (!audioPool[trackIdx]) {
                     const a = new Audio();
-                    a.preload = 'auto';
+                    a.preload = 'metadata';
                     a.volume = 0.7;
                     a.src = playlist[trackIdx].url;
 
@@ -285,28 +285,12 @@
                 }
             }
 
-            // Progressive background pool pre-warming: pre-instantiate pool for all tracks
+            // Background audio init without aggressive network preloading
             try {
                 if (typeof window !== 'undefined') {
-                    const warmUpPool = function () {
-                        // Immediately prime current track and next track
-                        getTrackAudio(currentTrackIdx);
-                        getTrackAudio(currentTrackIdx + 1);
-
-                        // Progressively prime all remaining tracks at 250ms intervals
-                        playlist.forEach(function (_, i) {
-                            if (i !== currentTrackIdx && i !== ((currentTrackIdx + 1) % playlist.length)) {
-                                setTimeout(function () {
-                                    getTrackAudio(i);
-                                }, (i + 1) * 250);
-                            }
-                        });
-                    };
-
-                    if ('requestIdleCallback' in window) {
-                        requestIdleCallback(warmUpPool);
-                    } else {
-                        setTimeout(warmUpPool, 400);
+                    const wasActive = sessionStorage.getItem('sanctuary_audio_active') === '1';
+                    if (wasActive) {
+                        setTimeout(function () { play(); }, 300);
                     }
                 }
             } catch (e) { }

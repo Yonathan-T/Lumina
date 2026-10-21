@@ -19,8 +19,28 @@ class Message extends Model
     protected $casts = [
         'is_ai_response' => 'boolean',
         'metadata' => 'array',
-        'content' => 'encrypted',
     ];
+
+    public function getContentAttribute($value)
+    {
+        if (empty($value)) {
+            return '';
+        }
+
+        try {
+            return \Illuminate\Support\Facades\Crypt::decryptString($value);
+        } catch (\Throwable $e) {
+            if (is_string($value) && (str_starts_with($value, 'eyJ') || (str_contains($value, '"iv"') && str_contains($value, '"mac"')))) {
+                return 'This message was encrypted with a previous key.';
+            }
+            return (string) $value;
+        }
+    }
+
+    public function setContentAttribute($value)
+    {
+        $this->attributes['content'] = \Illuminate\Support\Facades\Crypt::encryptString((string) $value);
+    }
 
     // Add accessor for compatibility with ChatInterface
     public function getIsAiAttribute()
