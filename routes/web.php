@@ -53,6 +53,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Settings
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     // Route::get('/settings', SettingsPanel::class)->name('settings.index');
+    Route::post('/settings/music-preference', function (\Illuminate\Http\Request $request) {
+        $user = $request->user();
+        if ($user) {
+            $settings = $user->settings ?? [];
+            if ($request->has('url')) {
+                $settings['sanctuary_youtube_url'] = $request->input('url');
+            }
+            if ($request->has('title')) {
+                $settings['sanctuary_youtube_title'] = $request->input('title');
+            }
+            if ($request->has('mode')) {
+                $settings['sanctuary_audio_mode'] = $request->input('mode');
+            }
+            $user->update(['settings' => $settings]);
+        }
+        return response()->json(['success' => true]);
+    })->name('settings.music-preference');
 
     // Data Export Download
 
