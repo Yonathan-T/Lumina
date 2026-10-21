@@ -37,8 +37,12 @@ class NewEntry extends Component
 
     public $quickChatLoading = false;
 
-    public function save()
+    public function save($content = null)
     {
+        if ($content !== null) {
+            $this->content = $content;
+        }
+
         $this->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',

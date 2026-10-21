@@ -121,60 +121,173 @@
                     <form wire:submit="save">
                         <div class="space-y-6">
 
-                            <div class="mb-6 relative group">
+                            <div class="mb-6 relative group" x-data="{
+                                preview: {{ !empty($entry->banner_path && $entry->banner_url) ? "'" . $entry->banner_url . "'" : 'null' }},
+                                isUploading: false,
+                                uploadProgress: 0,
+                                bannerError: null,
+                                selectFile(e) {
+                                    this.bannerError = null;
+                                    const file = e.target.files && e.target.files[0];
+                                    if (!file) return;
+
+                                    // 1. Instant 0ms Client-Side Format Validation
+                                    const isImage = file.type ? file.type.startsWith('image/') : /\.(jpe?g|png|webp|gif|avif|svg)$/i.test(file.name);
+                                    if (!isImage) {
+                                        this.bannerError = 'Unsupported format. Please select an image file (JPG, PNG, WEBP, GIF).';
+                                        this.clearInput();
+                                        return;
+                                    }
+
+                                    // 2. Instant 0ms Client-Side Size Validation (Max 10MB)
+                                    const maxBytes = 10 * 1024 * 1024;
+                                    if (file.size > maxBytes) {
+                                        const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+                                        this.bannerError = `This file is ${sizeMb} MB. Maximum allowed image size is 10 MB.`;
+                                        this.clearInput();
+                                        return;
+                                    }
+
+                                    // 3. Instant 0ms visual preview
+                                    if (this.preview && this.preview.startsWith('blob:')) {
+                                        URL.revokeObjectURL(this.preview);
+                                    }
+                                    this.preview = URL.createObjectURL(file);
+                                    this.isUploading = true;
+                                    this.uploadProgress = 15;
+
+                                    // 4. High-speed client upload with progress tracking
+                                    const doUpload = (fileToUpload) => {
+                                        $wire.upload('banner', fileToUpload, 
+                                            () => {
+                                                this.isUploading = false;
+                                                this.uploadProgress = 100;
+                                                this.bannerError = null;
+                                            }, 
+                                            (err) => {
+                                                this.isUploading = false;
+                                                this.bannerError = 'Upload failed. Please try a different image.';
+                                                console.error('Banner upload error:', err);
+                                            },
+                                            (event) => {
+                                                this.uploadProgress = event.detail.progress;
+                                            }
+                                        );
+                                    };
+
+                                    // Fast in-browser canvas compression if image > 800KB
+                                    if (file.type && file.type.startsWith('image/') && !file.type.includes('svg') && !file.type.includes('gif') && file.size > 800 * 1024) {
+                                        const img = new Image();
+                                        img.onload = () => {
+                                            const maxDim = 1920;
+                                            let w = img.width;
+                                            let h = img.height;
+                                            if (w > maxDim || h > maxDim) {
+                                                if (w > h) {
+                                                    h = Math.round((h * maxDim) / w);
+                                                    w = maxDim;
+                                                } else {
+                                                    w = Math.round((w * maxDim) / h);
+                                                    h = maxDim;
+                                                }
+                                            }
+                                            const canvas = document.createElement('canvas');
+                                            canvas.width = w;
+                                            canvas.height = h;
+                                            const ctx = canvas.getContext('2d');
+                                            ctx.drawImage(img, 0, 0, w, h);
+                                            canvas.toBlob((blob) => {
+                                                if (blob && blob.size < file.size) {
+                                                    const optimized = new File([blob], file.name.replace(/\.[^/.]+$/, '.jpg'), { type: 'image/jpeg' });
+                                                    doUpload(optimized);
+                                                } else {
+                                                    doUpload(file);
+                                                }
+                                            }, 'image/jpeg', 0.85);
+                                        };
+                                        img.onerror = () => doUpload(file);
+                                        img.src = this.preview;
+                                    } else {
+                                        doUpload(file);
+                                    }
+                                },
+                                clearInput() {
+                                    if (this.$refs.bannerFileInput) {
+                                        this.$refs.bannerFileInput.value = '';
+                                    }
+                                },
+                                clear() {
+                                    if (this.preview && this.preview.startsWith('blob:')) {
+                                        URL.revokeObjectURL(this.preview);
+                                    }
+                                    this.preview = null;
+                                    this.clearInput();
+                                    this.bannerError = null;
+                                    this.isUploading = false;
+                                    $wire.set('banner', null);
+                                    $wire.removeBanner();
+                                }
+                            }">
                                 <label class="block text-sm font-medium mb-2 text-muted">Banner Image</label>
-                                @if ($banner)
-                                    <div class="relative w-full h-64 rounded-xl overflow-hidden border border-white/10 shadow-2xl">
-                                        <img src="{{ $banner->temporaryUrl() }}" class="w-full h-full object-cover">
-                                        <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
-                                        <button type="button" wire:click="$set('banner', null)"
-                                            class="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-red-500/80 transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                            </svg>
-                                        </button>
-                                        <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <label class="cursor-pointer bg-black/50 text-white px-4 py-2 rounded-lg hover:bg-white/20 backdrop-blur-sm text-sm font-medium flex items-center gap-2 transition-all">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                                </svg>
-                                                Change Cover
-                                                <input type="file" wire:model="banner" class="hidden" accept="image/*">
-                                            </label>
+
+                                {{-- Single hidden file input controlled by refs --}}
+                                <input type="file" name="banner" x-ref="bannerFileInput" x-on:change="selectFile($event)" class="hidden" accept="image/jpeg,image/png,image/webp,image/gif,image/avif">
+
+                                {{-- Preview Container --}}
+                                <div x-show="preview" x-cloak class="relative w-full h-64 rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                                    <img :src="preview" class="w-full h-full object-cover" alt="Cover preview">
+                                    <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
+
+                                    {{-- Uploading Progress Overlay --}}
+                                    <div x-show="isUploading" x-cloak class="absolute inset-0 bg-black/60 backdrop-blur-xs flex flex-col items-center justify-center gap-2 z-20">
+                                        <div class="flex items-center gap-2 text-xs font-medium text-white">
+                                            <div class="w-3.5 h-3.5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                                            <span>Optimizing & uploading...</span>
+                                        </div>
+                                        <div class="w-48 bg-white/10 rounded-full h-1.5 overflow-hidden">
+                                            <div class="bg-blue-400 h-full transition-all duration-150" :style="'width: ' + uploadProgress + '%'"></div>
                                         </div>
                                     </div>
-                                @elseif($entry->banner_path && $entry->banner_url)
-                                    <div class="relative w-full h-64 rounded-xl overflow-hidden border border-white/10 shadow-2xl">
-                                        <img src="{{ $entry->banner_url }}" class="w-full h-full object-cover">
-                                        <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
-                                        <button type="button" wire:click="removeBanner"
-                                            class="absolute top-4 right-4 bg-red-600/80 text-white p-2 rounded-full hover:bg-red-700 transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm"
-                                            title="Remove Banner">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                            </svg>
-                                        </button>
-                                        <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <label class="cursor-pointer bg-black/50 text-white px-4 py-2 rounded-lg hover:bg-white/20 backdrop-blur-sm text-sm font-medium flex items-center gap-2 transition-all">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                                </svg>
-                                                Change Cover
-                                                <input type="file" wire:model="banner" class="hidden" accept="image/*">
-                                            </label>
-                                        </div>
-                                    </div>
-                                @else
-                                    <label class="cursor-pointer group flex flex-col items-center justify-center w-full h-32 rounded-xl border-2 border-dashed border-white/10 hover:border-white/20 hover:bg-white/5 transition-all duration-200">
-                                        <div class="flex flex-col items-center justify-center pt-5 pb-6 text-muted group-hover:text-white transition-colors">
-                                            <svg class="w-8 h-8 mb-3 opacity-50 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                    <button type="button" x-on:click="clear()"
+                                        class="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-red-500/80 transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm cursor-pointer z-10"
+                                        title="Remove Cover">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                    <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                        <button type="button" x-on:click="$refs.bannerFileInput.click()"
+                                            class="cursor-pointer bg-black/50 text-white px-4 py-2 rounded-lg hover:bg-white/20 backdrop-blur-sm text-sm font-medium flex items-center gap-2 transition-all">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                             </svg>
-                                            <p class="text-sm font-medium">Add Cover Image</p>
-                                        </div>
-                                        <input type="file" wire:model="banner" class="hidden" accept="image/*">
-                                    </label>
-                                @endif
+                                            Change Cover
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {{-- Dropzone --}}
+                                <div x-show="!preview"
+                                    x-on:click="$refs.bannerFileInput.click()"
+                                    class="cursor-pointer group flex flex-col items-center justify-center w-full h-32 rounded-xl border-2 border-dashed border-white/10 hover:border-white/20 hover:bg-white/5 transition-all duration-200">
+                                    <div class="flex flex-col items-center justify-center pt-5 pb-6 text-muted group-hover:text-white transition-colors">
+                                        <svg class="w-8 h-8 mb-3 opacity-50 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                        <p class="text-sm font-medium">Add Cover Image</p>
+                                        <p class="text-xs text-muted/60 mt-1">(JPG, PNG, WEBP, GIF) (10MB)</p>
+                                    </div>
+                                </div>
+
+                                {{-- Client-Side Instant Error Display --}}
+                                <div x-show="bannerError" x-cloak class="mt-2.5 flex items-center gap-2 p-3 text-xs rounded-lg bg-red-500/10 border border-red-500/30 text-red-200">
+                                    <svg class="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                    </svg>
+                                    <span x-text="bannerError"></span>
+                                </div>
+
                                 <x-form-error name="banner" />
                             </div>
 
@@ -191,9 +304,7 @@
                             </div>
 
                             <div class="ml-5">
-                                <textarea wire:model="content"
-                                    class="flex w-full rounded-md border bg-background px-3 py-2 text-md leading-relaxed  resize-none border-none placeholder:text-[rgb(65,74,90)] focus:outline-none focus:ring-0 min-h-[300px]"
-                                    placeholder="What's on your mind today!"></textarea>
+                                <x-memo-canvas-editor wireModel="content" name="content" :initialContent="$content" />
                                 <x-form-error name="content" />
                             </div>
 
@@ -236,6 +347,10 @@
                                     <button type="submit"
                                         wire:loading.attr="disabled"
                                         wire:target="save, banner"
+                                        @click="
+                                            const canvas = document.querySelector('[data-memo-canvas]');
+                                            if (canvas && canvas.__memoFlushSync) canvas.__memoFlushSync();
+                                        "
                                         class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors disabled:opacity-50 cursor-pointer min-w-[130px]">
                                         <span wire:loading.remove wire:target="save, banner">Save Changes</span>
                                         <span wire:loading wire:target="save, banner" class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent inline-block"></span>
@@ -319,8 +434,8 @@
                         </div>
                     </div>
 
-                    <div class="ml-5  text-md leading-relaxed flex-1">
-                        {!! nl2br(e($entry->content)) !!}
+                    <div class="ml-5 text-md leading-relaxed flex-1 memo-rendered-content">
+                        {!! preg_replace('/<ul>(\s*<li[^>]*><input[^>]*type="checkbox")/i', '<ul class="memo-task-list">$1', \Illuminate\Support\Str::markdown($entry->content)) !!}
                     </div>
 
                     {{-- Audio Player --}}
