@@ -92,9 +92,15 @@
             font-size: 14px;
             line-height: 1.8;
             color: #cbd5e1;
-            white-space: pre-wrap;
             text-align: left;
         }
+        .content h1 { font-size: 20px; font-weight: bold; color: #f8fafc; margin-top: 20px; margin-bottom: 8px; }
+        .content h2 { font-size: 17px; font-weight: bold; color: #f1f5f9; margin-top: 16px; margin-bottom: 6px; }
+        .content h3 { font-size: 15px; font-weight: bold; color: #e2e8f0; margin-top: 14px; margin-bottom: 4px; }
+        .content blockquote { border-left: 3px solid #6366f1; background-color: #1e293b; padding: 8px 12px; margin: 12px 0; font-style: italic; }
+        .content pre { background-color: #0f172a; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 12px; color: #34d399; }
+        .content ul, .content ol { padding-left: 20px; margin: 10px 0; }
+        .content li { margin-bottom: 4px; }
         .tags {
             margin-top: 40px;
             padding-top: 20px;
@@ -171,7 +177,7 @@
 
     <!-- Content -->
     <div class="content">
-        {{ $entry->content }}
+        {!! \Illuminate\Support\Str::markdown($entry->content) !!}
     </div>
 
     <!-- Tags -->

@@ -9,7 +9,7 @@
 
 <div>
     <aside id="sidebar"
-        class="fixed inset-y-0 left-0 z-40 w-64 flex flex-col sidebar-gradient border-r border-[#c2b68e] bg-white/5 transition-all duration-300 overflow-hidden">
+        class="fixed inset-y-0 left-0 z-40 w-64 flex flex-col sidebar-gradient border-r border-white/10 bg-white/5 transition-all duration-300 overflow-hidden">
 
         {{-- Brand / Logo --}}
         <div class="flex items-center justify-between h-14 border-white/10 border-b px-4 sidebar-header">

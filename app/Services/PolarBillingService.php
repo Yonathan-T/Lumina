@@ -52,34 +52,44 @@ class PolarBillingService
 
     public function getPlanMeta(string $planKey): array
     {
-        $products = $this->normalizeProducts($this->fetchProducts());
-        $currentProduct = $this->resolveCurrentPlanProduct($planKey, $products);
-
         $meta = [
             'free' => [
                 'label' => 'Free',
                 'description' => 'A calm place to begin journaling with the essentials.',
+                'price' => '$0/mo',
+                'name' => 'Free Journaler',
+                'benefits' => [
+                    '10 entries per month',
+                    'Core AI chat reflections',
+                    'Light and dark sanctuary themes',
+                ],
             ],
             'standard' => [
                 'label' => 'Standard',
                 'description' => 'More room, more reflection, and richer daily support.',
+                'price' => '$9/mo',
+                'name' => 'Standard Journaler',
+                'benefits' => [
+                    'Unlimited entries',
+                    'Guided reflection sessions',
+                    'Continuous ambient sanctuary music',
+                ],
             ],
             'pro' => [
                 'label' => 'Pro',
                 'description' => 'Your full Lumina experience with everything unlocked.',
+                'price' => '$19/mo',
+                'name' => 'Pro Thinker',
+                'benefits' => [
+                    'Everything in Standard',
+                    'Deep memo pattern analysis',
+                    'ElevenLabs voice audio synthesis',
+                    'Priority AI reasoning speed',
+                ],
             ],
         ];
 
-        $resolved = $meta[$planKey] ?? $meta['free'];
-        $resolved['price'] = $currentProduct['price'] ?? match ($planKey) {
-            'standard' => '$9/mo',
-            'pro' => '$19/mo',
-            default => '$0/mo',
-        };
-        $resolved['benefits'] = $currentProduct['benefits'] ?? [];
-        $resolved['name'] = $currentProduct['name'] ?? $resolved['label'];
-
-        return $resolved;
+        return $meta[$planKey] ?? $meta['free'];
     }
 
     public function normalizeProducts(array $products): array
@@ -199,7 +209,7 @@ class PolarBillingService
     public function resolveNextPlan(string $currentPlan, ?array $products = null): ?array
     {
         $planOrder = ['free' => 0, 'standard' => 1, 'pro' => 2];
-        $products ??= $this->normalizeProducts($this->fetchProducts());
+        $products ??= $this->defaultProducts();
         $currentTier = $planOrder[$currentPlan] ?? 0;
 
         return collect($products)->first(fn (array $product) => ($planOrder[$product['key']] ?? 99) > $currentTier);
@@ -502,8 +512,8 @@ class PolarBillingService
 
     protected function api()
     {
-        return Http::timeout(3.0)
-            ->connectTimeout(2.0)
+        return Http::timeout(1.5)
+            ->connectTimeout(0.8)
             ->withToken(env('POLAR_ACCESS_TOKEN'))
             ->acceptJson();
     }

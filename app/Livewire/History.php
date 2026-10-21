@@ -154,8 +154,9 @@ class History extends Component
 
         // PRE-PROCESS – runs once for only the current page items
         $items->transform(function ($entry) {
-            $plain = strip_tags($entry->content);
-            $entry->content_html = nl2br(e(\Str::limit($plain, 200)));
+            $clean = preg_replace('/[#*`_~>\[\]]/', '', $entry->content ?? '');
+            $plain = trim(strip_tags($clean));
+            $entry->content_html = nl2br(e(\Illuminate\Support\Str::limit($plain, 200)));
             $entry->date_month = $entry->created_at->format('M');
             $entry->date_day = $entry->created_at->format('d');
             $entry->date_formatted = $entry->created_at->format('M d, Y');

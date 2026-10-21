@@ -259,7 +259,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <p class="line-clamp-3 text-sm sm:text-base text-gray-300 mb-2"> {!! nl2br(e($entry->content)) !!}</p>
+                                    <p class="line-clamp-3 text-sm sm:text-base text-gray-300 mb-2">{!! nl2br(e(strip_tags(\Illuminate\Support\Str::markdown($entry->content)))) !!}</p>
                                     <div class="mt-2 flex flex-wrap gap-2">
                                         @foreach($entry->tags as $tag)
                                             <span wire:key="tag-entry-{{ $entry->id }}-tag-{{ $tag->id }}"
