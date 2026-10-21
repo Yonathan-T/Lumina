@@ -52,8 +52,13 @@
                 :class="activeStates.taskList ? 'bg-blue-300/15 text-white border border-blue-400/30' : 'text-gray-400 hover:text-white hover:bg-blue-300/15 border border-transparent'"
                 class="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer"
                 title="To-do Checklist (Shortcut: [] or [ ])">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="5" width="6" height="6" rx="1.5" />
+                    <path d="m5 8 1 1 2-2" />
+                    <path d="M13 6h8" />
+                    <path d="M13 12h8" />
+                    <path d="M13 18h8" />
+                    <rect x="3" y="14" width="6" height="6" rx="1.5" />
                 </svg>
                 <span class="hidden sm:inline">Checklist</span>
             </button>
@@ -62,9 +67,14 @@
                 @mousedown.prevent="toggleBulletList()"
                 :class="activeStates.bulletList ? 'bg-blue-300/15 text-white border border-blue-400/30' : 'text-gray-400 hover:text-white hover:bg-blue-300/15 border border-transparent'"
                 class="p-1.5 rounded-md text-xs transition-colors cursor-pointer"
-                title="Bullet List (Shortcut: -)">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M2 6h.01M2 12h.01M2 18h.01"/>
+                title="Bullet List (Shortcut: - )">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="9" y1="6" x2="20" y2="6"/>
+                    <line x1="9" y1="12" x2="20" y2="12"/>
+                    <line x1="9" y1="18" x2="20" y2="18"/>
+                    <circle cx="4" cy="6" r="1.5" fill="currentColor"/>
+                    <circle cx="4" cy="12" r="1.5" fill="currentColor"/>
+                    <circle cx="4" cy="18" r="1.5" fill="currentColor"/>
                 </svg>
             </button>
 
@@ -72,9 +82,14 @@
                 @mousedown.prevent="toggleOrderedList()"
                 :class="activeStates.orderedList ? 'bg-blue-300/15 text-white border border-blue-400/30' : 'text-gray-400 hover:text-white hover:bg-blue-300/15 border border-transparent'"
                 class="p-1.5 rounded-md text-xs transition-colors cursor-pointer"
-                title="Numbered List (Shortcut: 1.)">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 6h14M7 12h14M7 18h14M3 6h.01M3 12h.01M3 18h.01"/>
+                title="Numbered List (Shortcut: 1. )">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="10" y1="6" x2="21" y2="6"/>
+                    <line x1="10" y1="12" x2="21" y2="12"/>
+                    <line x1="10" y1="18" x2="21" y2="18"/>
+                    <path d="M4 6h1v4"/>
+                    <path d="M4 10h2"/>
+                    <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/>
                 </svg>
             </button>
         </div>

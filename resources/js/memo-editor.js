@@ -515,7 +515,7 @@ export function initMemoEditor({ initialContent = '', placeholder = "Type '/' fo
                         },
                         paragraph: {
                             HTMLAttributes: {
-                                class: 'memo-paragraph leading-relaxed my-1 text-gray-200 text-inherit',
+                                class: 'memo-paragraph leading-relaxed text-gray-200 text-inherit',
                             },
                         },
                         horizontalRule: {
@@ -535,7 +535,7 @@ export function initMemoEditor({ initialContent = '', placeholder = "Type '/' fo
                     CustomTaskItem.configure({
                         nested: true,
                         HTMLAttributes: {
-                            class: 'memo-task-item flex items-center gap-2.5 text-gray-200 text-inherit my-0.5',
+                            class: 'memo-task-item',
                         },
                     }),
                     Highlight.configure({
@@ -559,7 +559,7 @@ export function initMemoEditor({ initialContent = '', placeholder = "Type '/' fo
                 content: initialContent || '',
                 editorProps: {
                     attributes: {
-                        class: 'focus:outline-none min-h-[300px] w-full text-inherit leading-relaxed text-gray-100',
+                        class: 'tiptap ProseMirror focus:outline-none min-h-[300px] w-full text-inherit leading-relaxed text-gray-100',
                     },
                 },
                 onUpdate: ({ editor }) => {

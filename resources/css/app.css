@@ -932,50 +932,128 @@ body.is-chat-page {
     border: 1px solid rgba(96, 165, 250, 0.35);
 }
 
+/* Unordered Lists (Bullets) */
 .tiptap ul:not([data-type="taskList"]),
+.ProseMirror ul:not([data-type="taskList"]),
+[data-memo-canvas] ul:not([data-type="taskList"]),
 .memo-rendered-content ul:not([data-type="taskList"]) {
-    list-style-type: disc;
-    padding-left: 1.25rem;
-    margin: 0.25rem 0;
-    color: #e2e8f0;
+    list-style-type: disc !important;
+    list-style-position: outside !important;
+    padding-left: 1.35rem !important;
+    margin: 0.35rem 0 !important;
+    color: #e2e8f0 !important;
 }
 
+/* Ordered Lists (Numbered) */
 .tiptap ol,
+.ProseMirror ol,
+[data-memo-canvas] ol,
 .memo-rendered-content ol {
-    list-style-type: decimal;
-    padding-left: 1.25rem;
-    margin: 0.25rem 0;
-    color: #e2e8f0;
-    font-family: inherit;
+    list-style-type: decimal !important;
+    list-style-position: outside !important;
+    padding-left: 1.35rem !important;
+    margin: 0.35rem 0 !important;
+    color: #e2e8f0 !important;
+    font-family: inherit !important;
 }
 
-.tiptap ol li,
-.memo-rendered-content ol li,
-.tiptap ul li,
-.memo-rendered-content ul li {
-    margin: 0.1rem 0;
-    line-height: 1.6;
-    font-family: inherit;
-    font-size: 1rem;
+.tiptap ol > li,
+.ProseMirror ol > li,
+[data-memo-canvas] ol > li,
+.memo-rendered-content ol > li,
+.tiptap ul:not([data-type="taskList"]) > li,
+.ProseMirror ul:not([data-type="taskList"]) > li,
+[data-memo-canvas] ul:not([data-type="taskList"]) > li,
+.memo-rendered-content ul:not([data-type="taskList"]) > li {
+    margin: 0.2rem 0 !important;
+    line-height: 1.6 !important;
+    padding-left: 0.2rem !important;
+    font-family: inherit !important;
+    font-size: 1rem !important;
 }
 
-.tiptap ol li::marker,
-.memo-rendered-content ol li::marker {
-    font-family: inherit;
-    font-size: 0.95em;
-    font-weight: 500;
-    color: #94a3b8;
+.tiptap ol > li::marker,
+.ProseMirror ol > li::marker,
+.memo-rendered-content ol > li::marker {
+    font-family: inherit !important;
+    font-size: 0.95em !important;
+    font-weight: 600 !important;
+    color: #60a5fa !important;
+}
+
+.tiptap ul:not([data-type="taskList"]) > li::marker,
+.ProseMirror ul:not([data-type="taskList"]) > li::marker,
+.memo-rendered-content ul:not([data-type="taskList"]) > li::marker {
+    color: #60a5fa !important;
+    font-size: 1.05em !important;
 }
 
 .tiptap hr,
+.ProseMirror hr,
 .memo-rendered-content hr {
-    border: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
-    margin: 1rem 0;
+    border: none !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.12) !important;
+    margin: 1rem 0 !important;
 }
 
-/* Task lists (Checkboxes) - Compact & Perfectly Aligned */
+/* Welcome Modal Styles */
+.welcome-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(5px);
+}
+
+.welcome-modal-content {
+    background: #1a1a2e;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
+    color: #e0e0e0;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.welcome-heart {
+    font-size: 3rem;
+    animation: pulse 1.5s infinite ease-in-out;
+    color: #ff6b6b;
+    margin-bottom: 1rem;
+}
+
+.welcome-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #e0e0e0;
+    font-size: 1.5rem;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    line-height: 1;
+    padding: 0.5rem;
+}
+
+.welcome-close-btn:hover {
+    opacity: 1;
+}
+
+/* Task lists (Checkboxes) - Sleek Shadcn Styling & Perfectly Centered Line Alignment */
 .tiptap ul[data-type="taskList"],
+.ProseMirror ul[data-type="taskList"],
+[data-memo-canvas] ul[data-type="taskList"],
 .memo-rendered-content ul[data-type="taskList"],
 .memo-rendered-content ul.memo-task-list,
 .memo-task-list,
@@ -984,66 +1062,88 @@ body.is-chat-page {
     list-style: none !important;
     list-style-type: none !important;
     padding-left: 0 !important;
-    margin: 0.25rem 0 !important;
+    margin: 0.35rem 0 !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 0.2rem !important;
+    gap: 0.25rem !important;
 }
 
 .tiptap li[data-type="taskItem"],
+.ProseMirror li[data-type="taskItem"],
+[data-memo-canvas] li[data-type="taskItem"],
 .memo-rendered-content li[data-type="taskItem"],
 .memo-rendered-content ul.memo-task-list > li,
 .memo-task-list > li,
+.memo-task-item,
 .memo-rendered-content li:has(input[type="checkbox"]),
 .memo-rendered-content ul:has(input[type="checkbox"]) > li {
     list-style: none !important;
     list-style-type: none !important;
     display: flex !important;
     align-items: center !important;
-    gap: 0.5rem !important;
-    margin: 0.1rem 0 !important;
+    gap: 0.55rem !important;
+    margin: 0.15rem 0 !important;
+    min-height: 1.65rem !important;
+    position: relative !important;
 }
 
 .tiptap li[data-type="taskItem"]::marker,
+.ProseMirror li[data-type="taskItem"]::marker,
+[data-memo-canvas] li[data-type="taskItem"]::marker,
 .memo-rendered-content li[data-type="taskItem"]::marker,
 .memo-rendered-content ul.memo-task-list > li::marker,
 .memo-task-list > li::marker,
+.memo-task-item::marker,
 .memo-rendered-content li:has(input[type="checkbox"])::marker,
 .memo-rendered-content ul:has(input[type="checkbox"]) > li::marker {
     display: none !important;
     content: "" !important;
 }
 
+/* Checkbox container / label - strict horizontal centering */
 .tiptap li[data-type="taskItem"] > label,
-.memo-rendered-content li[data-type="taskItem"] > label {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-    cursor: pointer;
-    margin: 0;
-    line-height: 1;
+.ProseMirror li[data-type="taskItem"] > label,
+[data-memo-canvas] li[data-type="taskItem"] > label,
+.memo-rendered-content li[data-type="taskItem"] > label,
+.memo-task-item > label {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    user-select: none !important;
+    cursor: pointer !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    flex-shrink: 0 !important;
+    height: 1.25rem !important;
+    width: 1.25rem !important;
 }
 
+/* Premium Shadcn-style custom checkbox input */
 .tiptap li[data-type="taskItem"] > label input[type="checkbox"],
+.ProseMirror li[data-type="taskItem"] > label input[type="checkbox"],
+[data-memo-canvas] li[data-type="taskItem"] > label input[type="checkbox"],
 .memo-rendered-content li[data-type="taskItem"] > label input[type="checkbox"],
+.memo-task-item > label input[type="checkbox"],
 .memo-rendered-content input[type="checkbox"] {
     appearance: none !important;
     -webkit-appearance: none !important;
     width: 1.05rem !important;
     height: 1.05rem !important;
     min-width: 1.05rem !important;
-    border-radius: 0.25rem !important;
+    min-height: 1.05rem !important;
+    border-radius: 5px !important;
     border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
     background: rgba(255, 255, 255, 0.05) !important;
     cursor: pointer !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    transition: all 0.15s ease !important;
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
     margin: 0 !important;
+    padding: 0 !important;
     position: relative !important;
-    vertical-align: middle !important;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.2) !important;
 }
 
 .memo-rendered-content input[type="checkbox"]:disabled {
@@ -1051,40 +1151,82 @@ body.is-chat-page {
     opacity: 0.95 !important;
 }
 
+.tiptap li[data-type="taskItem"]:hover > label input[type="checkbox"],
 .tiptap li[data-type="taskItem"] > label input[type="checkbox"]:hover,
+.ProseMirror li[data-type="taskItem"] > label input[type="checkbox"]:hover,
+[data-memo-canvas] li[data-type="taskItem"] > label input[type="checkbox"]:hover,
 .memo-rendered-content li[data-type="taskItem"] > label input[type="checkbox"]:hover,
 .memo-rendered-content input[type="checkbox"]:hover {
-    border-color: rgba(96, 165, 250, 0.8) !important;
+    border-color: rgba(96, 165, 250, 0.9) !important;
+    background-color: rgba(59, 130, 246, 0.12) !important;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.35) !important;
 }
 
+.tiptap li[data-type="taskItem"] > label input[type="checkbox"]:focus-visible,
+.ProseMirror li[data-type="taskItem"] > label input[type="checkbox"]:focus-visible,
+[data-memo-canvas] li[data-type="taskItem"] > label input[type="checkbox"]:focus-visible,
+.memo-rendered-content input[type="checkbox"]:focus-visible {
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.6) !important;
+}
+
+/* Checked state - Lumina blue fill + sharp Lucide checkmark icon */
 .tiptap li[data-type="taskItem"] > label input[type="checkbox"]:checked,
+.ProseMirror li[data-type="taskItem"] > label input[type="checkbox"]:checked,
+[data-memo-canvas] li[data-type="taskItem"] > label input[type="checkbox"]:checked,
 .memo-rendered-content li[data-type="taskItem"] > label input[type="checkbox"]:checked,
 .memo-rendered-content input[type="checkbox"]:checked {
-    background-color: rgb(59, 130, 246) !important;
+    background-color: rgb(37, 99, 235) !important;
     border-color: rgb(59, 130, 246) !important;
-    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%23ffffff' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e") !important;
-    background-size: 100% 100% !important;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='3.5 8.5 6.5 11.5 12.5 5'/%3E%3C/svg%3E") !important;
+    background-size: 70% 70% !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.5) !important;
 }
 
+/* Checked task item content - muted text and clean strikethrough */
 .tiptap li[data-type="taskItem"][data-checked="true"] > div,
-.memo-rendered-content li[data-type="taskItem"][data-checked="true"] > div {
-    text-decoration: line-through !important;
-    opacity: 0.5 !important;
-    transition: opacity 0.15s ease !important;
-}
-
+.ProseMirror li[data-type="taskItem"][data-checked="true"] > div,
+[data-memo-canvas] li[data-type="taskItem"][data-checked="true"] > div,
+.memo-rendered-content li[data-type="taskItem"][data-checked="true"] > div,
+.memo-rendered-content li:has(input[type="checkbox"]:checked) > div,
 .memo-rendered-content li:has(input[type="checkbox"]:checked) {
     text-decoration: line-through !important;
-    opacity: 0.6 !important;
+    color: rgba(148, 163, 184, 0.55) !important;
+    transition: all 0.15s ease !important;
 }
 
+/* Task item text block - centered on the exact same horizontal line */
 .tiptap li[data-type="taskItem"] > div,
-.memo-rendered-content li[data-type="taskItem"] > div {
-    flex: 1 1 auto;
-    min-width: 0;
-    line-height: 1.6;
+.ProseMirror li[data-type="taskItem"] > div,
+[data-memo-canvas] li[data-type="taskItem"] > div,
+.memo-rendered-content li[data-type="taskItem"] > div,
+.memo-task-item > div {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.4 !important;
+}
+
+.tiptap li[data-type="taskItem"] > div > p,
+.ProseMirror li[data-type="taskItem"] > div > p,
+[data-memo-canvas] li[data-type="taskItem"] > div > p,
+.memo-rendered-content li[data-type="taskItem"] > div > p,
+.memo-task-item > div > p,
+.tiptap li[data-type="taskItem"] p,
+.ProseMirror li[data-type="taskItem"] p,
+[data-memo-canvas] li[data-type="taskItem"] p {
+    margin: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+    line-height: 1.4 !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
 }
 
 /* Custom scrollbar for slash popup */
