@@ -1,4 +1,5 @@
 import './bootstrap';
+import './memo-editor';
 import Chart from 'chart.js/auto';
 import { inject, track } from '@vercel/analytics';
 

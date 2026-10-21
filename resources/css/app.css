@@ -9,6 +9,11 @@
 @source '../../storage/framework/views/*.php';
 @source '..//*.blade.php';
 @source '..//*.js';
+html, body {
+  background-color: #060913;
+  color-scheme: dark;
+}
+
 :root {
   --background: 224 71% 3.2%;
   --foreground: 213 31% 91%;
@@ -789,4 +794,309 @@ body.is-chat-page {
 
 /* Safe area padding for iOS */
 .safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0.75rem); }
+
+/* ==========================================================================
+   Memo-Mate Canvas Rich Editor & TipTap Styles
+   ========================================================================== */
+.tiptap,
+.memo-rendered-content {
+    outline: none !important;
+    font-family: inherit;
+}
+
+.tiptap p.is-empty::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: rgba(156, 163, 175, 0.45);
+    pointer-events: none;
+    height: 0;
+    font-style: normal;
+}
+
+.tiptap h1,
+.memo-rendered-content h1 {
+    display: block !important;
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    line-height: 1.25 !important;
+    margin-top: 1rem !important;
+    margin-bottom: 0.35rem !important;
+    color: #f8fafc !important;
+    letter-spacing: -0.02em !important;
+}
+
+.tiptap h2,
+.memo-rendered-content h2 {
+    display: block !important;
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+    margin-top: 0.85rem !important;
+    margin-bottom: 0.25rem !important;
+    color: #f1f5f9 !important;
+    letter-spacing: -0.015em !important;
+}
+
+.tiptap h3,
+.memo-rendered-content h3 {
+    display: block !important;
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    line-height: 1.35 !important;
+    margin-top: 0.7rem !important;
+    margin-bottom: 0.2rem !important;
+    color: #e2e8f0 !important;
+}
+
+.tiptap p,
+.memo-rendered-content p {
+    display: block !important;
+    font-size: inherit !important;
+    line-height: 1.6 !important;
+    margin-top: 0.2rem !important;
+    margin-bottom: 0.2rem !important;
+    color: #e2e8f0 !important;
+}
+
+.tiptap strong,
+.memo-rendered-content strong,
+.tiptap b,
+.memo-rendered-content b {
+    font-weight: 700 !important;
+    color: #ffffff !important;
+}
+
+.tiptap em,
+.memo-rendered-content em,
+.tiptap i,
+.memo-rendered-content i {
+    font-style: italic !important;
+}
+
+.tiptap s,
+.memo-rendered-content s,
+.tiptap strike,
+.memo-rendered-content strike {
+    text-decoration: line-through !important;
+    opacity: 0.6 !important;
+}
+
+.tiptap blockquote,
+.memo-rendered-content blockquote {
+    border-left: 3px solid rgba(96, 165, 250, 0.7);
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.35rem 0.65rem 0.35rem 0.85rem;
+    margin: 0.5rem 0;
+    border-radius: 0 0.5rem 0.5rem 0;
+    font-style: italic;
+    color: #d1d5db;
+}
+
+.tiptap pre,
+.memo-rendered-content pre {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    margin: 0.5rem 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.85rem;
+    color: #34d399;
+    overflow-x: auto;
+}
+
+.tiptap code,
+.memo-rendered-content code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 0.1rem 0.3rem;
+    border-radius: 0.3rem;
+    font-size: 0.875em;
+    color: #93c5fd;
+}
+
+.tiptap pre code,
+.memo-rendered-content pre code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    border-radius: 0;
+}
+
+.tiptap mark,
+.memo-rendered-content mark {
+    background-color: rgba(96, 165, 250, 0.2);
+    color: #bfdbfe;
+    padding: 0.05rem 0.25rem;
+    border-radius: 0.25rem;
+    border: 1px solid rgba(96, 165, 250, 0.35);
+}
+
+.tiptap ul:not([data-type="taskList"]),
+.memo-rendered-content ul:not([data-type="taskList"]) {
+    list-style-type: disc;
+    padding-left: 1.25rem;
+    margin: 0.25rem 0;
+    color: #e2e8f0;
+}
+
+.tiptap ol,
+.memo-rendered-content ol {
+    list-style-type: decimal;
+    padding-left: 1.25rem;
+    margin: 0.25rem 0;
+    color: #e2e8f0;
+    font-family: inherit;
+}
+
+.tiptap ol li,
+.memo-rendered-content ol li,
+.tiptap ul li,
+.memo-rendered-content ul li {
+    margin: 0.1rem 0;
+    line-height: 1.6;
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+.tiptap ol li::marker,
+.memo-rendered-content ol li::marker {
+    font-family: inherit;
+    font-size: 0.95em;
+    font-weight: 500;
+    color: #94a3b8;
+}
+
+.tiptap hr,
+.memo-rendered-content hr {
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    margin: 1rem 0;
+}
+
+/* Task lists (Checkboxes) - Compact & Perfectly Aligned */
+.tiptap ul[data-type="taskList"],
+.memo-rendered-content ul[data-type="taskList"],
+.memo-rendered-content ul.memo-task-list,
+.memo-task-list,
+.memo-rendered-content ul:has(input[type="checkbox"]),
+.memo-rendered-content ul:has(li input[type="checkbox"]) {
+    list-style: none !important;
+    list-style-type: none !important;
+    padding-left: 0 !important;
+    margin: 0.25rem 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.2rem !important;
+}
+
+.tiptap li[data-type="taskItem"],
+.memo-rendered-content li[data-type="taskItem"],
+.memo-rendered-content ul.memo-task-list > li,
+.memo-task-list > li,
+.memo-rendered-content li:has(input[type="checkbox"]),
+.memo-rendered-content ul:has(input[type="checkbox"]) > li {
+    list-style: none !important;
+    list-style-type: none !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    margin: 0.1rem 0 !important;
+}
+
+.tiptap li[data-type="taskItem"]::marker,
+.memo-rendered-content li[data-type="taskItem"]::marker,
+.memo-rendered-content ul.memo-task-list > li::marker,
+.memo-task-list > li::marker,
+.memo-rendered-content li:has(input[type="checkbox"])::marker,
+.memo-rendered-content ul:has(input[type="checkbox"]) > li::marker {
+    display: none !important;
+    content: "" !important;
+}
+
+.tiptap li[data-type="taskItem"] > label,
+.memo-rendered-content li[data-type="taskItem"] > label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    cursor: pointer;
+    margin: 0;
+    line-height: 1;
+}
+
+.tiptap li[data-type="taskItem"] > label input[type="checkbox"],
+.memo-rendered-content li[data-type="taskItem"] > label input[type="checkbox"],
+.memo-rendered-content input[type="checkbox"] {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    width: 1.05rem !important;
+    height: 1.05rem !important;
+    min-width: 1.05rem !important;
+    border-radius: 0.25rem !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.15s ease !important;
+    margin: 0 !important;
+    position: relative !important;
+    vertical-align: middle !important;
+}
+
+.memo-rendered-content input[type="checkbox"]:disabled {
+    cursor: default !important;
+    opacity: 0.95 !important;
+}
+
+.tiptap li[data-type="taskItem"] > label input[type="checkbox"]:hover,
+.memo-rendered-content li[data-type="taskItem"] > label input[type="checkbox"]:hover,
+.memo-rendered-content input[type="checkbox"]:hover {
+    border-color: rgba(96, 165, 250, 0.8) !important;
+}
+
+.tiptap li[data-type="taskItem"] > label input[type="checkbox"]:checked,
+.memo-rendered-content li[data-type="taskItem"] > label input[type="checkbox"]:checked,
+.memo-rendered-content input[type="checkbox"]:checked {
+    background-color: rgb(59, 130, 246) !important;
+    border-color: rgb(59, 130, 246) !important;
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%23ffffff' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e") !important;
+    background-size: 100% 100% !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+.tiptap li[data-type="taskItem"][data-checked="true"] > div,
+.memo-rendered-content li[data-type="taskItem"][data-checked="true"] > div {
+    text-decoration: line-through !important;
+    opacity: 0.5 !important;
+    transition: opacity 0.15s ease !important;
+}
+
+.memo-rendered-content li:has(input[type="checkbox"]:checked) {
+    text-decoration: line-through !important;
+    opacity: 0.6 !important;
+}
+
+.tiptap li[data-type="taskItem"] > div,
+.memo-rendered-content li[data-type="taskItem"] > div {
+    flex: 1 1 auto;
+    min-width: 0;
+    line-height: 1.6;
+}
+
+/* Custom scrollbar for slash popup */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 9999px;
+}
+
 
