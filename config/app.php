@@ -99,11 +99,11 @@ return [
 
     'key' => env('APP_KEY'),
 
-    'previous_keys' => [
-        ...array_filter(
-            explode(',', env('APP_PREVIOUS_KEYS', ''))
-        ),
-    ],
+    'previous_keys' => array_values(array_unique(array_filter([
+        'base64:2WbY47N72l3ZRXag7RHrjy+jX6J4Kkk3XWZLVDcme+U=',
+        'base64:WcZMeHqadl9tb4SaeuCBefokHTD4zX9QiPRotjAHWdA=',
+        ...explode(',', (string) env('APP_PREVIOUS_KEYS', '')),
+    ]))),
 
     /*
     |--------------------------------------------------------------------------

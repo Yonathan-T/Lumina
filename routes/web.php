@@ -292,3 +292,79 @@ Route::get('/system/restore-clean-entries', function (\Illuminate\Http\Request $
         "</div>"
     );
 });
+
+// Diagnostic & Auto-heal endpoint
+Route::get('/system/inspect-and-heal-entries', function (\Illuminate\Http\Request $request) {
+    $token = $request->query('token') ?? $request->query('secret');
+    if ($token !== 'lumina-option-b-migrate-2026') {
+        abort(403, 'Unauthorized');
+    }
+
+    $results = [];
+    $healedCount = 0;
+    $entries = \App\Models\Entry::all();
+
+    foreach ($entries as $e) {
+        $rawTitle = $e->getRawOriginal('title');
+        $rawContent = $e->getRawOriginal('content');
+        $user = $e->user;
+        $userEnc = $user?->getEncrypter();
+
+        $entryStatus = [
+            'id' => $e->id,
+            'user_id' => $e->user_id,
+            'user_email' => $user?->email,
+            'created_at' => (string) $e->created_at,
+            'title_status' => 'unknown',
+            'resolved_title' => null,
+        ];
+
+        $titleDecrypted = null;
+        if ($userEnc) {
+            try {
+                $candidate = $userEnc->decryptString($rawTitle);
+                if (!str_contains($candidate, 'Key Updated')) {
+                    $titleDecrypted = $candidate;
+                    $entryStatus['title_status'] = 'healthy_user_dek';
+                }
+            } catch (\Throwable $ex) {}
+        }
+
+        if (!$titleDecrypted) {
+            try {
+                $candidate = \Illuminate\Support\Facades\Crypt::decryptString($rawTitle);
+                if (!str_contains($candidate, 'Key Updated')) {
+                    $titleDecrypted = $candidate;
+                    $entryStatus['title_status'] = 'healed_from_previous_key';
+
+                    $contentDecrypted = null;
+                    try {
+                        $contentCandidate = \Illuminate\Support\Facades\Crypt::decryptString($rawContent);
+                        if (!str_contains($contentCandidate, 'previous key')) {
+                            $contentDecrypted = $contentCandidate;
+                        }
+                    } catch (\Throwable $ex) {}
+
+                    if ($userEnc && $titleDecrypted) {
+                        \Illuminate\Support\Facades\DB::table('entries')->where('id', $e->id)->update([
+                            'title' => $userEnc->encryptString((string) $titleDecrypted),
+                            'content' => $contentDecrypted ? $userEnc->encryptString((string) $contentDecrypted) : $rawContent,
+                        ]);
+                        $healedCount++;
+                    }
+                }
+            } catch (\Throwable $ex) {
+                $entryStatus['title_status'] = 'raw_ciphertext_failed_decryption';
+            }
+        }
+
+        $entryStatus['resolved_title'] = $titleDecrypted ?? $e->title;
+        $results[] = $entryStatus;
+    }
+
+    return response()->json([
+        'total_entries' => count($entries),
+        'healed_now' => $healedCount,
+        'entries' => $results,
+    ]);
+});
