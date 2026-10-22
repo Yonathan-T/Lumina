@@ -1,5 +1,4 @@
-<x-layout :showNav="false" :showSidebar="true">
-    <section class="p-4 sm:p-6" id="mainContent">
+<section class="p-4 sm:p-6" id="mainContent">
         <div class="mb-6">
             <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Settings</h1>
             <p class="text-sm sm:text-base text-muted">Manage your account settings and preferences.</p>
@@ -56,4 +55,3 @@
             </div>
         </div>
     </section>
-</x-layout>
