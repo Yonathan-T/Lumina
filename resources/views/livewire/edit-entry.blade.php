@@ -381,6 +381,17 @@
                         </span>
 
                         <div class="text-muted text-sm ml-4 whitespace-nowrap mt-1 flex gap-2">
+                            {{-- Quick Edit Button --}}
+                            <button wire:click="startEditing" wire:loading.attr="disabled"
+                                class="cursor-pointer group relative p-2 rounded-lg border border-white/10 hover:border-blue-400/50 hover:bg-blue-400/10 transition-all duration-200 disabled:opacity-50">
+                                <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                                <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                    Edit Entry
+                                </span>
+                            </button>
+
                             {{-- Audio Player Button --}}
                             <button wire:click="generateAudio" wire:loading.attr="disabled"
                                 class="cursor-pointer group relative p-2 rounded-lg border border-white/10 hover:border-purple-500/50 hover:bg-purple-500/10 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
@@ -434,8 +445,34 @@
                         </div>
                     </div>
 
-                    <div class="ml-5 text-md leading-relaxed flex-1 memo-rendered-content">
-                        {!! preg_replace('/<ul>(\s*<li[^>]*><input[^>]*type="checkbox")/i', '<ul class="memo-task-list">$1', \Illuminate\Support\Str::markdown($entry->content)) !!}
+                    <div 
+                        class="ml-5 text-md leading-relaxed flex-1 memo-rendered-content"
+                        x-data="{
+                            handleTaskClick(e) {
+                                const cb = e.target.closest('input[type=checkbox]');
+                                if (!cb) return;
+                                const idx = parseInt(cb.getAttribute('data-task-index'), 10);
+                                if (isNaN(idx)) return;
+                                const isChecked = cb.checked;
+                                
+                                const li = cb.closest('li');
+                                if (li) {
+                                    if (isChecked) {
+                                        li.setAttribute('data-checked', 'true');
+                                        li.classList.add('task-item-checked');
+                                    } else {
+                                        li.removeAttribute('data-checked');
+                                        li.classList.remove('task-item-checked');
+                                    }
+                                }
+                                $wire.toggleTaskItem(idx, isChecked);
+                            }
+                        }"
+                        @change="handleTaskClick($event)"
+                        @dblclick="if (!$event.target.closest('input, button, a')) { $wire.startEditing(); }"
+                        title="Double-click anywhere to edit"
+                    >
+                        {!! $this->renderedContent !!}
                     </div>
 
                     {{-- Audio Player --}}

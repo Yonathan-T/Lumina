@@ -318,6 +318,43 @@ class EditEntry extends Component
         ];
     }
 
+    public function toggleTaskItem(int $taskIndex, bool $isChecked)
+    {
+        $normalized = preg_replace('/^(\s*)\[([ xX])\]\s+/m', '$1- [$2] ', $this->content);
+        $count = 0;
+        $pattern = '/^(\s*(-|\*|\+)?\s*\[)([ xX])(\]\s+.*)$/m';
+        $newContent = preg_replace_callback($pattern, function ($m) use (&$count, $taskIndex, $isChecked) {
+            if ($count === $taskIndex) {
+                $count++;
+                return $m[1] . ($isChecked ? 'x' : ' ') . $m[4];
+            }
+            $count++;
+            return $m[0];
+        }, $normalized);
+
+        if ($newContent !== null && $newContent !== $this->content) {
+            $this->content = $newContent;
+            $this->entry->update(['content' => $newContent]);
+            app(EntrySearchService::class)->updateEntryIndex($this->entry);
+        }
+    }
+
+    public function getRenderedContentProperty()
+    {
+        $normalized = preg_replace('/^(\s*)\[([ xX])\]\s+/m', '$1- [$2] ', $this->content);
+        $html = Str::markdown($normalized);
+
+        $taskIndex = 0;
+        $rendered = preg_replace_callback('/<input\s+([^>]*?)type=["\']checkbox["\']([^>]*?)(\/?)>/i', function ($matches) use (&$taskIndex) {
+            $attrs = $matches[1] . ' ' . $matches[2];
+            $attrs = preg_replace('/\bdisabled(=["\']?[^"\'>\s]*["\']?)?/i', '', $attrs);
+            $idx = $taskIndex++;
+            return '<input type="checkbox" data-task-index="' . $idx . '" class="cursor-pointer" ' . trim($attrs) . ' />';
+        }, $html);
+
+        return preg_replace('/<ul>(\s*<li[^>]*><input[^>]*type="checkbox")/i', '<ul class="memo-task-list">$1', $rendered);
+    }
+
     public function render()
     {
         $this->entry->loadMissing('tags:id,name');
