@@ -174,11 +174,20 @@ Route::middleware('auth')->group(function () {
 
 // One-Time Envelope Encryption Migration Route (Option B)
 Route::get('/system/migrate-option-b', function (\Illuminate\Http\Request $request) {
-    $secret = (string) $request->query('secret');
-    $expected = (string) config('app.key');
-    $isValid = ($secret === 'lumina-option-b-2026') || (!empty($expected) && hash_equals($expected, $secret));
-    if (!$isValid) {
-        abort(403, 'Unauthorized migration request');
+    $token = $request->query('token') ?? $request->query('secret');
+    $validPassphrase = 'lumina-option-b-migrate-2026';
+
+    $isAuthorized = false;
+    if (!empty($token)) {
+        if (hash_equals($validPassphrase, $token)) {
+            $isAuthorized = true;
+        } elseif (!empty(config('app.key')) && hash_equals(config('app.key'), $token)) {
+            $isAuthorized = true;
+        }
+    }
+
+    if (!$isAuthorized) {
+        abort(403, 'Unauthorized migration request. Please use: ?token=lumina-option-b-migrate-2026');
     }
 
     try {
