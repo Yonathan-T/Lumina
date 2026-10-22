@@ -293,21 +293,84 @@ Route::get('/system/restore-clean-entries', function (\Illuminate\Http\Request $
     );
 });
 
-// Diagnostic & Auto-heal endpoint
+// Diagnostic & Auto-heal endpoint for all entities (Entries, Conversations, Messages)
 Route::get('/system/inspect-and-heal-entries', function (\Illuminate\Http\Request $request) {
     $token = $request->query('token') ?? $request->query('secret');
     if ($token !== 'lumina-option-b-migrate-2026') {
         abort(403, 'Unauthorized');
     }
 
-    $results = [];
-    $healedCount = 0;
+    $keys = array_values(array_unique(array_filter([
+        config('app.key'),
+        'base64:0uHCR8r5ymbQ+jphDGP879HWojhn75UHBYQSuMdd9pE=',
+        'base64:2WbY47N72l3ZRXag7RHrjy+jX6J4Kkk3XWZLVDcme+U=',
+        'base64:WcZMeHqadl9tb4SaeuCBefokHTD4zX9QiPRotjAHWdA=',
+        ...config('app.previous_keys', []),
+    ])));
+
+    $encrypters = [];
+    foreach ($keys as $k) {
+        try {
+            $raw = base64_decode(str_starts_with($k, 'base64:') ? substr($k, 7) : $k);
+            if (strlen($raw) === 32) {
+                $encrypters[] = new \Illuminate\Encryption\Encrypter($raw, 'AES-256-CBC');
+            }
+        } catch (\Throwable $e) {}
+    }
+
+    $tryDecrypt = function ($value, $userEnc) use ($encrypters) {
+        if (empty($value) || !is_string($value)) return $value;
+
+        // Try user DEK first
+        if ($userEnc) {
+            try {
+                $d = $userEnc->decryptString($value);
+                if (!str_contains($d, 'Key Updated') && !str_contains($d, 'previous key') && !str_contains($d, 'Archived')) {
+                    return $d;
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        // Try candidate master encrypters
+        foreach ($encrypters as $enc) {
+            try {
+                $d = $enc->decryptString($value);
+                if (!str_contains($d, 'Key Updated') && !str_contains($d, 'previous key') && !str_contains($d, 'Archived')) {
+                    return $d;
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        return null;
+    };
+
+    // Load clean snapshot if available
+    $cleanPath = database_path('data/all_users_clean_data.json');
+    $cleanData = file_exists($cleanPath) ? json_decode(file_get_contents($cleanPath), true) : null;
+    $cleanEntriesById = [];
+    $cleanConvsById = [];
+    $cleanMsgsById = [];
+    if ($cleanData) {
+        foreach ($cleanData['entries'] ?? [] as $ce) {
+            $cleanEntriesById[$ce['id']] = $ce;
+        }
+        foreach ($cleanData['conversations'] ?? [] as $cc) {
+            $cleanConvsById[$cc['id']] = $cc;
+        }
+        foreach ($cleanData['messages'] ?? [] as $cm) {
+            $cleanMsgsById[$cm['id']] = $cm;
+        }
+    }
+
+    // 1. Process Entries
+    $entryResults = [];
+    $healedEntries = 0;
     $entries = \App\Models\Entry::all();
 
     foreach ($entries as $e) {
         $rawTitle = $e->getRawOriginal('title');
         $rawContent = $e->getRawOriginal('content');
-        $user = $e->user;
+        $user = $e->user ?: \App\Models\User::find($e->user_id);
         $userEnc = $user?->getEncrypter();
 
         $entryStatus = [
@@ -315,56 +378,133 @@ Route::get('/system/inspect-and-heal-entries', function (\Illuminate\Http\Reques
             'user_id' => $e->user_id,
             'user_email' => $user?->email,
             'created_at' => (string) $e->created_at,
-            'title_status' => 'unknown',
+            'status' => 'unknown',
             'resolved_title' => null,
         ];
 
-        $titleDecrypted = null;
-        if ($userEnc) {
+        $decryptedTitle = $tryDecrypt($rawTitle, $userEnc);
+        $decryptedContent = $tryDecrypt($rawContent, $userEnc);
+
+        // Fallback to clean snapshot if needed
+        if (!$decryptedTitle && isset($cleanEntriesById[$e->id])) {
+            $decryptedTitle = $cleanEntriesById[$e->id]['title'];
+        }
+        if (!$decryptedContent && isset($cleanEntriesById[$e->id])) {
+            $decryptedContent = $cleanEntriesById[$e->id]['content'];
+        }
+
+        if ($decryptedTitle) {
+            $alreadyHealthy = false;
+            if ($userEnc) {
+                try {
+                    if ($userEnc->decryptString($rawTitle) === $decryptedTitle) {
+                        $alreadyHealthy = true;
+                    }
+                } catch (\Throwable $ex) {}
+            }
+
+            if ($alreadyHealthy) {
+                $entryStatus['status'] = 'healthy_user_dek';
+            } else {
+                if ($userEnc) {
+                    \Illuminate\Support\Facades\DB::table('entries')->where('id', $e->id)->update([
+                        'title' => $userEnc->encryptString((string) $decryptedTitle),
+                        'content' => $decryptedContent ? $userEnc->encryptString((string) $decryptedContent) : $rawContent,
+                    ]);
+                    $healedEntries++;
+                    $entryStatus['status'] = 'healed_to_user_dek';
+                }
+            }
+            $entryStatus['resolved_title'] = $decryptedTitle;
+        } else {
+            $entryStatus['status'] = 'raw_ciphertext_failed_decryption';
+            $entryStatus['resolved_title'] = $e->title;
+        }
+
+        $entryResults[] = $entryStatus;
+    }
+
+    // 2. Process Conversations
+    $healedConvs = 0;
+    $healthyConvs = 0;
+    foreach (\App\Models\Conversation::all() as $conv) {
+        $user = $conv->user ?: \App\Models\User::find($conv->user_id);
+        if (!$user) continue;
+        $userEnc = $user->getEncrypter();
+        $rawTitle = $conv->getRawOriginal('title');
+
+        $decryptedTitle = $tryDecrypt($rawTitle, $userEnc);
+        if (!$decryptedTitle && isset($cleanConvsById[$conv->id])) {
+            $decryptedTitle = $cleanConvsById[$conv->id]['title'];
+        }
+
+        if ($decryptedTitle) {
+            $alreadyHealthy = false;
             try {
-                $candidate = $userEnc->decryptString($rawTitle);
-                if (!str_contains($candidate, 'Key Updated')) {
-                    $titleDecrypted = $candidate;
-                    $entryStatus['title_status'] = 'healthy_user_dek';
+                if ($userEnc->decryptString($rawTitle) === $decryptedTitle) {
+                    $alreadyHealthy = true;
                 }
             } catch (\Throwable $ex) {}
-        }
 
-        if (!$titleDecrypted) {
-            try {
-                $candidate = \Illuminate\Support\Facades\Crypt::decryptString($rawTitle);
-                if (!str_contains($candidate, 'Key Updated')) {
-                    $titleDecrypted = $candidate;
-                    $entryStatus['title_status'] = 'healed_from_previous_key';
-
-                    $contentDecrypted = null;
-                    try {
-                        $contentCandidate = \Illuminate\Support\Facades\Crypt::decryptString($rawContent);
-                        if (!str_contains($contentCandidate, 'previous key')) {
-                            $contentDecrypted = $contentCandidate;
-                        }
-                    } catch (\Throwable $ex) {}
-
-                    if ($userEnc && $titleDecrypted) {
-                        \Illuminate\Support\Facades\DB::table('entries')->where('id', $e->id)->update([
-                            'title' => $userEnc->encryptString((string) $titleDecrypted),
-                            'content' => $contentDecrypted ? $userEnc->encryptString((string) $contentDecrypted) : $rawContent,
-                        ]);
-                        $healedCount++;
-                    }
-                }
-            } catch (\Throwable $ex) {
-                $entryStatus['title_status'] = 'raw_ciphertext_failed_decryption';
+            if ($alreadyHealthy) {
+                $healthyConvs++;
+            } else {
+                \Illuminate\Support\Facades\DB::table('conversations')->where('id', $conv->id)->update([
+                    'title' => $userEnc->encryptString((string) $decryptedTitle),
+                ]);
+                $healedConvs++;
             }
         }
+    }
 
-        $entryStatus['resolved_title'] = $titleDecrypted ?? $e->title;
-        $results[] = $entryStatus;
+    // 3. Process Messages
+    $healedMsgs = 0;
+    $healthyMsgs = 0;
+    foreach (\App\Models\Message::all() as $msg) {
+        $conv = \App\Models\Conversation::find($msg->conversation_id);
+        $user = $conv?->user ?: ($conv?->user_id ? \App\Models\User::find($conv->user_id) : null);
+        if (!$user) continue;
+        $userEnc = $user->getEncrypter();
+        $rawContent = $msg->getRawOriginal('content');
+
+        $decryptedContent = $tryDecrypt($rawContent, $userEnc);
+        if (!$decryptedContent && isset($cleanMsgsById[$msg->id])) {
+            $decryptedContent = $cleanMsgsById[$msg->id]['content'];
+        }
+
+        if ($decryptedContent) {
+            $alreadyHealthy = false;
+            try {
+                if ($userEnc->decryptString($rawContent) === $decryptedContent) {
+                    $alreadyHealthy = true;
+                }
+            } catch (\Throwable $ex) {}
+
+            if ($alreadyHealthy) {
+                $healthyMsgs++;
+            } else {
+                \Illuminate\Support\Facades\DB::table('messages')->where('id', $msg->id)->update([
+                    'content' => $userEnc->encryptString((string) $decryptedContent),
+                ]);
+                $healedMsgs++;
+            }
+        }
     }
 
     return response()->json([
-        'total_entries' => count($entries),
-        'healed_now' => $healedCount,
-        'entries' => $results,
+        'entries_summary' => [
+            'total' => count($entries),
+            'healed_now' => $healedEntries,
+            'healthy_total' => count(array_filter($entryResults, fn($r) => $r['status'] === 'healthy_user_dek' || $r['status'] === 'healed_to_user_dek')),
+        ],
+        'conversations_summary' => [
+            'healed_now' => $healedConvs,
+            'healthy_total' => $healthyConvs + $healedConvs,
+        ],
+        'messages_summary' => [
+            'healed_now' => $healedMsgs,
+            'healthy_total' => $healthyMsgs + $healedMsgs,
+        ],
+        'entries' => $entryResults,
     ]);
 });

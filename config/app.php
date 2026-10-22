@@ -100,6 +100,7 @@ return [
     'key' => env('APP_KEY'),
 
     'previous_keys' => array_values(array_unique(array_filter([
+        'base64:0uHCR8r5ymbQ+jphDGP879HWojhn75UHBYQSuMdd9pE=',
         'base64:2WbY47N72l3ZRXag7RHrjy+jX6J4Kkk3XWZLVDcme+U=',
         'base64:WcZMeHqadl9tb4SaeuCBefokHTD4zX9QiPRotjAHWdA=',
         ...explode(',', (string) env('APP_PREVIOUS_KEYS', '')),
