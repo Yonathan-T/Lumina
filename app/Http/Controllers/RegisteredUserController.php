@@ -57,10 +57,11 @@ class RegisteredUserController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => $message,
+                'redirect' => route('verification.notice'),
             ]);
         }
 
-        return back()->with('status', $message);
+        return redirect()->route('verification.notice')->with('status', $message);
 
     }
 }
