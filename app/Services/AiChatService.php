@@ -45,7 +45,7 @@ class AiChatService
         $this->userDataService = new UserDataService();
     }
 
-    public function generateResponse(string $message, int $conversationId = null): string
+    public function generateResponse(string $message, ?int $conversationId = null): string
     {
         try {
             $conversationHistory = $this->getConversationHistory($conversationId);
@@ -79,13 +79,16 @@ class AiChatService
             return 'Sorry, I encountered an error while processing your request.';
         }
     }
-    public function streamResponse(string $message, int $conversationId = null, callable $onChunk = null): string
+    public function streamResponse(string $message, ?int $conversationId = null, ?callable $onChunk = null): string
     {
         $onChunk = $onChunk ?? static function (): void {};
 
         try {
             if ($this->provider === 'gemini' && $this->geminiApiKey) {
-                return $this->streamGeminiResponse($message, $conversationId, $onChunk);
+                $streamed = $this->streamGeminiResponse($message, $conversationId, $onChunk);
+                if (!empty(trim($streamed))) {
+                    return $streamed;
+                }
             }
 
             $response = $this->generateResponse($message, $conversationId);
@@ -102,7 +105,7 @@ class AiChatService
         }
     }
 
-    protected function streamGeminiResponse(string $message, int $conversationId = null, callable $onChunk = null): string
+    protected function streamGeminiResponse(string $message, ?int $conversationId = null, ?callable $onChunk = null): string
     {
         set_time_limit(180);
 
@@ -189,10 +192,7 @@ class AiChatService
         }
 
         if ($fullResponse === '') {
-            $errorMessage = 'Sorry, I could not generate a response. Please try again.';
-            $this->streamTextResponse($errorMessage, $onChunk);
-
-            return $errorMessage;
+            return '';
         }
 
         return $fullResponse;
@@ -257,10 +257,6 @@ class AiChatService
 
         if ($currentResponse !== '' && str_starts_with($text, $currentResponse)) {
             return substr($text, strlen($currentResponse));
-        }
-
-        if ($currentResponse !== '' && str_contains($currentResponse, $text)) {
-            return '';
         }
 
         return $text;
@@ -619,7 +615,7 @@ You are Lumi, an empathetic and intelligent journaling assistant designed to sup
         return $messages;
     }
 
-    protected function getConversationHistory(int $conversationId = null): array
+    protected function getConversationHistory(?int $conversationId = null): array
     {
         if (!$conversationId) {
             return [];

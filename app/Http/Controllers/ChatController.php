@@ -124,7 +124,7 @@ class ChatController extends Controller
 
                 echo "event: error\n";
                 echo 'data: '.json_encode([
-                    'message' => 'Sorry, I encountered an error. Please try again.',
+                    'message' => 'Lumi error: ' . $e->getMessage(),
                 ], JSON_UNESCAPED_UNICODE)."\n\n";
             } finally {
                 if (function_exists('ob_flush')) {
