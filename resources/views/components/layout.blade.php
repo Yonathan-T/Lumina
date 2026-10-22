@@ -77,6 +77,7 @@
             let ytVideoId = null;
             let ytVideoTitle = '';
             let ytSavedUrl = '';
+            let ytWatchdogTimer = null;
             try {
                 ytSavedUrl = localStorage.getItem('sanctuary_youtube_url') || dbUrl || '';
                 ytVideoTitle = localStorage.getItem('sanctuary_youtube_title') || dbTitle || '';
@@ -88,6 +89,62 @@
                     localStorage.setItem('sanctuary_youtube_title', ytVideoTitle);
                 }
             } catch (e) { }
+
+            function fetchYouTubeTitle(videoId) {
+                if (!videoId) return;
+                fetch('https://noembed.com/embed?url=https://www.youtube.com/watch?v=' + encodeURIComponent(videoId))
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        if (data && data.title && (!ytVideoTitle || ytVideoTitle === 'YouTube Stream' || ytVideoTitle === 'YouTube Audio')) {
+                            ytVideoTitle = data.title;
+                            try {
+                                localStorage.setItem('sanctuary_youtube_title', ytVideoTitle);
+                            } catch (e) {}
+                            syncPreferenceToDb(ytSavedUrl, ytVideoTitle, audioMode);
+                            notifyState();
+                        }
+                    })
+                    .catch(function () {
+                        fetch('https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=' + encodeURIComponent(videoId) + '&format=json')
+                            .then(function (res) { return res.json(); })
+                            .then(function (data) {
+                                if (data && data.html) {
+                                    const m = data.html.match(/title="([^"]+)"/);
+                                    if (m && m[1] && (!ytVideoTitle || ytVideoTitle === 'YouTube Stream' || ytVideoTitle === 'YouTube Audio')) {
+                                        ytVideoTitle = m[1];
+                                        try {
+                                            localStorage.setItem('sanctuary_youtube_title', ytVideoTitle);
+                                        } catch (e) {}
+                                        syncPreferenceToDb(ytSavedUrl, ytVideoTitle, audioMode);
+                                        notifyState();
+                                    }
+                                }
+                            })
+                            .catch(function () {});
+                    });
+            }
+
+            if (ytVideoId && (!ytVideoTitle || ytVideoTitle === 'YouTube Stream' || ytVideoTitle === 'YouTube Audio')) {
+                fetchYouTubeTitle(ytVideoId);
+            }
+
+            function startYouTubeWatchdog() {
+                clearTimeout(ytWatchdogTimer);
+                ytWatchdogTimer = setTimeout(function () {
+                    if (audioMode === 'youtube' && isPlaying && !ytIsPlaying) {
+                        if (ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
+                            const state = ytPlayer.getPlayerState();
+                            if (state !== 1) {
+                                try { ytPlayer.playVideo(); } catch(e){}
+                            }
+                        }
+                        if (isConnecting) {
+                            isConnecting = false;
+                            notifyState();
+                        }
+                    }
+                }, 5000);
+            }
 
             function syncPreferenceToDb(url, title, mode) {
                 try {
@@ -185,24 +242,36 @@
                             }
                         },
                         onStateChange: function (event) {
+                            try {
+                                if (ytPlayer && typeof ytPlayer.getVideoData === 'function') {
+                                    const data = ytPlayer.getVideoData();
+                                    if (data && data.title && data.title !== 'YouTube Stream' && data.title !== 'YouTube Audio') {
+                                        ytVideoTitle = data.title;
+                                        localStorage.setItem('sanctuary_youtube_title', ytVideoTitle);
+                                    }
+                                }
+                            } catch (e) { }
+
                             if (event.data === 1) { // PLAYING
+                                clearTimeout(ytWatchdogTimer);
                                 ytIsPlaying = true;
                                 isConnecting = false;
                                 isBuffering = false;
                                 if (audioMode === 'youtube') {
                                     isPlaying = true;
-                                    try {
-                                        const data = ytPlayer.getVideoData();
-                                        if (data && data.title) {
-                                            ytVideoTitle = data.title;
-                                            localStorage.setItem('sanctuary_youtube_title', ytVideoTitle);
-                                        }
-                                    } catch (e) { }
                                     notifyState();
                                 }
                             } else if (event.data === 3) { // BUFFERING
+                                isConnecting = false;
                                 isBuffering = true;
-                                notifyState();
+                                if (audioMode === 'youtube') {
+                                    isPlaying = true;
+                                    notifyState();
+                                }
+                            } else if (event.data === 5 || event.data === -1) { // CUED or UNSTARTED
+                                if (isPlaying && audioMode === 'youtube') {
+                                    try { ytPlayer.playVideo(); } catch(e){}
+                                }
                             } else if (event.data === 2) { // PAUSED
                                 ytIsPlaying = false;
                                 isConnecting = false;
@@ -467,6 +536,7 @@
                         isConnecting = true;
                     }
                     isPlaying = true;
+                    startYouTubeWatchdog();
                     notifyState();
                     if (ytPlayer && ytIsReady) {
                         try { ytPlayer.playVideo(); } catch(e){}
@@ -500,6 +570,7 @@
             }
 
             function pause() {
+                clearTimeout(ytWatchdogTimer);
                 isPlaying = false;
                 isConnecting = false;
                 isBuffering = false;
@@ -550,6 +621,7 @@
                 } catch (e) { }
 
                 syncPreferenceToDb(url, ytVideoTitle, 'youtube');
+                fetchYouTubeTitle(id);
 
                 audioMode = 'youtube';
                 pauseCurated();
@@ -557,6 +629,9 @@
 
                 isConnecting = autoPlay;
                 isBuffering = false;
+                if (autoPlay) {
+                    startYouTubeWatchdog();
+                }
 
                 if (ytPlayer && ytIsReady) {
                     try {
@@ -588,6 +663,7 @@
             }
 
             function clearYouTube() {
+                clearTimeout(ytWatchdogTimer);
                 if (ytPlayer) {
                     try { ytPlayer.pauseVideo(); } catch(e){}
                 }
@@ -1126,7 +1202,7 @@
     })();
 </script>
     <!-- Persistent YouTube Audio Player Container (Remains inside viewport for YouTube viewability policies) -->
-    <div id="sanctuary-yt-player-container" wire:ignore style="position:fixed;bottom:0;right:0;width:200px;height:120px;opacity:0.001;pointer-events:none;z-index:-1;" aria-hidden="true">
+    <div id="sanctuary-yt-player-container" wire:ignore style="position:fixed;bottom:0;right:0;width:200px;height:120px;opacity:0.015;pointer-events:none;z-index:0;overflow:hidden;" aria-hidden="true">
         <div id="sanctuary-yt-player"></div>
     </div>
 </body>
