@@ -128,6 +128,19 @@
                 fetchYouTubeTitle(ytVideoId);
             }
 
+            function ensureYouTubeUnmuted(target) {
+                const player = target || ytPlayer;
+                if (!player) return;
+                try {
+                    if (typeof player.unMute === 'function') {
+                        player.unMute();
+                    }
+                    if (typeof player.setVolume === 'function') {
+                        player.setVolume(100);
+                    }
+                } catch (e) { }
+            }
+
             function startYouTubeWatchdog() {
                 clearTimeout(ytWatchdogTimer);
                 ytWatchdogTimer = setTimeout(function () {
@@ -135,7 +148,10 @@
                         if (ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
                             const state = ytPlayer.getPlayerState();
                             if (state !== 1) {
-                                try { ytPlayer.playVideo(); } catch(e){}
+                                try {
+                                    ensureYouTubeUnmuted(ytPlayer);
+                                    ytPlayer.playVideo();
+                                } catch(e){}
                             }
                         }
                         if (isConnecting) {
@@ -225,11 +241,14 @@
                     events: {
                         onReady: function (event) {
                             ytIsReady = true;
+                            ensureYouTubeUnmuted(event.target);
                             if (ytPendingVideoId) {
                                 if (ytPendingAutoPlay) {
                                     try {
                                         event.target.loadVideoById(ytPendingVideoId);
+                                        ensureYouTubeUnmuted(event.target);
                                         event.target.playVideo();
+                                        setTimeout(function () { ensureYouTubeUnmuted(event.target); }, 200);
                                     } catch(e){}
                                 } else {
                                     try {
@@ -238,7 +257,11 @@
                                 }
                                 ytPendingVideoId = null;
                             } else if (ytPendingAutoPlay) {
-                                try { event.target.playVideo(); } catch(e){}
+                                try {
+                                    ensureYouTubeUnmuted(event.target);
+                                    event.target.playVideo();
+                                    setTimeout(function () { ensureYouTubeUnmuted(event.target); }, 200);
+                                } catch(e){}
                             }
                         },
                         onStateChange: function (event) {
@@ -254,6 +277,9 @@
 
                             if (event.data === 1) { // PLAYING
                                 clearTimeout(ytWatchdogTimer);
+                                ensureYouTubeUnmuted(event.target);
+                                setTimeout(function () { ensureYouTubeUnmuted(event.target); }, 200);
+                                setTimeout(function () { ensureYouTubeUnmuted(event.target); }, 800);
                                 ytIsPlaying = true;
                                 isConnecting = false;
                                 isBuffering = false;
@@ -270,7 +296,10 @@
                                 }
                             } else if (event.data === 5 || event.data === -1) { // CUED or UNSTARTED
                                 if (isPlaying && audioMode === 'youtube') {
-                                    try { ytPlayer.playVideo(); } catch(e){}
+                                    try {
+                                        ensureYouTubeUnmuted(ytPlayer);
+                                        ytPlayer.playVideo();
+                                    } catch(e){}
                                 }
                             } else if (event.data === 2) { // PAUSED
                                 ytIsPlaying = false;
@@ -539,7 +568,12 @@
                     startYouTubeWatchdog();
                     notifyState();
                     if (ytPlayer && ytIsReady) {
-                        try { ytPlayer.playVideo(); } catch(e){}
+                        try {
+                            ensureYouTubeUnmuted(ytPlayer);
+                            ytPlayer.playVideo();
+                            setTimeout(function () { ensureYouTubeUnmuted(ytPlayer); }, 200);
+                            setTimeout(function () { ensureYouTubeUnmuted(ytPlayer); }, 800);
+                        } catch(e){}
                     } else if (ytVideoId) {
                         loadYouTube(ytSavedUrl || ytVideoId, true);
                     }
@@ -638,13 +672,19 @@
                         const currentData = ytPlayer.getVideoData ? ytPlayer.getVideoData() : null;
                         if (currentData && currentData.video_id === id) {
                             if (autoPlay) {
+                                ensureYouTubeUnmuted(ytPlayer);
                                 ytPlayer.playVideo();
+                                setTimeout(function () { ensureYouTubeUnmuted(ytPlayer); }, 200);
+                                setTimeout(function () { ensureYouTubeUnmuted(ytPlayer); }, 800);
                             } else {
                                 ytPlayer.pauseVideo();
                             }
                         } else {
                             if (autoPlay) {
+                                ensureYouTubeUnmuted(ytPlayer);
                                 ytPlayer.loadVideoById(id);
+                                setTimeout(function () { ensureYouTubeUnmuted(ytPlayer); }, 200);
+                                setTimeout(function () { ensureYouTubeUnmuted(ytPlayer); }, 800);
                             } else {
                                 ytPlayer.cueVideoById(id);
                             }
@@ -703,9 +743,15 @@
                                 try {
                                     const currentData = ytPlayer.getVideoData ? ytPlayer.getVideoData() : null;
                                     if (currentData && currentData.video_id === ytVideoId) {
+                                        ensureYouTubeUnmuted(ytPlayer);
                                         ytPlayer.playVideo();
+                                        setTimeout(function () { ensureYouTubeUnmuted(ytPlayer); }, 200);
+                                        setTimeout(function () { ensureYouTubeUnmuted(ytPlayer); }, 800);
                                     } else {
+                                        ensureYouTubeUnmuted(ytPlayer);
                                         ytPlayer.loadVideoById(ytVideoId);
+                                        setTimeout(function () { ensureYouTubeUnmuted(ytPlayer); }, 200);
+                                        setTimeout(function () { ensureYouTubeUnmuted(ytPlayer); }, 800);
                                     }
                                 } catch (e) {
                                     console.warn('YouTube switch play error', e);
@@ -1202,7 +1248,7 @@
     })();
 </script>
     <!-- Persistent YouTube Audio Player Container (Remains inside viewport for YouTube viewability policies) -->
-    <div id="sanctuary-yt-player-container" wire:ignore style="position:fixed;bottom:0;right:0;width:200px;height:120px;opacity:0.015;pointer-events:none;z-index:0;overflow:hidden;" aria-hidden="true">
+    <div id="sanctuary-yt-player-container" wire:ignore style="position:fixed;bottom:0;right:0;width:200px;height:200px;opacity:0.02;pointer-events:none;z-index:-1;overflow:hidden;">
         <div id="sanctuary-yt-player"></div>
     </div>
 </body>
