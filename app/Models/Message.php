@@ -21,12 +21,27 @@ class Message extends Model
         'metadata' => 'array',
     ];
 
+    public function getUserEncrypter(): ?\Illuminate\Encryption\Encrypter
+    {
+        $conv = $this->relationLoaded('conversation') ? $this->conversation : $this->conversation()->first();
+        return $conv?->getUserEncrypter();
+    }
+
     public function getContentAttribute($value)
     {
         if (empty($value)) {
             return '';
         }
 
+        // 1. Try decrypting with user's isolated DEK
+        $userEnc = $this->getUserEncrypter();
+        if ($userEnc) {
+            try {
+                return $userEnc->decryptString($value);
+            } catch (\Throwable $e) { }
+        }
+
+        // 2. Fallback to master APP_KEY / APP_PREVIOUS_KEYS
         try {
             return \Illuminate\Support\Facades\Crypt::decryptString($value);
         } catch (\Throwable $e) {
@@ -39,7 +54,12 @@ class Message extends Model
 
     public function setContentAttribute($value)
     {
-        $this->attributes['content'] = \Illuminate\Support\Facades\Crypt::encryptString((string) $value);
+        $userEnc = $this->getUserEncrypter();
+        if ($userEnc) {
+            $this->attributes['content'] = $userEnc->encryptString((string) $value);
+        } else {
+            $this->attributes['content'] = \Illuminate\Support\Facades\Crypt::encryptString((string) $value);
+        }
     }
 
     // Add accessor for compatibility with ChatInterface

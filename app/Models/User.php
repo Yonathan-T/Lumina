@@ -32,6 +32,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'reminder_time',
         'settings',
+        'encryption_key',
         // --- CRITICAL POLAR WEBHOOK FIELDS ADDED BELOW ---
         'polar_customer_id',
         'is_subscribed',
@@ -43,6 +44,34 @@ class User extends Authenticatable implements MustVerifyEmail
         'elevenlabs_api_key_tested_at',
         // ---
     ];
+
+    protected ?\Illuminate\Encryption\Encrypter $_userEncrypter = null;
+
+    /**
+     * Get or generate the user's isolated Data Encryption Key (DEK).
+     */
+    public function getEncrypter(): \Illuminate\Encryption\Encrypter
+    {
+        if ($this->_userEncrypter !== null) {
+            return $this->_userEncrypter;
+        }
+
+        if (empty($this->encryption_key)) {
+            $rawKey = random_bytes(32);
+            $this->encryption_key = \Illuminate\Support\Facades\Crypt::encryptString(base64_encode($rawKey));
+            $this->saveQuietly();
+        } else {
+            try {
+                $rawKey = base64_decode(\Illuminate\Support\Facades\Crypt::decryptString($this->encryption_key));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to decrypt user DEK for user {$this->id}: " . $e->getMessage());
+                return app('encrypter');
+            }
+        }
+
+        $this->_userEncrypter = new \Illuminate\Encryption\Encrypter($rawKey, 'AES-256-CBC');
+        return $this->_userEncrypter;
+    }
 
     public function hasElevenLabsKey(): bool
     {

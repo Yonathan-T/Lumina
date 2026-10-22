@@ -18,12 +18,38 @@ class Entry extends Model
 
     protected $casts = [];
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function getUserEncrypter(): ?\Illuminate\Encryption\Encrypter
+    {
+        $userId = $this->user_id ?? (auth()->check() ? auth()->id() : null);
+        if ($userId) {
+            $user = $this->relationLoaded('user') ? $this->user : User::find($userId);
+            if ($user && method_exists($user, 'getEncrypter')) {
+                return $user->getEncrypter();
+            }
+        }
+        return null;
+    }
+
     public function getContentAttribute($value)
     {
         if (empty($value)) {
             return '';
         }
 
+        // 1. Try decrypting with owning user's isolated DEK
+        $userEnc = $this->getUserEncrypter();
+        if ($userEnc) {
+            try {
+                return $userEnc->decryptString($value);
+            } catch (\Throwable $e) { }
+        }
+
+        // 2. Fallback to master APP_KEY / APP_PREVIOUS_KEYS (for legacy records)
         try {
             return \Illuminate\Support\Facades\Crypt::decryptString($value);
         } catch (\Throwable $e) {
@@ -41,6 +67,15 @@ class Entry extends Model
             return 'Untitled Reflection';
         }
 
+        // 1. Try decrypting with owning user's isolated DEK
+        $userEnc = $this->getUserEncrypter();
+        if ($userEnc) {
+            try {
+                return $userEnc->decryptString($value);
+            } catch (\Throwable $e) { }
+        }
+
+        // 2. Fallback to master APP_KEY / APP_PREVIOUS_KEYS (for legacy records)
         try {
             return \Illuminate\Support\Facades\Crypt::decryptString($value);
         } catch (\Throwable $e) {
@@ -54,12 +89,22 @@ class Entry extends Model
 
     public function setContentAttribute($value)
     {
-        $this->attributes['content'] = \Illuminate\Support\Facades\Crypt::encryptString((string) $value);
+        $userEnc = $this->getUserEncrypter();
+        if ($userEnc) {
+            $this->attributes['content'] = $userEnc->encryptString((string) $value);
+        } else {
+            $this->attributes['content'] = \Illuminate\Support\Facades\Crypt::encryptString((string) $value);
+        }
     }
 
     public function setTitleAttribute($value)
     {
-        $this->attributes['title'] = \Illuminate\Support\Facades\Crypt::encryptString((string) $value);
+        $userEnc = $this->getUserEncrypter();
+        if ($userEnc) {
+            $this->attributes['title'] = $userEnc->encryptString((string) $value);
+        } else {
+            $this->attributes['title'] = \Illuminate\Support\Facades\Crypt::encryptString((string) $value);
+        }
     }
     public function tags()
     {

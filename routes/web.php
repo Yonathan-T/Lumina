@@ -171,3 +171,36 @@ Route::middleware('auth')->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'handle']);
     Route::get('/confirmation', [ConfirmationController::class, 'handle']);
 });
+
+// One-Time Envelope Encryption Migration Route (Option B)
+Route::get('/system/migrate-option-b', function (\Illuminate\Http\Request $request) {
+    $secret = $request->query('secret');
+    $expected = config('app.key');
+    if (empty($secret) || empty($expected) || !hash_equals($expected, $secret)) {
+        abort(403, 'Unauthorized migration request');
+    }
+
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        $migrateOut = \Illuminate\Support\Facades\Artisan::output();
+    } catch (\Throwable $e) {
+        $migrateOut = 'Migration error: ' . $e->getMessage();
+    }
+
+    try {
+        \Illuminate\Support\Facades\Artisan::call('lumina:migrate-encryption');
+        $encryptOut = \Illuminate\Support\Facades\Artisan::output();
+    } catch (\Throwable $e) {
+        $encryptOut = 'Encryption migration error: ' . $e->getMessage();
+    }
+
+    return response(
+        "<div style='background:#060b16;color:#e2e8f0;padding:32px;font-family:monospace;min-height:100vh;'>" .
+        "<h2 style='color:#60a5fa;'>Lumina Option B — Production Migration Status</h2>" .
+        "<h3 style='color:#94a3b8;'>Database Schema (migrate --force):</h3>" .
+        "<pre style='background:#0f172a;padding:16px;border-radius:8px;border:1px solid #1e293b;overflow:auto;'>" . e($migrateOut) . "</pre>" .
+        "<h3 style='color:#94a3b8;'>Envelope Encryption (lumina:migrate-encryption):</h3>" .
+        "<pre style='background:#0f172a;padding:16px;border-radius:8px;border:1px solid #1e293b;overflow:auto;'>" . e($encryptOut) . "</pre>" .
+        "</div>"
+    );
+});
