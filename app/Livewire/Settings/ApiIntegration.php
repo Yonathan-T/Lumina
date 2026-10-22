@@ -244,15 +244,10 @@ class ApiIntegration extends Component
                 $this->hasTestedSuccessfully = true;
                 $this->isKeyVerified = true;
 
-                if ($this->hasSavedGeminiKey && $keyToTest === $this->originalSavedGeminiKey) {
-                    $user->update([
-                        'api_key_verified_at' => now(),
-                        'api_key_tested_at' => now(),
-                    ]);
-                }
+                $this->saveApiKey();
 
                 $this->status = 'success';
-                $this->statusMessage = 'Connection successful! You can now save.';
+                $this->statusMessage = 'Connection successful! Your Gemini API key is saved and active.';
             } else {
                 $this->hasTestedSuccessfully = false;
                 $this->isKeyVerified = false;

@@ -683,6 +683,7 @@
                         'Content-Type': 'application/json',
                         'Accept': 'text/event-stream',
                         'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': getCsrfToken(),
                         'X-XSRF-TOKEN': getCsrfToken(),
                     },
                     credentials: 'same-origin',
