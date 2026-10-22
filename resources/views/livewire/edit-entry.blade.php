@@ -578,34 +578,32 @@
         </div>
     </div>
 
-    <div x-show="showMissingVoiceKey" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" @keydown.escape.window="showMissingVoiceKey = false">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showMissingVoiceKey = false"></div>
-
-        <div class="relative bg-gradient-dark border border-purple-500/30 rounded-xl shadow-2xl p-6 sm:p-8 max-w-md w-full mx-4 transform transition-all">
-            <div class="flex justify-center mb-5">
-                <div class="w-16 h-16 bg-purple-500/20 ring-1 ring-purple-500/30 rounded-2xl flex items-center justify-center">
-                    <x-icon name="voice" class="w-8 h-8 text-purple-400" />
+    <div x-show="showMissingVoiceKey" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" @keydown.escape.window="showMissingVoiceKey = false" @click.self="showMissingVoiceKey = false">
+        <div class="bg-card border border-white/10 rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150" @click.stop>
+            <div class="text-center space-y-4">
+                <div class="w-12 h-12 bg-[#c6b78e]/15 border border-[#c6b78e]/30 rounded-full flex items-center justify-center mx-auto text-[#c6b78e]">
+                    <x-icon name="voice" class="w-6 h-6 text-[#c6b78e]" />
                 </div>
-            </div>
 
-            <h3 class="text-xl font-bold text-center text-white mb-2">ElevenLabs API Key Required</h3>
+                <h3 class="text-lg font-semibold text-white">ElevenLabs API Key Required</h3>
 
-            <p class="text-gray-300 text-center mb-6 leading-relaxed text-sm">
-                To listen to your journal entries with AI voice narration, please add your own ElevenLabs API key. We operate on a Bring-Your-Own-Key model and do not provide a default voice key.
-            </p>
+                <p class="text-muted text-sm leading-relaxed">
+                    To listen to your journal entries with AI voice narration, please add your own ElevenLabs API key. We operate on a Bring-Your-Own-Key model and do not provide a default voice key.
+                </p>
 
-            <div class="space-y-3">
-                <a href="{{ route('settings.index', ['tab' => 'account']) }}"
-                    class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 transition-colors shadow-lg shadow-purple-600/25">
-                    <span>Add Key in Settings</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                </a>
-                <button type="button" @click="showMissingVoiceKey = false"
-                    class="w-full px-4 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white border border-white/10 hover:bg-white/5 transition-colors">
-                    Maybe Later
-                </button>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" @click="showMissingVoiceKey = false"
+                        class="flex-1 px-4 py-2.5 text-sm font-medium text-muted hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-colors inline-flex items-center justify-center cursor-pointer">
+                        Maybe Later
+                    </button>
+                    <a href="{{ route('settings.index', ['tab' => 'account']) }}" wire:navigate.hover
+                        class="flex-1 px-4 py-2.5 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors inline-flex items-center justify-center gap-2 cursor-pointer shadow-sm">
+                        <span>Add in Settings</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                    </a>
+                </div>
             </div>
         </div>
     </div>

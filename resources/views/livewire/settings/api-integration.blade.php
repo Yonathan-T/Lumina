@@ -276,7 +276,7 @@
                                             {{ $this->currentVoice['tier'] }}
                                         </span>
                                     @elseif($selectedVoiceId === 'custom')
-                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-amber-500/10 text-[#c6b78e] border border-amber-500/20">
                                             Custom
                                         </span>
                                     @endif
@@ -361,16 +361,16 @@
                         <div class="pt-2 border-t border-white/5 mt-1">
                             <button type="button"
                                 @click="$wire.set('selectedVoiceId', 'custom'); open = false;"
-                                class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-colors cursor-pointer group {{ $selectedVoiceId === 'custom' ? 'bg-purple-600/15 border border-purple-500/30 text-white' : 'hover:bg-white/5 text-gray-300 hover:text-white border border-transparent' }}">
+                                class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-colors cursor-pointer group {{ $selectedVoiceId === 'custom' ? 'bg-[#c6b78e]/15 border border-[#c6b78e]/30 text-white' : 'hover:bg-white/5 text-gray-300 hover:text-white border border-transparent' }}">
                                 <div class="min-w-0 pr-3">
                                     <div class="flex items-center gap-2">
-                                        <span class="text-sm font-medium {{ $selectedVoiceId === 'custom' ? 'text-purple-400 font-semibold' : 'text-gray-200 group-hover:text-white' }}">Custom Voice ID</span>
-                                        <span class="text-[10px] uppercase font-semibold px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">Your Choice</span>
+                                        <span class="text-sm font-medium {{ $selectedVoiceId === 'custom' ? 'text-[#c6b78e] font-semibold' : 'text-gray-200 group-hover:text-white' }}">Custom Voice ID</span>
+                                        <span class="text-[10px] uppercase font-semibold px-1.5 py-0.2 rounded bg-amber-500/10 text-[#c6b78e] border border-amber-500/20">Your Choice</span>
                                     </div>
                                     <p class="text-xs text-gray-400 mt-0.5">Use any cloned voice, community voice, or Voice Lab ID from ElevenLabs</p>
                                 </div>
                                 @if($selectedVoiceId === 'custom')
-                                    <svg class="w-4 h-4 text-purple-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-4 h-4 text-[#c6b78e] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                     </svg>
                                 @endif
@@ -381,9 +381,9 @@
 
                 {{-- Custom Voice Configuration Panel --}}
                 @if($selectedVoiceId === 'custom')
-                    <div class="rounded-xl border border-purple-500/30 bg-[#0c0919] p-4 space-y-3 shadow-md">
+                    <div class="rounded-xl border border-white/10 bg-[#080d19] p-4 space-y-3 shadow-md">
                         <div class="flex items-center justify-between">
-                            <label for="custom-voice-id" class="block text-xs font-semibold uppercase tracking-wider text-purple-300">
+                            <label for="custom-voice-id" class="block text-xs font-semibold uppercase tracking-wider text-[#c6b78e]">
                                 Enter Custom ElevenLabs Voice ID
                             </label>
                             <span class="text-[11px] text-gray-400">Works with any cloned or community voice</span>
@@ -393,10 +393,10 @@
                             <div class="relative flex-1">
                                 <input id="custom-voice-id" type="text" wire:model="customVoiceId"
                                     placeholder="e.g. 21m00Tcm4TlvDq8ikWAM or your cloned voice ID"
-                                    class="w-full px-3.5 py-2.5 rounded-lg bg-black/50 text-white border border-purple-500/30 font-mono text-sm focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400 placeholder:text-gray-600" />
+                                    class="w-full px-3.5 py-2.5 rounded-lg bg-black/50 text-white border border-white/10 font-mono text-sm focus:outline-none focus:border-[#c6b78e] focus:ring-1 focus:ring-[#c6b78e] placeholder:text-gray-600" />
                             </div>
                             <button type="button" wire:click="saveCustomVoice"
-                                class="cursor-pointer px-4 py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs rounded-lg transition-all shadow-sm shadow-purple-600/30 active:scale-95 shrink-0 flex items-center justify-center gap-1.5">
+                                class="cursor-pointer px-4 py-2.5 bg-[#c6b78e] hover:bg-[#d4c69d] text-gray-950 font-semibold text-xs rounded-lg transition-all shadow-sm active:scale-95 shrink-0 flex items-center justify-center gap-1.5">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                 </svg>
@@ -406,13 +406,13 @@
 
                         <div class="rounded-lg bg-black/40 border border-white/5 p-3 text-xs text-gray-300 space-y-1.5">
                             <div class="font-medium text-white flex items-center gap-1.5">
-                                <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-3.5 h-3.5 text-[#c6b78e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                                 <span>How to find any voice on ElevenLabs:</span>
                             </div>
                             <p class="text-gray-400 leading-relaxed">
-                                1. Open <a href="https://elevenlabs.io/app/voice-library" target="_blank" class="text-purple-300 hover:underline">ElevenLabs Voice Library</a> or <a href="https://elevenlabs.io/app/voice-lab" target="_blank" class="text-purple-300 hover:underline">Voice Lab (My Voices)</a>.<br>
+                                1. Open <a href="https://elevenlabs.io/app/voice-library" target="_blank" class="text-[#c6b78e] hover:underline">ElevenLabs Voice Library</a> or <a href="https://elevenlabs.io/app/voice-lab" target="_blank" class="text-[#c6b78e] hover:underline">Voice Lab (My Voices)</a>.<br>
                                 2. Click any voice (community voice, accent, or your cloned voice) and copy its <strong>Voice ID</strong>.<br>
                                 3. Paste the ID above and click <strong>Save Voice ID</strong>. Memo-Mate will use your chosen voice for all future narrations!
                             </p>
