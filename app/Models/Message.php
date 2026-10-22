@@ -23,8 +23,28 @@ class Message extends Model
 
     public function getUserEncrypter(): ?\Illuminate\Encryption\Encrypter
     {
-        $conv = $this->relationLoaded('conversation') ? $this->conversation : $this->conversation()->first();
-        return $conv?->getUserEncrypter();
+        // 1. If conversation relation is loaded
+        if ($this->relationLoaded('conversation') && $this->conversation) {
+            return $this->conversation->getUserEncrypter();
+        }
+
+        // 2. If conversation_id is present
+        if (!empty($this->conversation_id)) {
+            $conv = Conversation::find($this->conversation_id);
+            if ($conv) {
+                return $conv->getUserEncrypter();
+            }
+        }
+
+        // 3. Fallback to active authenticated user in current request
+        if (auth()->check()) {
+            $user = auth()->user();
+            if ($user && method_exists($user, 'getEncrypter')) {
+                return $user->getEncrypter();
+            }
+        }
+
+        return null;
     }
 
     public function getContentAttribute($value)

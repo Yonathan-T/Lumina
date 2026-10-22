@@ -167,7 +167,7 @@ class ChatInterface extends Component
     public function loadMessages($sessionId)
     {
         $this->messages = Message::where('conversation_id', $sessionId)
-            ->select(['id', 'content', 'is_ai_response', 'created_at'])
+            ->select(['id', 'conversation_id', 'content', 'is_ai_response', 'created_at'])
             ->orderBy('created_at', 'asc')
             ->get()
             ->map(function ($message) {
