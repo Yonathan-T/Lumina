@@ -215,47 +215,79 @@ Route::get('/system/migrate-option-b', function (\Illuminate\Http\Request $reque
     );
 });
 
-// One-Time Route to restore clean reflections for Yonathan
+// One-Time Route to restore clean reflections for ALL users
 Route::get('/system/restore-clean-entries', function (\Illuminate\Http\Request $request) {
     $token = $request->query('token') ?? $request->query('secret');
     if ($token !== 'lumina-option-b-migrate-2026') {
         abort(403, 'Unauthorized');
     }
 
-    $jsonPath = database_path('data/yonathan_clean_entries.json');
+    $jsonPath = database_path('data/all_users_clean_data.json');
     if (!file_exists($jsonPath)) {
         return response("Data file not found", 404);
     }
 
-    $entries = json_decode(file_get_contents($jsonPath), true);
-    $user = \App\Models\User::where('email', 'yonathantaweke@gmail.com')->first();
-    if (!$user) {
-        return response("User yonathantaweke@gmail.com not found", 404);
+    $data = json_decode(file_get_contents($jsonPath), true);
+    $userMap = []; // local_id -> production User instance
+    foreach ($data['users'] as $localId => $uInfo) {
+        $prodUser = \App\Models\User::where('email', $uInfo['email'])->first();
+        if ($prodUser) {
+            $userMap[$localId] = $prodUser;
+        }
     }
 
-    $userEnc = $user->getEncrypter();
-    $restored = 0;
+    $restoredEntries = 0;
+    foreach ($data['entries'] as $item) {
+        $user = $userMap[$item['user_id']] ?? \App\Models\User::find($item['user_id']);
+        if (!$user) continue;
 
-    foreach ($entries as $item) {
-        $entry = \App\Models\Entry::where('user_id', $user->id)
-            ->where(function ($q) use ($item) {
-                $q->where('id', $item['id'])
-                  ->orWhere('created_at', $item['created_at']);
-            })->first();
+        $userEnc = $user->getEncrypter();
+        $entry = \App\Models\Entry::where('id', $item['id'])->first()
+              ?: \App\Models\Entry::where('user_id', $user->id)
+                    ->where('created_at', $item['created_at'])->first();
 
         if ($entry) {
             \Illuminate\Support\Facades\DB::table('entries')->where('id', $entry->id)->update([
                 'title' => $userEnc->encryptString((string) $item['title']),
                 'content' => $userEnc->encryptString((string) $item['content']),
             ]);
-            $restored++;
+            $restoredEntries++;
+        }
+    }
+
+    $restoredConvs = 0;
+    foreach ($data['conversations'] as $cItem) {
+        $conv = \App\Models\Conversation::find($cItem['id']);
+        if ($conv && $conv->user) {
+            $userEnc = $conv->user->getEncrypter();
+            \Illuminate\Support\Facades\DB::table('conversations')->where('id', $conv->id)->update([
+                'title' => $userEnc->encryptString((string) $cItem['title']),
+            ]);
+            $restoredConvs++;
+        }
+    }
+
+    $restoredMsgs = 0;
+    foreach ($data['messages'] as $mItem) {
+        $msg = \App\Models\Message::find($mItem['id']);
+        if ($msg && $msg->conversation?->user) {
+            $userEnc = $msg->conversation->user->getEncrypter();
+            \Illuminate\Support\Facades\DB::table('messages')->where('id', $msg->id)->update([
+                'content' => $userEnc->encryptString((string) $mItem['content']),
+            ]);
+            $restoredMsgs++;
         }
     }
 
     return response(
         "<div style='background:#060b16;color:#e2e8f0;padding:32px;font-family:monospace;min-height:100vh;'>" .
-        "<h2 style='color:#34d399;'>🎉 Successfully Restored {$restored} Reflections!</h2>" .
-        "<p style='color:#94a3b8;'>All reflections have been cleanly re-encrypted under Yonathan's Option B personal key.</p>" .
+        "<h2 style='color:#34d399;'>🎉 Successfully Restored Data Across All Users!</h2>" .
+        "<ul style='font-size:16px;line-height:2;margin:16px 0;'>" .
+        "<li>Restored Entries: <strong style='color:#60a5fa;'>{$restoredEntries}</strong></li>" .
+        "<li>Restored Conversations: <strong style='color:#60a5fa;'>{$restoredConvs}</strong></li>" .
+        "<li>Restored Messages: <strong style='color:#60a5fa;'>{$restoredMsgs}</strong></li>" .
+        "</ul>" .
+        "<p style='color:#94a3b8;'>Every user's entries have been re-encrypted with their own individual Option B key.</p>" .
         "<p style='margin-top:24px;'><a href='/entries?sort=oldest' style='background:#2563eb;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:bold;'>View History on Lumina</a></p>" .
         "</div>"
     );
