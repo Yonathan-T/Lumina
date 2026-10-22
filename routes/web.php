@@ -214,3 +214,49 @@ Route::get('/system/migrate-option-b', function (\Illuminate\Http\Request $reque
         "</div>"
     );
 });
+
+// One-Time Route to restore clean reflections for Yonathan
+Route::get('/system/restore-clean-entries', function (\Illuminate\Http\Request $request) {
+    $token = $request->query('token') ?? $request->query('secret');
+    if ($token !== 'lumina-option-b-migrate-2026') {
+        abort(403, 'Unauthorized');
+    }
+
+    $jsonPath = database_path('data/yonathan_clean_entries.json');
+    if (!file_exists($jsonPath)) {
+        return response("Data file not found", 404);
+    }
+
+    $entries = json_decode(file_get_contents($jsonPath), true);
+    $user = \App\Models\User::where('email', 'yonathantaweke@gmail.com')->first();
+    if (!$user) {
+        return response("User yonathantaweke@gmail.com not found", 404);
+    }
+
+    $userEnc = $user->getEncrypter();
+    $restored = 0;
+
+    foreach ($entries as $item) {
+        $entry = \App\Models\Entry::where('user_id', $user->id)
+            ->where(function ($q) use ($item) {
+                $q->where('id', $item['id'])
+                  ->orWhere('created_at', $item['created_at']);
+            })->first();
+
+        if ($entry) {
+            \Illuminate\Support\Facades\DB::table('entries')->where('id', $entry->id)->update([
+                'title' => $userEnc->encryptString((string) $item['title']),
+                'content' => $userEnc->encryptString((string) $item['content']),
+            ]);
+            $restored++;
+        }
+    }
+
+    return response(
+        "<div style='background:#060b16;color:#e2e8f0;padding:32px;font-family:monospace;min-height:100vh;'>" .
+        "<h2 style='color:#34d399;'>🎉 Successfully Restored {$restored} Reflections!</h2>" .
+        "<p style='color:#94a3b8;'>All reflections have been cleanly re-encrypted under Yonathan's Option B personal key.</p>" .
+        "<p style='margin-top:24px;'><a href='/entries?sort=oldest' style='background:#2563eb;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:bold;'>View History on Lumina</a></p>" .
+        "</div>"
+    );
+});
