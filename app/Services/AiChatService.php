@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Message;
 use App\Models\Conversation;
 use App\Services\UserDataService;
+use App\Services\Ai\Tools\ToolRegistry;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
@@ -19,9 +20,12 @@ class AiChatService
     protected $geminiApiKey;
     protected $huggingfaceModel;
     protected $userDataService;
+    protected ToolRegistry $toolRegistry;
+    protected array $executedTools = [];
 
     public function __construct()
     {
+        $this->toolRegistry = new ToolRegistry();
 
         $user = auth()->user();
 
@@ -33,7 +37,7 @@ class AiChatService
             try {
                 $this->geminiApiKey = Crypt::decryptString($encryptedKey);
             } catch (DecryptException $e) {
-                \Log::error("Failed to decrypt Gemini API key for user {$user->id}: " . $e->getMessage());
+                Log::error("Failed to decrypt Gemini API key for user {$user->id}: " . $e->getMessage());
             }
         }
 
@@ -79,13 +83,24 @@ class AiChatService
             return 'Sorry, I encountered an error while processing your request.';
         }
     }
-    public function streamResponse(string $message, ?int $conversationId = null, ?callable $onChunk = null): string
+    public function getExecutedTools(): array
     {
+        return $this->executedTools;
+    }
+
+    public function streamResponse(
+        string $message,
+        ?int $conversationId = null,
+        ?callable $onChunk = null,
+        ?callable $onToolEvent = null
+    ): string
+    {
+        $this->executedTools = [];
         $onChunk = $onChunk ?? static function (): void {};
 
         try {
             if ($this->provider === 'gemini' && $this->geminiApiKey) {
-                $streamed = $this->streamGeminiResponse($message, $conversationId, $onChunk);
+                $streamed = $this->streamGeminiResponse($message, $conversationId, $onChunk, $onToolEvent);
                 if (!empty(trim($streamed))) {
                     return $streamed;
                 }
@@ -105,7 +120,14 @@ class AiChatService
         }
     }
 
-    protected function streamGeminiResponse(string $message, ?int $conversationId = null, ?callable $onChunk = null): string
+    protected function streamGeminiResponse(
+        string $message,
+        ?int $conversationId = null,
+        ?callable $onChunk = null,
+        ?callable $onToolEvent = null,
+        ?array $preparedMessages = null,
+        int $depth = 0
+    ): string
     {
         set_time_limit(180);
 
@@ -114,7 +136,7 @@ class AiChatService
         $conversationHistory = $this->getConversationHistory($conversationId);
         $userContext = $this->getUserContext($message);
         $systemPrompt = $this->getGeminiSystemPrompt($userContext);
-        $messages = $this->buildGeminiMessages($message, $conversationHistory);
+        $messages = $preparedMessages ?? $this->buildGeminiMessages($message, $conversationHistory);
 
         $payload = $this->buildGeminiRequestPayload($messages, $systemPrompt);
 
@@ -158,6 +180,7 @@ class AiChatService
         $stream = $response->toPsrResponse()->getBody();
         $buffer = '';
         $fullResponse = '';
+        $detectedFunctionCall = null;
 
         while (! $stream->eof()) {
             $buffer .= $stream->read(2048);
@@ -171,6 +194,14 @@ class AiChatService
                 $rawEvent = substr($buffer, 0, $delimiterPosition);
                 $buffer = substr($buffer, $delimiterPosition + 2);
 
+                if ($depth === 0) {
+                    $fn = $this->extractFunctionCallFromGeminiStreamEvent($rawEvent);
+                    if ($fn) {
+                        $detectedFunctionCall = $fn;
+                        break 2;
+                    }
+                }
+
                 $delta = $this->extractDeltaFromGeminiStreamEvent($rawEvent, $fullResponse);
 
                 if ($delta === '') {
@@ -180,6 +211,60 @@ class AiChatService
                 $fullResponse .= $delta;
                 $onChunk($delta);
             }
+        }
+
+        if ($detectedFunctionCall !== null && $depth < 2) {
+            $toolName = (string) ($detectedFunctionCall['name'] ?? '');
+            $toolArgs = (array) ($detectedFunctionCall['args'] ?? []);
+            $user = auth()->user();
+
+            if ($onToolEvent) {
+                $onToolEvent([
+                    'status' => 'running',
+                    'tool' => $toolName,
+                    'label' => $this->formatToolLabel($toolName, $toolArgs, 'running'),
+                    'args' => $toolArgs,
+                ]);
+            }
+
+            Log::info("Lumi executing tool '{$toolName}' in stream", ['args' => $toolArgs]);
+            $toolResult = $user ? $this->toolRegistry->execute($toolName, $toolArgs, $user) : ['error' => 'Unauthenticated'];
+
+            $completedToolEvent = [
+                'status' => 'done',
+                'tool' => $toolName,
+                'label' => $this->formatToolLabel($toolName, $toolArgs, 'done', $toolResult),
+                'args' => $toolArgs,
+                'result' => $toolResult,
+            ];
+            $this->executedTools[] = $completedToolEvent;
+
+            if ($onToolEvent) {
+                $onToolEvent($completedToolEvent);
+            }
+
+            // Append model turn with functionCall
+            $messages[] = [
+                'role' => 'model',
+                'parts' => [
+                    ['functionCall' => $detectedFunctionCall],
+                ],
+            ];
+
+            // Append user turn with functionResponse
+            $messages[] = [
+                'role' => 'user',
+                'parts' => [
+                    [
+                        'functionResponse' => [
+                            'name' => $toolName,
+                            'response' => $toolResult,
+                        ],
+                    ],
+                ],
+            ];
+
+            return $this->streamGeminiResponse($message, $conversationId, $onChunk, $onToolEvent, $messages, $depth + 1);
         }
 
         if (trim($buffer) !== '') {
@@ -196,6 +281,87 @@ class AiChatService
         }
 
         return $fullResponse;
+    }
+
+    protected function extractFunctionCallFromGeminiStreamEvent(string $rawEvent): ?array
+    {
+        $rawEvent = str_replace("\r\n", "\n", trim($rawEvent));
+        if ($rawEvent === '') {
+            return null;
+        }
+
+        $dataLines = [];
+        foreach (explode("\n", $rawEvent) as $line) {
+            $line = trim($line);
+            if (! str_starts_with($line, 'data:')) {
+                continue;
+            }
+            $dataLines[] = trim(substr($line, 5));
+        }
+
+        if (empty($dataLines)) {
+            return null;
+        }
+
+        $payload = implode("\n", $dataLines);
+        if ($payload === '[DONE]') {
+            return null;
+        }
+
+        $decoded = json_decode($payload, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return null;
+        }
+
+        $parts = data_get($decoded, 'candidates.0.content.parts', []);
+        foreach ($parts as $part) {
+            if (isset($part['functionCall']) && is_array($part['functionCall'])) {
+                return $part['functionCall'];
+            }
+        }
+
+        return null;
+    }
+
+    protected function formatToolLabel(string $tool, array $args, string $status, ?array $result = null): string
+    {
+        if ($tool === 'search_journal') {
+            $q = trim((string) ($args['query'] ?? ''));
+            if ($status === 'running') {
+                return $q !== '' ? "Searching memories for \"{$q}\"..." : 'Searching memories...';
+            }
+            $count = (int) ($result['count'] ?? 0);
+            return $count > 0
+                ? "Searched memories for \"{$q}\" · {$count} " . ($count === 1 ? 'match' : 'matches')
+                : "Searched memories for \"{$q}\" · No matches";
+        }
+
+        if ($tool === 'get_user_stats') {
+            if ($status === 'running') {
+                return 'Checking journaling streak & stats...';
+            }
+            return 'Checked writing streak and stats';
+        }
+
+        if ($tool === 'list_tags') {
+            if ($status === 'running') {
+                return 'Checking your journal tags...';
+            }
+            $count = (int) ($result['total_unique_tags'] ?? count($result['tags'] ?? []));
+            return $count > 0
+                ? "Checked journal tags · {$count} unique " . ($count === 1 ? 'tag' : 'tags')
+                : 'Checked journal tags · No tags found';
+        }
+
+        if ($tool === 'draft_entry') {
+            $title = trim((string) ($args['title'] ?? 'entry'));
+            if ($status === 'running') {
+                return "Saving memo \"{$title}\"...";
+            }
+            return "Saved memo \"{$title}\" to sanctuary";
+        }
+
+        return $status === 'running' ? "Running {$tool}..." : "Completed {$tool}";
     }
 
     protected function streamTextResponse(string $response, callable $onChunk): void
@@ -329,7 +495,7 @@ class AiChatService
 
     protected function buildGeminiRequestPayload(array $messages, string $systemPrompt): array
     {
-        return [
+        $payload = [
             'contents' => $messages,
             'systemInstruction' => [
                 'parts' => [
@@ -338,23 +504,39 @@ class AiChatService
             ],
             'generationConfig' => $this->getGeminiGenerationConfig(),
         ];
+
+        $declarations = $this->toolRegistry->getGeminiDeclarations();
+        if (! empty($declarations)) {
+            $payload['tools'] = [
+                [
+                    'functionDeclarations' => $declarations,
+                ],
+            ];
+        }
+
+        return $payload;
     }
 
-
-    protected function generateGeminiResponse(string $message, array $conversationHistory, string $userContext = ''): string
+    protected function generateGeminiResponse(
+        string $message,
+        array $conversationHistory,
+        string $userContext = '',
+        ?array $preparedMessages = null,
+        int $depth = 0
+    ): string
     {
         $systemPrompt = $this->getGeminiSystemPrompt($userContext);
-        $messages = $this->buildGeminiMessages($message, $conversationHistory);
+        $messages = $preparedMessages ?? $this->buildGeminiMessages($message, $conversationHistory);
         $payload = $this->buildGeminiRequestPayload($messages, $systemPrompt);
 
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
-        ])->timeout(15)->connectTimeout(5)->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$this->geminiApiKey}", $payload);
+        ])->timeout(30)->connectTimeout(10)->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$this->geminiApiKey}", $payload);
 
         if (! $response->successful() && ($response->status() === 429 || $response->status() === 503)) {
             $fallbackResponse = Http::withHeaders([
                 'Content-Type' => 'application/json',
-            ])->timeout(15)->connectTimeout(5)->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$this->geminiApiKey}", $payload);
+            ])->timeout(30)->connectTimeout(10)->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$this->geminiApiKey}", $payload);
 
             if ($fallbackResponse->successful()) {
                 $response = $fallbackResponse;
@@ -363,14 +545,49 @@ class AiChatService
 
         if ($response->successful()) {
             $data = $response->json();
-            $text = $this->extractVisibleTextFromGeminiParts(
-                data_get($data, 'candidates.0.content.parts', [])
-            );
+            $parts = data_get($data, 'candidates.0.content.parts', []);
+
+            // Check if model called a function
+            if ($depth < 2) {
+                $functionCallPart = collect($parts)->first(fn ($p) => isset($p['functionCall']));
+                if ($functionCallPart) {
+                    $functionCall = $functionCallPart['functionCall'];
+                    $toolName = (string) ($functionCall['name'] ?? '');
+                    $toolArgs = (array) ($functionCall['args'] ?? []);
+                    $user = auth()->user();
+
+                    Log::info("Lumi executing tool '{$toolName}' in non-stream", ['args' => $toolArgs]);
+                    $toolResult = $user ? $this->toolRegistry->execute($toolName, $toolArgs, $user) : ['error' => 'Unauthenticated'];
+
+                    $messages[] = [
+                        'role' => 'model',
+                        'parts' => [
+                            ['functionCall' => $functionCall],
+                        ],
+                    ];
+
+                    $messages[] = [
+                        'role' => 'user',
+                        'parts' => [
+                            [
+                                'functionResponse' => [
+                                    'name' => $toolName,
+                                    'response' => $toolResult,
+                                ],
+                            ],
+                        ],
+                    ];
+
+                    return $this->generateGeminiResponse($message, $conversationHistory, $userContext, $messages, $depth + 1);
+                }
+            }
+
+            $text = $this->extractVisibleTextFromGeminiParts($parts);
 
             return $text !== '' ? $text : 'Sorry, I could not generate a response.';
         }
 
-        \Log::error('Gemini API Error', ['status' => $response->status(), 'response' => $response->body()]);
+        Log::error('Gemini API Error', ['status' => $response->status(), 'response' => $response->body()]);
 
         return $this->getGeminiErrorMessage($response);
     }
@@ -450,38 +667,43 @@ class AiChatService
     }
     protected function getGeminiSystemPrompt(string $userContext = ''): string
     {
-        return "### Lumina AI Assistant System Prompt
-You are Lumi, Lumi is the short form of Lumina, a platform dedicated to self-reflection and mental well-being. you Lumi are an empathetic and intelligent journaling assistant designed to support users on their path to self-reflection and mental well-being. Your role is to engage users in thoughtful, therapeutic-style conversations by understanding and referencing the context of their journal entries. Each interaction should help users explore their feelings, gain insights, and encourage positive mental health habits.
-If the user asks if you remember, you will acknowledge the conversation and proceed. You will not admit to being an AI with a lack of memory.
-### Key principles you follow:
+        $userName = auth()->user() ? auth()->user()->name : 'the user';
 
-- Respond as if you were a real, empathetic friend Listen and respond naturally - don't over-analyze or ask obvious questions.
-- Use simple, human-like language.
-- Ask open-ended questions to encourage the user to share more but - When someone is clear about something, acknowledge it and move forward.
-- Never use markdown formatting like asterisks (*), bolding (**), or numbered lists.
-- **When the user starts the conversation with a simple greeting like 'hey there,' respond with a warm and conversational, but very concise, greeting that is no more than one short sentence. For example, 'Hey there! So glad you're here today' or 'Hi! Great to see you, how can I support you today?' or 'Hey there! Ready to begin journaling today? Would you like to share what's on your mind?'**
-- Maintain a warm, encouraging, and non-judgmental tone.
-- Contextual Awareness: Make sure not to make it sound like you are doing a review by Quoting the user's past journal entries but instead use them as context to guide conversations, provide relevant reflections, and offer personalized prompts or advice, but reference journal entries only when truly relevant, not forced.
+        $prompt = <<<EOT
+You are Lumi, a calm, grounded companion in Lumina (a personal sanctuary journal). You are in a reflective conversation with {$userName}.
 
-- Empathy and Support: Respond with kindness, patience, and understanding, mirroring the tone of a compassionate therapist or supportive friend.
+Persona & Voice:
+- Conversational, warm, authentic, and unhurried.
+- Speak like a thoughtful, trusted friend over coffee—never like a clinical therapist, life coach, or corporate chatbot.
+- Never use patronizing therapeutic filler ("I hear you", "That must be so heavy", "Thank you for sharing your vulnerability", "Let's sit with that feeling").
+- Keep casual responses concise: 1–3 thoughtful sentences are often best. Never overwhelm the user with long lectures or bulleted lists unless explicitly asked.
+- If the user shares something deep, listen attentively and ask at most one gentle, meaningful question to help them reflect.
 
-- Privacy and Safety: Always respect user privacy. Avoid collecting or sharing sensitive data beyond the conversation. Clarify that you are a supportive tool, not a substitute for professional mental health care.
+Sanctuary Tools & Memory:
+- You have tools to recall past memories, check writing streaks, or save new journal entries when asked.
+- `search_journal`: Use when the user asks about past thoughts, memories, specific dates, or previous entries.
+- `get_user_stats`: Use when the user asks about their streak, total entries, or journaling consistency.
+- `list_tags`: Use when the user asks about their tags, how many tags they have, or what categories/topics they tag frequently.
+- `draft_entry`: Persist and save a finalized journal entry into the user's sanctuary database.
+  * CRITICAL RULES FOR SAVING ENTRIES:
+    1. NEVER save a 3-word placeholder (like "Today was peaceful") when a user mentions a brief idea like "Save a memo about how peaceful today was". A journal entry must be a meaningful, thoughtful piece of writing.
+    2. Collaborative Drafting: When a user wants to record an entry or convert their chat conversation into a journal memo:
+       - Present a draft in your message first: propose a thoughtful title (or ask if they have a title in mind), provide a rich, well-written draft reflection capturing what was shared, and ask what tags they'd like (e.g. `peacefulday, Tuesday` or `no / skip`).
+       - Example response:
+         "Here is a draft for your journal:
+         **Title:** A Quiet Sanctuary (or let me know what you'd like to call it)
+         **Draft:** [Thoughtful, expressive reflection capturing the essence of what was discussed...]
+         How does this feel? Would you like to adjust anything, give it your own title, or attach any tags?"
+    3. Final Save: ONLY call the `draft_entry` tool when the user has approved the draft or provided final confirmation (e.g., "looks good, save it with tags X, Y", "yes save that", "skip tags").
+    4. Direct Save Exception: If the user provides the full, ready-to-save text directly in their prompt (e.g., "Save an entry titled 'Morning Calm' with content 'Watched the mist rise over the hills...' and tags morning, calm"), call `draft_entry` immediately with their exact text.
+- Only call tools when relevant to what the user asks; do not search unprompted during simple casual hellos.
+EOT;
 
-- Engagement and Motivation: Encourage users to keep journaling regularly, recognize their progress, and help them build healthy habits without judgment.
+        if (! empty(trim($userContext))) {
+            $prompt .= "\n\n" . trim($userContext);
+        }
 
-- Guided Exploration: Ask open-ended questions that foster self-discovery and emotional processing while keeping the conversation safe and positive.
-
-- Limitations Awareness: Gently remind users if they require professional help or if topics are outside your scope, suggesting they seek a qualified expert.
-
-### You support the Lumina experience by transforming journaling from a static record into a lively, interactive companion focused on personal growth and mental wellness.
-
-### Remember: your purpose is to listen deeply, respond thoughtfully, and gently guide users in their journey of understanding themselves better—one entry at a time.
-
-### Always maintain a warm, encouraging, and non-judgmental tone throughout the conversation - Be encouraging without being repetitive or overly therapeutic.
-
-### And finally Focus on genuine connection over coaching techniques
-
-" . $userContext;
+        return $prompt;
     }
     protected function buildMistralPrompt(string $message, array $conversationHistory, string $userContext = ''): string
     {
@@ -640,52 +862,9 @@ You are Lumi, an empathetic and intelligent journaling assistant designed to sup
 
     protected function getUserContext(string $message): string
     {
-        $userId = auth()->id();
+        $now = now()->format('l, F j, Y');
 
-        if (! $userId) {
-            return '';
-        }
-
-        try {
-            return Cache::remember("chat_user_context_{$userId}", 120, function () {
-                $allEntries = $this->userDataService->getAllEntriesForContext();
-                $recentEntries = $allEntries->take(5);
-                $firstEntry = $this->userDataService->getFirstEntry();
-                $lastEntry = $this->userDataService->getLastEntry();
-                $formattedRecent = $this->userDataService->formatEntriesForAI($recentEntries);
-                $insights = $this->userDataService->getUserInsights();
-
-                $context = "\n\n### User Journal Context:\n";
-                $context .= "Recent entries:\n{$formattedRecent}\n\n";
-
-                if ($firstEntry && ! $recentEntries->contains('id', $firstEntry->id)) {
-                    $firstEntryFormatted = $this->userDataService->formatEntriesForAI(collect([$firstEntry]));
-                    $context .= "First ever entry:\n{$firstEntryFormatted}\n\n";
-                }
-
-                if ($lastEntry) {
-                    $context .= "Most recent entry details:\n";
-                    $context .= "- Title: {$lastEntry->title}\n";
-                    $context .= "- Date: {$lastEntry->created_at->format('M j, Y \a\t g:i A')}\n";
-                    $context .= "- Content: ".substr($lastEntry->content, 0, 200).(strlen($lastEntry->content) > 200 ? '...' : '')."\n\n";
-                }
-
-                $context .= "### User Insights:\n";
-                $context .= "- Total journal entries: {$insights['total_entries']}\n";
-                $context .= "- Current writing streak: {$insights['current_streak']} days\n";
-                $context .= "- Longest writing streak: {$insights['longest_streak']} days\n";
-                $context .= "- Most used tag: {$insights['most_used_tag']}\n";
-                $context .= "- Last entry: {$insights['last_entry_date']}\n";
-                $context .= "- Entries this month: {$insights['entries_this_month']}\n\n";
-                $context .= "Use this context to provide personalized, empathetic responses. When the user asks about specific entries (first, last, recent, or by topic), intelligently identify and share the relevant entry details from the context above. You have access to the user's journal data and should freely share it when requested since it's their own personal information. Always include specific dates and times when sharing entry information.\n";
-
-                return $context;
-            });
-        } catch (\Exception $e) {
-            Log::error('Error getting user context', ['error' => $e->getMessage()]);
-
-            return "\n\nNote: Unable to retrieve journal context at this time.\n";
-        }
+        return "Current date: {$now}.";
     }
 
     public function generateTitleFromChat(int $conversationId): string
