@@ -255,6 +255,73 @@
                                             class="rounded-2xl px-4 py-3 {{ $message['isAi'] ? (isset($message['isError']) ? 'bg-red-900/60 border border-red-500/40 text-red-200' : 'bg-gray-800 text-gray-100') : 'bg-blue-600 text-white' }}">
                                             <p class="text-sm leading-relaxed whitespace-pre-wrap break-words">{{ $message['content'] }}</p>
                                         </div>
+
+                                        @if($message['isAi'] && !empty($message['metadata']['tools_used']))
+                                            <div class="mt-2 space-y-1.5" x-data="{ open: false }">
+                                                @foreach($message['metadata']['tools_used'] as $tool)
+                                                    <div class="rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden text-xs">
+                                                        <button 
+                                                            type="button" 
+                                                            @click="open = !open" 
+                                                            class="w-full px-3 py-1.5 flex items-center justify-between text-left hover:bg-white/[0.06] transition-colors cursor-pointer select-none">
+                                                            <span class="inline-flex items-center gap-1.5 text-gray-300">
+                                                                @if(($tool['tool'] ?? '') === 'search_journal')
+                                                                    <svg class="w-3.5 h-3.5 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                                                @elseif(($tool['tool'] ?? '') === 'get_user_stats')
+                                                                    <svg class="w-3.5 h-3.5 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                                                                @elseif(($tool['tool'] ?? '') === 'list_tags')
+                                                                    <svg class="w-3.5 h-3.5 text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                                                                @else
+                                                                    <svg class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                                @endif
+                                                                <span class="font-normal text-gray-300">{{ $tool['label'] ?? $tool['tool'] }}</span>
+                                                            </span>
+                                                            <svg class="w-3.5 h-3.5 text-gray-400 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                            </svg>
+                                                        </button>
+                                                        <div x-show="open" x-cloak class="px-3 py-2 border-t border-white/5 bg-black/30 text-[11px] text-gray-400 space-y-1.5 font-mono">
+                                                            @if(!empty($tool['args']))
+                                                                <div>
+                                                                    <span class="text-gray-500 uppercase tracking-wider text-[10px]">Parameters:</span>
+                                                                    <pre class="whitespace-pre-wrap break-all text-gray-300 font-sans mt-0.5">{{ json_encode($tool['args'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
+                                                                </div>
+                                                            @endif
+                                                            @if(!empty($tool['result']))
+                                                                <div>
+                                                                    <span class="text-gray-500 uppercase tracking-wider text-[10px]">Result:</span>
+                                                                    @if(isset($tool['result']['entries']) && is_array($tool['result']['entries']))
+                                                                        <div class="mt-1 space-y-1.5 font-sans">
+                                                                            @foreach($tool['result']['entries'] as $resEntry)
+                                                                                <div class="bg-white/5 p-2 rounded-lg border border-white/5">
+                                                                                    <div class="flex items-center justify-between text-xs">
+                                                                                        <span class="font-medium text-white">{{ $resEntry['title'] }}</span>
+                                                                                        <span class="text-gray-500 text-[10px]">{{ $resEntry['date'] }}</span>
+                                                                                    </div>
+                                                                                    <p class="text-gray-400 text-xs mt-1 italic line-clamp-2">"{{ $resEntry['snippet'] }}"</p>
+                                                                                </div>
+                                                                            @endforeach
+                                                                        </div>
+                                                                    @elseif(isset($tool['result']['tags']) && is_array($tool['result']['tags']))
+                                                                        <div class="mt-1 font-sans flex flex-wrap gap-1.5">
+                                                                            @foreach($tool['result']['tags'] as $resTag)
+                                                                                <span class="inline-flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded text-gray-300 text-xs border border-white/5">
+                                                                                    <span>#{{ $resTag['name'] }}</span>
+                                                                                    <span class="text-[10px] text-gray-500 font-mono">({{ $resTag['entries_count'] }})</span>
+                                                                                </span>
+                                                                            @endforeach
+                                                                        </div>
+                                                                    @else
+                                                                        <pre class="whitespace-pre-wrap break-all text-gray-300 font-sans mt-0.5">{{ json_encode($tool['result'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
+                                                                    @endif
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
+
                                         <div class="flex items-center gap-2 mt-2 {{ $message['isAi'] ? '' : 'justify-end' }}">
                                             <p class="text-xs text-gray-500 message-timestamp" data-created-at="{{ $message['createdAt'] }}"></p>
                                         </div>
@@ -571,6 +638,7 @@
                             <\/div>
                             <p id="streaming-message-content" class="hidden text-sm leading-relaxed whitespace-pre-wrap break-words text-gray-100"><\/p>
                         <\/div>
+                        <div id="streaming-tool-activity" class="hidden mt-2 space-y-1.5"><\/div>
                     <\/div>
                 <\/div>
             `;
@@ -583,6 +651,7 @@
         const resetStreamingUi = () => {
             const dots = document.getElementById('streaming-message-dots');
             const content = document.getElementById('streaming-message-content');
+            const toolContainer = document.getElementById('streaming-tool-activity');
 
             if (dots) {
                 dots.classList.remove('hidden');
@@ -592,6 +661,49 @@
                 content.textContent = '';
                 content.classList.add('hidden');
             }
+
+            if (toolContainer) {
+                toolContainer.innerHTML = '';
+                toolContainer.classList.add('hidden');
+            }
+        };
+
+        const handleToolEvent = (toolData) => {
+            const container = document.getElementById('streaming-tool-activity');
+            if (!container || !toolData) return;
+
+            container.classList.remove('hidden');
+
+            if (toolData.status === 'running') {
+                container.innerHTML = `
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-blue-500/20 bg-blue-500/10 text-xs text-blue-300 animate-pulse">
+                        <svg class="animate-spin h-3.5 w-3.5 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"><\/circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"><\/path>
+                        <\/svg>
+                        <span>${escapeHtml(toolData.label || 'Processing memory...')}<\/span>
+                    <\/div>
+                `;
+            } else if (toolData.status === 'done') {
+                const toolIcon = toolData.tool === 'search_journal'
+                    ? '<svg class="w-3.5 h-3.5 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/><\/svg>'
+                    : (toolData.tool === 'get_user_stats'
+                        ? '<svg class="w-3.5 h-3.5 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/><\/svg>'
+                        : '<svg class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/><\/svg>');
+
+                container.innerHTML = `
+                    <div class="rounded-xl border border-white/10 bg-white/[0.04] text-xs text-gray-300">
+                        <div class="px-3 py-1.5 flex items-center justify-between">
+                            <span class="inline-flex items-center gap-1.5">
+                                ${toolIcon}
+                                <span class="font-normal text-gray-300">${escapeHtml(toolData.label || toolData.tool)}<\/span>
+                            <\/span>
+                            <span class="text-[10px] text-gray-500 uppercase tracking-wider font-mono">DONE<\/span>
+                        <\/div>
+                    <\/div>
+                `;
+            }
+            scrollMessagesToBottom();
         };
 
         const appendStreamingText = (text) => {
@@ -738,7 +850,9 @@
                     buffer = parsed.remainder;
 
                     for (const event of parsed.events) {
-                        if (event.type === 'chunk' && event.data?.text) {
+                        if (event.type === 'tool' && event.data) {
+                            handleToolEvent(event.data);
+                        } else if (event.type === 'chunk' && event.data?.text) {
                             receivedText = true;
                             appendStreamingText(event.data.text);
                         } else if (event.type === 'done') {

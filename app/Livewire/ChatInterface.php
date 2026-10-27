@@ -167,7 +167,7 @@ class ChatInterface extends Component
     public function loadMessages($sessionId)
     {
         $this->messages = Message::where('conversation_id', $sessionId)
-            ->select(['id', 'conversation_id', 'content', 'is_ai_response', 'created_at'])
+            ->select(['id', 'conversation_id', 'content', 'is_ai_response', 'created_at', 'metadata'])
             ->orderBy('created_at', 'asc')
             ->get()
             ->map(function ($message) {
@@ -176,6 +176,7 @@ class ChatInterface extends Component
                     'content' => $message->content,
                     'isAi' => $message->is_ai_response,
                     'createdAt' => $message->created_at->toIso8601String(),
+                    'metadata' => is_array($message->metadata) ? $message->metadata : (is_string($message->metadata) ? json_decode($message->metadata, true) : null),
                 ];
             })->toArray();
 

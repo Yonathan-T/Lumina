@@ -69,31 +69,48 @@ class ChatController extends Controller
 
                 flush();
 
-                $fullResponse = trim($aiChatService->streamResponse($messageContent, $conversation->id, function (string $chunk): void {
-                    if ($chunk === '') {
-                        return;
+                $fullResponse = trim($aiChatService->streamResponse(
+                    $messageContent,
+                    $conversation->id,
+                    function (string $chunk): void {
+                        if ($chunk === '') {
+                            return;
+                        }
+
+                        echo "event: chunk\n";
+                        echo 'data: '.json_encode([
+                            'text' => $chunk,
+                        ], JSON_UNESCAPED_UNICODE)."\n\n";
+
+                        if (function_exists('ob_flush')) {
+                            @ob_flush();
+                        }
+
+                        flush();
+                    },
+                    function (array $toolEvent): void {
+                        echo "event: tool\n";
+                        echo 'data: '.json_encode($toolEvent, JSON_UNESCAPED_UNICODE)."\n\n";
+
+                        if (function_exists('ob_flush')) {
+                            @ob_flush();
+                        }
+
+                        flush();
                     }
-
-                    echo "event: chunk\n";
-                    echo 'data: '.json_encode([
-                        'text' => $chunk,
-                    ], JSON_UNESCAPED_UNICODE)."\n\n";
-
-                    if (function_exists('ob_flush')) {
-                        @ob_flush();
-                    }
-
-                    flush();
-                }));
+                ));
 
                 if ($fullResponse === '') {
                     throw new \RuntimeException('The AI returned an empty response.');
                 }
 
+                $executedTools = $aiChatService->getExecutedTools();
+
                 Message::create([
                     'conversation_id' => $conversation->id,
                     'content' => $fullResponse,
                     'is_ai_response' => true,
+                    'metadata' => ! empty($executedTools) ? ['tools_used' => $executedTools] : null,
                 ]);
 
                 $conversation->refresh();
@@ -112,9 +129,13 @@ class ChatController extends Controller
 
                 flush();
 
-                if ($conversation->title === 'New Conversation' && $conversation->message_count >= 4) {
-                    $conversation->title = $aiChatService->generateTitleFromChat($conversation->id);
-                    $conversation->save();
+                try {
+                    if ($conversation->title === 'New Conversation' && $conversation->message_count >= 4) {
+                        $conversation->title = $aiChatService->generateTitleFromChat($conversation->id);
+                        $conversation->save();
+                    }
+                } catch (\Throwable $titleError) {
+                    Log::warning('Automatic chat title generation failed: ' . $titleError->getMessage());
                 }
             } catch (\Throwable $e) {
                 Log::error('Chat stream failed', [
