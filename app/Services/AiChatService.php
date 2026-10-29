@@ -140,32 +140,32 @@ class AiChatService
 
         $payload = $this->buildGeminiRequestPayload($messages, $systemPrompt);
 
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-        ])->withOptions([
-                    'stream' => true,
-                ])
-                ->timeout(120)
-                ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key={$this->geminiApiKey}", $payload);
+        $models = ['gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-3.1-flash-lite'];
+        $response = null;
 
-        if (! $response->successful()) {
-            // If gemini-2.5-flash hits rate limit / quota (429) or is unavailable (503), fall back to gemini-1.5-flash
-            if ($response->status() === 429 || $response->status() === 503) {
-                $fallbackResponse = Http::withHeaders([
-                    'Content-Type' => 'application/json',
-                ])->withOptions([
-                    'stream' => true,
-                ])
-                ->timeout(120)
-                ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key={$this->geminiApiKey}", $payload);
+        foreach ($models as $model) {
+            $candidateResponse = Http::withHeaders([
+                'Content-Type' => 'application/json',
+            ])->withOptions([
+                'stream' => true,
+            ])
+            ->timeout(120)
+            ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:streamGenerateContent?alt=sse&key={$this->geminiApiKey}", $payload);
 
-                if ($fallbackResponse->successful()) {
-                    $response = $fallbackResponse;
-                }
+            if ($candidateResponse->successful()) {
+                $response = $candidateResponse;
+                break;
             }
+
+            Log::warning("Gemini streaming model '{$model}' failed with status {$candidateResponse->status()}, falling back to next model: " . substr($candidateResponse->body(), 0, 150));
+            $response = $candidateResponse;
+            continue;
+
+            $response = $candidateResponse;
+            break;
         }
 
-        if (! $response->successful()) {
+        if (! $response || ! $response->successful()) {
             Log::error('Gemini Streaming API Error', [
                 'status' => $response->status(),
                 'response' => $response->body(),
@@ -180,7 +180,7 @@ class AiChatService
         $stream = $response->toPsrResponse()->getBody();
         $buffer = '';
         $fullResponse = '';
-        $detectedFunctionCall = null;
+        $detectedFunctionCallInfo = null;
 
         while (! $stream->eof()) {
             $buffer .= $stream->read(2048);
@@ -195,9 +195,9 @@ class AiChatService
                 $buffer = substr($buffer, $delimiterPosition + 2);
 
                 if ($depth === 0) {
-                    $fn = $this->extractFunctionCallFromGeminiStreamEvent($rawEvent);
-                    if ($fn) {
-                        $detectedFunctionCall = $fn;
+                    $fnInfo = $this->extractFunctionCallFromGeminiStreamEvent($rawEvent);
+                    if ($fnInfo) {
+                        $detectedFunctionCallInfo = $fnInfo;
                         break 2;
                     }
                 }
@@ -213,7 +213,10 @@ class AiChatService
             }
         }
 
-        if ($detectedFunctionCall !== null && $depth < 2) {
+        if ($detectedFunctionCallInfo !== null && $depth < 2) {
+            $detectedFunctionCall = $detectedFunctionCallInfo['functionCall'];
+            $modelParts = $detectedFunctionCallInfo['parts'] ?? [['functionCall' => $detectedFunctionCall]];
+
             $toolName = (string) ($detectedFunctionCall['name'] ?? '');
             $toolArgs = (array) ($detectedFunctionCall['args'] ?? []);
             $user = auth()->user();
@@ -243,12 +246,10 @@ class AiChatService
                 $onToolEvent($completedToolEvent);
             }
 
-            // Append model turn with functionCall
+            // Append model turn with exact original parts (preserving thought_signature for thinking models)
             $messages[] = [
                 'role' => 'model',
-                'parts' => [
-                    ['functionCall' => $detectedFunctionCall],
-                ],
+                'parts' => $modelParts,
             ];
 
             // Append user turn with functionResponse
@@ -316,7 +317,10 @@ class AiChatService
         $parts = data_get($decoded, 'candidates.0.content.parts', []);
         foreach ($parts as $part) {
             if (isset($part['functionCall']) && is_array($part['functionCall'])) {
-                return $part['functionCall'];
+                return [
+                    'functionCall' => $part['functionCall'],
+                    'parts' => $parts,
+                ];
             }
         }
 
@@ -455,7 +459,7 @@ class AiChatService
         $errorStatus = is_array($error) ? (string) ($error['status'] ?? '') : '';
 
         if ($code === 429 || str_contains(strtolower($message), 'quota') || str_contains(strtolower($message), 'rate limit')) {
-            return "You've reached your Gemini API limit. On the free tier that's about 20 requests per day for this model. Wait a bit or check your usage at ai.google.dev, then try again.";
+            return "You've reached your daily quota across Gemini free-tier models (3.5 Flash, 2.5 Flash, 3.1 Flash-Lite). Wait a bit for Google's quota to reset, or check your usage at ai.google.dev.";
         }
 
         if ($code === 503 || $errorStatus === 'UNAVAILABLE' || str_contains(strtolower($message), 'high demand')) {
@@ -529,21 +533,25 @@ class AiChatService
         $messages = $preparedMessages ?? $this->buildGeminiMessages($message, $conversationHistory);
         $payload = $this->buildGeminiRequestPayload($messages, $systemPrompt);
 
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-        ])->timeout(30)->connectTimeout(10)->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$this->geminiApiKey}", $payload);
+        $models = ['gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-3.1-flash-lite'];
+        $response = null;
 
-        if (! $response->successful() && ($response->status() === 429 || $response->status() === 503)) {
-            $fallbackResponse = Http::withHeaders([
+        foreach ($models as $model) {
+            $candidateResponse = Http::withHeaders([
                 'Content-Type' => 'application/json',
-            ])->timeout(30)->connectTimeout(10)->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$this->geminiApiKey}", $payload);
+            ])->timeout(30)->connectTimeout(10)->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$this->geminiApiKey}", $payload);
 
-            if ($fallbackResponse->successful()) {
-                $response = $fallbackResponse;
+            if ($candidateResponse->successful()) {
+                $response = $candidateResponse;
+                break;
             }
+
+            Log::warning("Gemini non-stream model '{$model}' failed with status {$candidateResponse->status()}, falling back to next model: " . substr($candidateResponse->body(), 0, 150));
+            $response = $candidateResponse;
+            continue;
         }
 
-        if ($response->successful()) {
+        if ($response && $response->successful()) {
             $data = $response->json();
             $parts = data_get($data, 'candidates.0.content.parts', []);
 
@@ -561,9 +569,7 @@ class AiChatService
 
                     $messages[] = [
                         'role' => 'model',
-                        'parts' => [
-                            ['functionCall' => $functionCall],
-                        ],
+                        'parts' => $parts, // preserve thought_signature and original parts
                     ];
 
                     $messages[] = [
