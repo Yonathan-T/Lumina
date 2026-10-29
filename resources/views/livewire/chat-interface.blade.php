@@ -289,20 +289,33 @@
                                                             @endif
                                                             @if(!empty($tool['result']))
                                                                 <div>
-                                                                    <span class="text-gray-500 uppercase tracking-wider text-[10px]">Result:</span>
                                                                     @if(isset($tool['result']['entries']) && is_array($tool['result']['entries']))
+                                                                        <div class="flex items-center justify-between mb-1">
+                                                                            <span class="text-gray-500 uppercase tracking-wider text-[10px]">Connected Memories:</span>
+                                                                            <span class="text-[9px] text-blue-400 font-mono">Semantic & Keyword</span>
+                                                                        </div>
                                                                         <div class="mt-1 space-y-1.5 font-sans">
                                                                             @foreach($tool['result']['entries'] as $resEntry)
-                                                                                <div class="bg-white/5 p-2 rounded-lg border border-white/5">
-                                                                                    <div class="flex items-center justify-between text-xs">
-                                                                                        <span class="font-medium text-white">{{ $resEntry['title'] }}</span>
-                                                                                        <span class="text-gray-500 text-[10px]">{{ $resEntry['date'] }}</span>
+                                                                                <div class="bg-white/5 p-2.5 rounded-lg border border-white/5 hover:border-white/10 transition-colors">
+                                                                                    <div class="flex items-center justify-between text-xs gap-2">
+                                                                                        <span class="font-medium text-white line-clamp-1">{{ $resEntry['title'] }}</span>
+                                                                                        <div class="flex items-center gap-1.5 flex-shrink-0">
+                                                                                            @if(($resEntry['match_type'] ?? '') === 'exact_and_concept')
+                                                                                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/20 font-mono">Exact & Theme</span>
+                                                                                            @elseif(($resEntry['match_type'] ?? '') === 'keyword_match')
+                                                                                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/20 font-mono">Exact Match</span>
+                                                                                            @elseif(($resEntry['match_type'] ?? '') === 'conceptual_similarity')
+                                                                                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-300 border border-blue-500/20 font-mono">Similar Theme</span>
+                                                                                            @endif
+                                                                                            <span class="text-gray-500 text-[10px]">{{ $resEntry['date'] }}</span>
+                                                                                        </div>
                                                                                     </div>
                                                                                     <p class="text-gray-400 text-xs mt-1 italic line-clamp-2">"{{ $resEntry['snippet'] }}"</p>
                                                                                 </div>
                                                                             @endforeach
                                                                         </div>
                                                                     @elseif(isset($tool['result']['tags']) && is_array($tool['result']['tags']))
+                                                                        <span class="text-gray-500 uppercase tracking-wider text-[10px]">Tags Found:</span>
                                                                         <div class="mt-1 font-sans flex flex-wrap gap-1.5">
                                                                             @foreach($tool['result']['tags'] as $resTag)
                                                                                 <span class="inline-flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded text-gray-300 text-xs border border-white/5">

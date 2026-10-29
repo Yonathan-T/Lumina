@@ -355,6 +355,15 @@ class EditEntry extends Component
         return preg_replace('/<ul>(\s*<li[^>]*><input[^>]*type="checkbox")/i', '<ul class="memo-task-list">$1', $rendered);
     }
 
+    public function getRelatedEntriesProperty()
+    {
+        try {
+            return app(\App\Services\EmbeddingService::class)->findRelatedEntries($this->entry, 3, 0.45);
+        } catch (\Throwable $e) {
+            return collect();
+        }
+    }
+
     public function render()
     {
         $this->entry->loadMissing('tags:id,name');

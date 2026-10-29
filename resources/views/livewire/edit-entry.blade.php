@@ -536,6 +536,62 @@
                             Delete
                         </button>
                     </div>
+
+                    {{-- AI Semantic Related Reflections --}}
+                    @if($this->relatedEntries->isNotEmpty())
+                        <div class="mt-12 pt-8 border-t border-white/10">
+                            <div class="flex items-center justify-between mb-5">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-semibold text-white tracking-wide">Related Reflections</h3>
+                                        <p class="text-xs text-muted">Past memories connected by similar thoughts and themes</p>
+                                    </div>
+                                </div>
+                                <span class="text-[11px] text-muted font-mono uppercase tracking-wider bg-white/5 px-2.5 py-1 rounded-md border border-white/5">
+                                    Vector Similarity
+                                </span>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                @foreach($this->relatedEntries as $related)
+                                    <a href="{{ route('entries.show', $related->id) }}" wire:navigate.hover
+                                        class="group relative flex flex-col justify-between p-4 rounded-xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-blue-500/40 transition-all duration-200">
+                                        <div>
+                                            <div class="flex items-center justify-between gap-2 mb-2">
+                                                <span class="text-xs text-muted">{{ $related->created_at ? $related->created_at->format('M d, Y') : '' }}</span>
+                                                @if(!empty($related->similarity_score))
+                                                    <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/30">
+                                                        {{ round($related->similarity_score * 100) }}% match
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <h4 class="text-sm font-medium text-white group-hover:text-blue-400 transition-colors line-clamp-1 mb-1.5">
+                                                {{ $related->title }}
+                                            </h4>
+                                            <p class="text-xs text-muted line-clamp-2 leading-relaxed">
+                                                {{ \Illuminate\Support\Str::limit(strip_tags((string) $related->content), 120, '...') }}
+                                            </p>
+                                        </div>
+
+                                        @if($related->tags && $related->tags->isNotEmpty())
+                                            <div class="flex flex-wrap gap-1 mt-3 pt-3 border-t border-white/5">
+                                                @foreach($related->tags->take(2) as $rtag)
+                                                    <span class="text-[10px] px-2 py-0.5 rounded-md bg-[rgb(15,23,42)] text-gray-400 border border-white/5">
+                                                        #{{ $rtag->name }}
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
                 @endif
             </div>
         </div>
