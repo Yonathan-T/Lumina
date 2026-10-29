@@ -51,12 +51,44 @@ class UserDataService
 
     public function searchEntries(string $query, int $limit = 5): Collection
     {
-        return Entry::where('user_id', Auth::id())
+        $userId = Auth::id();
+        if (!$userId) {
+            return collect();
+        }
+
+        // 1. Try semantic vector matches
+        try {
+            $embeddingService = app(EmbeddingService::class);
+            $semanticMatches = $embeddingService->findSemanticMatches($userId, $query, $limit, 0.45);
+            if ($semanticMatches->isNotEmpty()) {
+                $ids = $semanticMatches->pluck('entry_id')->all();
+                return Entry::where('user_id', $userId)
+                    ->whereIn('id', $ids)
+                    ->with('tags')
+                    ->get()
+                    ->sortBy(fn ($e) => array_search($e->id, $ids))
+                    ->values();
+            }
+        } catch (\Throwable $e) {
+            // Non-blocking fallback
+        }
+
+        // 2. Try tokenized keyword search
+        try {
+            $searchService = app(EntrySearchService::class);
+            $matchedIds = $searchService->findMatchingEntryIds($userId, $query, $limit);
+            if ($matchedIds->isNotEmpty()) {
+                return Entry::where('user_id', $userId)
+                    ->whereIn('id', $matchedIds)
+                    ->with('tags')
+                    ->get();
+            }
+        } catch (\Throwable $e) {
+            // Non-blocking fallback
+        }
+
+        return Entry::where('user_id', $userId)
             ->with('tags')
-            ->where(function ($q) use ($query) {
-                $q->where('title', 'LIKE', "%{$query}%")
-                    ->orWhere('content', 'LIKE', "%{$query}%");
-            })
             ->orderBy('created_at', 'desc')
             ->limit($limit)
             ->get();

@@ -31,6 +31,18 @@ class EntrySearchService
                 DB::table('entry_search_terms')->insert($chunk);
             }
         });
+
+        // Update semantic vector embedding
+        try {
+            $embeddingService = app(EmbeddingService::class);
+            if (app()->runningInConsole() || app()->environment('testing')) {
+                $embeddingService->updateEntryEmbedding($entry);
+            } else {
+                dispatch(fn () => $embeddingService->updateEntryEmbedding($entry))->afterResponse();
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Automatic embedding update failed for entry ' . $entry->id . ': ' . $e->getMessage());
+        }
     }
 
     public function findMatchingEntryIds(int $userId, string $query, int $limit = 10): Collection

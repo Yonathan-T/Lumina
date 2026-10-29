@@ -111,6 +111,11 @@ class Entry extends Model
         return $this->belongsToMany(Tag::class);
     }
 
+    public function embedding()
+    {
+        return $this->hasOne(EntryEmbedding::class);
+    }
+
     /**
      * Resolve the storage disk for banners (s3/supabase if configured, else public).
      */
