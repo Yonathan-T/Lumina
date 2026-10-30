@@ -94,18 +94,36 @@ class EntrySearchService
             $lowerQuery = mb_strtolower($cleanQuery);
             $lowerTagQuery = mb_strtolower($cleanTagQuery);
 
-            // Filter to entries that actually contain the search query in decrypted title, content, or tags
-            $matchingEntries = $entries->filter(function ($entry) use ($lowerQuery, $lowerTagQuery) {
+            // Filter to entries that actually contain the search query or significant tokens in decrypted title, content, or tags
+            $matchingEntries = $entries->filter(function ($entry) use ($lowerQuery, $lowerTagQuery, $tokens) {
                 $lowerTitle = mb_strtolower((string) $entry->title);
                 $lowerContent = mb_strtolower((string) $entry->content);
 
+                // 1. Direct full query match in title or content
                 if (str_contains($lowerTitle, $lowerQuery) || str_contains($lowerContent, $lowerQuery)) {
                     return true;
                 }
 
-                return $entry->tags->contains(function ($tag) use ($lowerTagQuery) {
+                // 2. Tag match
+                if ($entry->tags->contains(function ($tag) use ($lowerTagQuery) {
                     return str_contains(mb_strtolower($tag->name), $lowerTagQuery);
-                });
+                })) {
+                    return true;
+                }
+
+                // 3. Significant token match in title or tags (e.g. "ambition" or "goals")
+                foreach ($tokens as $token) {
+                    if (mb_strlen($token) >= 3) {
+                        if (str_contains($lowerTitle, $token)) {
+                            return true;
+                        }
+                        if ($entry->tags->contains(fn ($tag) => str_contains(mb_strtolower($tag->name), $token))) {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
             });
 
             if ($matchingEntries->isEmpty()) {
