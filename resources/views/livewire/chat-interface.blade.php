@@ -37,6 +37,69 @@
                 document.body.classList.remove('chat-nav-collapsed');
                 document.documentElement.classList.remove('chat-nav-collapsed');
             }
+        },
+        previewEntry: null,
+        previewPosition: { x: 0, y: 0 },
+        showPreview: false,
+        isExpanded: false,
+        previewTimeout: null,
+        openEntryPreview(entry, event) {
+            if (typeof entry === 'string') {
+                try { entry = JSON.parse(entry); } catch (e) {}
+            }
+            if (this.previewTimeout) clearTimeout(this.previewTimeout);
+            this.previewEntry = entry;
+
+            if (!this.isExpanded && event) {
+                const el = (event.currentTarget && typeof event.currentTarget.getBoundingClientRect === 'function')
+                    ? event.currentTarget
+                    : (event.target ? (event.target.closest('button, [data-entry-preview], div') || event.target) : null);
+
+                if (el && typeof el.getBoundingClientRect === 'function') {
+                    const rect = el.getBoundingClientRect();
+                    const cardWidth = 352;
+                    const cardHeight = 220;
+                    let left = rect.left;
+                    if (left + cardWidth > window.innerWidth - 16) {
+                        left = window.innerWidth - cardWidth - 16;
+                    }
+                    if (left < 16) {
+                        left = 16;
+                    }
+                    let top = rect.bottom + 6;
+                    if (top + cardHeight > window.innerHeight - 16 && rect.top > cardHeight + 16) {
+                        top = rect.top - cardHeight - 6;
+                    }
+                    if (top < 16) {
+                        top = 16;
+                    }
+                    this.previewPosition = { x: Math.round(left), y: Math.round(top) };
+                }
+            }
+
+            this.showPreview = true;
+        },
+        toggleExpand() {
+            this.isExpanded = !this.isExpanded;
+            if (this.previewTimeout) clearTimeout(this.previewTimeout);
+        },
+        closeEntryPreview(delay = 180) {
+            if (this.isExpanded && delay > 0) {
+                return;
+            }
+            if (this.previewTimeout) clearTimeout(this.previewTimeout);
+            if (delay === 0) {
+                this.showPreview = false;
+                this.isExpanded = false;
+                return;
+            }
+            this.previewTimeout = setTimeout(() => {
+                this.showPreview = false;
+                this.isExpanded = false;
+            }, delay);
+        },
+        keepPreviewOpen() {
+            if (this.previewTimeout) clearTimeout(this.previewTimeout);
         }
     }"
     x-init="
@@ -253,7 +316,7 @@
                                     <div class="max-w-[300px] md:max-w-[400px] lg:max-w-[500px]">
                                         <div
                                             class="rounded-2xl px-4 py-3 {{ $message['isAi'] ? (isset($message['isError']) ? 'bg-red-900/60 border border-red-500/40 text-red-200' : 'bg-gray-800 text-gray-100') : 'bg-blue-600 text-white' }}">
-                                            <p class="text-sm leading-relaxed whitespace-pre-wrap break-words">{{ $message['content'] }}</p>
+                                            <p class="text-sm leading-relaxed whitespace-pre-wrap break-words">{!! $this->renderMessageContent($message) !!}</p>
                                         </div>
 
                                         @if($message['isAi'] && !empty($message['metadata']['tools_used']))
@@ -296,9 +359,19 @@
                                                                         </div>
                                                                         <div class="mt-1 space-y-1.5 font-sans">
                                                                             @foreach($tool['result']['entries'] as $resEntry)
-                                                                                <div class="bg-white/5 p-2.5 rounded-lg border border-white/5 hover:border-white/10 transition-colors">
+                                                                                @php
+                                                                                    $resEntryB64 = base64_encode(json_encode($resEntry, JSON_UNESCAPED_UNICODE));
+                                                                                @endphp
+                                                                                <div 
+                                                                                    data-entry-preview="true"
+                                                                                    data-entry-b64="{{ $resEntryB64 }}"
+                                                                                    onclick="window.location.href = '{{ route('entries.show', $resEntry['id']) }}'"
+                                                                                    class="bg-white/5 p-2.5 rounded-lg border border-white/5 hover:border-blue-500/40 hover:bg-white/[0.08] transition-all cursor-pointer group">
                                                                                     <div class="flex items-center justify-between text-xs gap-2">
-                                                                                        <span class="font-medium text-white line-clamp-1">{{ $resEntry['title'] }}</span>
+                                                                                        <span class="font-medium text-white group-hover:text-blue-300 transition-colors line-clamp-1 flex items-center gap-1.5">
+                                                                                            <svg class="w-3.5 h-3.5 text-blue-400 opacity-70 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 8h8"/><path class="transition-transform group-hover:-translate-x-0.5" d="M7 12h10"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 16h6"/></svg>
+                                                                                            {{ $resEntry['title'] }}
+                                                                                        </span>
                                                                                         <div class="flex items-center gap-1.5 flex-shrink-0">
                                                                                             @if(($resEntry['match_type'] ?? '') === 'exact_and_concept')
                                                                                                 <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/20 font-mono">Exact & Theme</span>
@@ -381,6 +454,103 @@
                     :is-typing="false" submit-icon="send" typing-icon="stop" :use-client-submit="true" />
             </div>
         </div>
+
+        <!-- Large Entry Preview Modal (Scoped strictly inside mainChatArea, so it never overlaps the chat sidebar) -->
+        <div x-show="showPreview && previewEntry && isExpanded"
+             x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             class="absolute inset-0 z-40 flex items-center justify-center p-4 md:p-6 bg-black/60 backdrop-blur-sm"
+             @click.self="closeEntryPreview(0)"
+             @keydown.escape.window="closeEntryPreview(0)">
+            <div class="bg-[#090e1a]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl max-w-xl w-full max-h-[85vh] flex flex-col overflow-hidden ring-1 ring-white/10"
+                 @click.stop>
+                {{-- Header --}}
+                <div class="p-5 border-b border-white/10 flex items-center justify-between shrink-0 bg-white/[0.02]">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M3 7V5a2 2 0 0 1 2-2h2" />
+                                <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+                                <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+                                <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+                                <path d="M7 8h8" />
+                                <path d="M7 12h10" />
+                                <path d="M7 16h6" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <h3 class="text-base sm:text-lg font-semibold text-white truncate" x-text="previewEntry?.title"></h3>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <span class="text-xs text-muted font-mono" x-text="previewEntry?.date"></span>
+                                <template x-if="previewEntry?.match_type === 'exact_and_concept'">
+                                    <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/20 font-mono">Exact & Theme</span>
+                                </template>
+                                <template x-if="previewEntry?.match_type === 'keyword_match'">
+                                    <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/20 font-mono">Exact Match</span>
+                                </template>
+                                <template x-if="previewEntry?.match_type === 'conceptual_similarity'">
+                                    <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/20 font-mono">Similar Theme</span>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button type="button" @click.stop="toggleExpand()"
+                            class="p-2 text-muted hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+                            title="Minimize preview">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9L4 4m0 5h5V4m6 5l5-5m-5 5h5V4M9 15l-5 5m0-5h5v5m6-5l5 5m-5-5h5v5"></path>
+                            </svg>
+                        </button>
+                        <button type="button" @click.stop="closeEntryPreview(0)"
+                            class="p-2 text-muted hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+                            aria-label="Close modal">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Content (scrollable without visible scrollbar) --}}
+                <div class="p-5 overflow-y-auto flex-1 min-h-0 space-y-4 overscroll-contain scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                    <div class="rounded-xl border border-white/10 bg-white/[0.02] p-4 shadow-sm">
+                        <div class="flex items-center gap-2 pb-2 mb-2.5 border-b border-white/10">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-blue-400">Memory Excerpt</h4>
+                        </div>
+                        <div class="text-sm text-gray-200 leading-relaxed font-normal whitespace-pre-wrap font-sans max-h-[45vh] overflow-y-auto overscroll-contain scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden" x-text="previewEntry?.snippet"></div>
+                    </div>
+
+                    <!-- Tags -->
+                    <template x-if="previewEntry?.tags && previewEntry.tags.length">
+                        <div class="flex flex-wrap gap-1.5 pt-1">
+                            <template x-for="tag in previewEntry.tags" :key="tag">
+                                <span class="text-xs px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-gray-300 font-mono" x-text="'#' + tag"></span>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+
+                {{-- Footer --}}
+                <div class="p-4 border-t border-white/10 flex items-center justify-between bg-black/20 shrink-0">
+                    <a :href="'/entries/' + previewEntry?.id" wire:navigate
+                        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors cursor-pointer shadow-sm">
+                        <svg class="w-4 h-4 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        <span>Open in Journal</span>
+                    </a>
+                    <button type="button" @click.stop="closeEntryPreview(0)"
+                        class="px-4 py-2 text-sm font-medium text-white border border-white/10 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Delete Chat Confirmation Modal -->
@@ -440,6 +610,87 @@
                     Delete Chat
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Interactive Floating Entry Hover Preview (Mini Popover) -->
+    <div x-show="showPreview && previewEntry && !isExpanded" 
+         x-cloak 
+         @mouseenter="keepPreviewOpen()"
+         @mouseleave="closeEntryPreview(180)"
+         x-transition:enter="transition ease-out duration-100"
+         x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+         x-transition:leave="transition ease-in duration-75"
+         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+         x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+         class="fixed z-50 w-88 max-w-[92vw] p-4 rounded-2xl bg-[#090e1a]/85 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/80 ring-1 ring-white/10 text-left pointer-events-auto flex flex-col"
+         :style="`left: ${previewPosition.x}px; top: ${previewPosition.y}px;`">
+        
+        <div class="flex items-start justify-between gap-2 mb-2.5">
+            <div class="flex items-center gap-2 min-w-0">
+                <span class="w-7 h-7 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 flex-shrink-0">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M3 7V5a2 2 0 0 1 2-2h2" />
+                        <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+                        <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+                        <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+                        <path d="M7 8h8" />
+                        <path d="M7 12h10" />
+                        <path d="M7 16h6" />
+                    </svg>
+                </span>
+                <div class="min-w-0">
+                    <h4 class="text-xs font-semibold text-white leading-tight truncate" x-text="previewEntry?.title"></h4>
+                    <div class="flex items-center gap-1.5 mt-0.5">
+                        <span class="text-[10px] text-gray-400 font-mono truncate" x-text="previewEntry?.date"></span>
+                        <template x-if="previewEntry?.match_type === 'exact_and_concept'">
+                            <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/20 font-mono flex-shrink-0">Exact & Theme</span>
+                        </template>
+                        <template x-if="previewEntry?.match_type === 'keyword_match'">
+                            <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/20 font-mono flex-shrink-0">Exact Match</span>
+                        </template>
+                        <template x-if="previewEntry?.match_type === 'conceptual_similarity'">
+                            <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/20 font-mono flex-shrink-0">Similar Theme</span>
+                        </template>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-1 flex-shrink-0">
+                <button type="button" @click.stop="toggleExpand()"
+                    class="p-1 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors cursor-pointer"
+                    title="Enlarge preview">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+                    </svg>
+                </button>
+                <button type="button" @click.stop="closeEntryPreview(0)"
+                    class="p-1 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors cursor-pointer"
+                    title="Close">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Scrollable content without visible scrollbar -->
+        <div class="overflow-y-auto max-h-40 overscroll-contain pr-1 mb-3 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            <p class="text-xs text-gray-200/95 leading-relaxed italic bg-white/[0.03] p-2.5 rounded-lg border border-white/5 whitespace-pre-wrap font-sans" x-text="previewEntry?.snippet"></p>
+        </div>
+
+        <div class="flex items-center justify-between gap-2 pt-2 border-t border-white/10 mt-auto">
+            <div class="flex flex-wrap gap-1 max-w-[65%]">
+                <template x-for="tag in (previewEntry?.tags || []).slice(0, 2)" :key="tag">
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-gray-400 font-mono" x-text="'#' + tag"></span>
+                </template>
+            </div>
+            <a :href="'/entries/' + previewEntry?.id" wire:navigate.hover
+               class="inline-flex items-center gap-1 text-xs font-medium text-blue-400 hover:text-blue-300 group">
+                <span>Read memo</span>
+                <svg class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+            </a>
         </div>
     </div>
 
@@ -661,7 +912,159 @@
             scrollMessagesToBottom();
         };
 
+        window.__entryPreviewCache = window.__entryPreviewCache || new Map();
+
+        const decodeEntryB64 = (b64) => {
+            if (!b64) return null;
+            try {
+                const binString = atob(b64);
+                const bytes = Uint8Array.from(binString, m => m.charCodeAt(0));
+                return JSON.parse(new TextDecoder().decode(bytes));
+            } catch (e) {
+                try {
+                    return JSON.parse(decodeURIComponent(escape(atob(b64))));
+                } catch (e2) {
+                    return null;
+                }
+            }
+        };
+
+        window.__getChatAlpine = () => {
+            const root = document.getElementById('chatRoot');
+            if (!root) return null;
+            if (window.Alpine && typeof window.Alpine.$data === 'function') {
+                try {
+                    return window.Alpine.$data(root);
+                } catch(e) {}
+            }
+            if (root._x_dataStack && root._x_dataStack[0]) {
+                return root._x_dataStack[0];
+            }
+            return null;
+        };
+
+        window.__openEntryPreview = (entry, event) => {
+            const data = window.__getChatAlpine();
+            if (data && typeof data.openEntryPreview === 'function') {
+                data.openEntryPreview(entry, event);
+            }
+        };
+
+        window.__openEntryPreviewByKey = (key, event) => {
+            const entry = window.__entryPreviewCache.get(key);
+            if (entry) {
+                window.__openEntryPreview(entry, event);
+            }
+        };
+
+        window.__closeEntryPreview = (delay = 180) => {
+            const data = window.__getChatAlpine();
+            if (data && typeof data.closeEntryPreview === 'function') {
+                data.closeEntryPreview(delay);
+            }
+        };
+
+        // Global delegated hover listeners: guaranteed to fire across all dynamic updates, stream events, and sessions
+        document.addEventListener('mouseover', (e) => {
+            const trigger = e.target.closest('[data-entry-preview]');
+            if (!trigger) return;
+
+            if (e.relatedTarget && trigger.contains(e.relatedTarget)) {
+                return;
+            }
+
+            const b64 = trigger.getAttribute('data-entry-b64');
+            let entry = decodeEntryB64(b64);
+            if (!entry) {
+                const key = trigger.getAttribute('data-entry-key');
+                if (key) {
+                    entry = window.__entryPreviewCache.get(key);
+                }
+            }
+            if (entry) {
+                window.__openEntryPreview(entry, e);
+            }
+        }, { passive: true });
+
+        document.addEventListener('mouseout', (e) => {
+            const trigger = e.target.closest('[data-entry-preview]');
+            if (!trigger) return;
+
+            if (!e.relatedTarget || !trigger.contains(e.relatedTarget)) {
+                window.__closeEntryPreview(180);
+            }
+        }, { passive: true });
+
+        let streamedRawText = '';
+        let streamedEntries = [];
+
+        const escapeRegex = (string) => {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        };
+
+        const formatContentWithPills = (rawText, entries) => {
+            if (!rawText) return '';
+            let escaped = escapeHtml(rawText);
+            if (!entries || !entries.length) return escaped;
+
+            const targets = [];
+            for (const entry of entries) {
+                if (!entry || !entry.title) continue;
+                const entryKey = 'entry_' + entry.id;
+                window.__entryPreviewCache.set(entryKey, entry);
+
+                targets.push({
+                    title: entry.title,
+                    entryKey: entryKey,
+                    length: entry.title.length,
+                    entry: entry,
+                });
+
+                const cleanTitle = entry.title.replace(/^[\p{Emoji}\s\p{P}]+|[\p{Emoji}\s\p{P}]+$/gu, '').trim();
+                if (cleanTitle && cleanTitle !== entry.title && cleanTitle.length >= 3) {
+                    targets.push({
+                        title: cleanTitle,
+                        entryKey: entryKey,
+                        length: cleanTitle.length,
+                        entry: entry,
+                    });
+                }
+            }
+
+            targets.sort((a, b) => b.length - a.length);
+
+            for (const target of targets) {
+                const titleEsc = escapeRegex(escapeHtml(target.title));
+                const pattern = new RegExp('(?:\\*|_|&quot;|")*' + titleEsc + '(?:\'s|’s)?(?:\\*|_|&quot;|")*', 'i');
+
+                const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(target.entry))));
+                const pill = `<button type="button" ` +
+                    `data-entry-preview="true" ` +
+                    `data-entry-b64="${b64}" ` +
+                    `data-entry-key="${target.entryKey}" ` +
+                    `onclick="window.location.href = '/entries/${target.entry.id}'" ` +
+                    `class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 hover:text-blue-200 border border-blue-500/30 transition-all font-medium cursor-pointer align-baseline text-xs mx-0.5 group shadow-sm">` +
+                    `<svg class="w-3.5 h-3.5 text-blue-400 group-hover:scale-110 transition-transform flex-shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 8h8"/><path class="transition-transform group-hover:-translate-x-0.5" d="M7 12h10"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 16h6"/></svg>` +
+                    `<span>${escapeHtml(target.entry.title)}</span>` +
+                    `</button>`;
+
+                if (pattern.test(escaped)) {
+                    escaped = escaped.replace(pattern, pill);
+                }
+            }
+
+            return escaped;
+        };
+
+        const renderStreamingToElement = () => {
+            const contentEl = document.getElementById('streaming-message-content');
+            if (!contentEl) return;
+            contentEl.innerHTML = formatContentWithPills(streamedRawText, streamedEntries);
+        };
+
         const resetStreamingUi = () => {
+            streamedRawText = '';
+            streamedEntries = [];
             const dots = document.getElementById('streaming-message-dots');
             const content = document.getElementById('streaming-message-content');
             const toolContainer = document.getElementById('streaming-tool-activity');
@@ -671,7 +1074,7 @@
             }
 
             if (content) {
-                content.textContent = '';
+                content.innerHTML = '';
                 content.classList.add('hidden');
             }
 
@@ -698,6 +1101,18 @@
                     <\/div>
                 `;
             } else if (toolData.status === 'done') {
+                if (toolData.tool === 'search_journal' && Array.isArray(toolData.result?.entries)) {
+                    streamedEntries = toolData.result.entries;
+                    streamedEntries.forEach(entry => {
+                        if (entry && entry.id) {
+                            window.__entryPreviewCache.set('entry_' + entry.id, entry);
+                        }
+                    });
+                    if (streamedRawText) {
+                        renderStreamingToElement();
+                    }
+                }
+
                 const toolIcon = toolData.tool === 'search_journal'
                     ? '<svg class="w-3.5 h-3.5 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/><\/svg>'
                     : (toolData.tool === 'get_user_stats'
@@ -732,7 +1147,8 @@
                 contentEl.classList.remove('hidden');
             }
 
-            contentEl.textContent += text;
+            streamedRawText += text;
+            renderStreamingToElement();
             scrollMessagesToBottom();
         };
 
@@ -781,6 +1197,7 @@
                 return;
             }
 
+            renderStreamingToElement();
             await component.call('completeStreamingResponse', conversationId);
             clearPendingExchange();
         };

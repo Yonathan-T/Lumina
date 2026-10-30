@@ -338,6 +338,87 @@ class ChatInterface extends Component
         }
     }
 
+    public function renderMessageContent(array $message): string
+    {
+        $rawContent = (string) ($message['content'] ?? '');
+        if (!($message['isAi'] ?? false)) {
+            return e($rawContent);
+        }
+
+        $tools = $message['metadata']['tools_used'] ?? [];
+        $entries = [];
+
+        foreach ($tools as $tool) {
+            if (($tool['tool'] ?? '') === 'search_journal' && !empty($tool['result']['entries'])) {
+                foreach ($tool['result']['entries'] as $item) {
+                    if (!empty($item['title']) && !empty($item['id'])) {
+                        $entries[] = $item;
+                    }
+                }
+            }
+        }
+
+        if (empty($entries)) {
+            return e($rawContent);
+        }
+
+        // Deduplicate entries by ID
+        $uniqueEntries = [];
+        foreach ($entries as $entry) {
+            $uniqueEntries[$entry['id']] = $entry;
+        }
+        $entries = array_values($uniqueEntries);
+
+        // Sort by title length descending so longer titles are matched first
+        usort($entries, fn ($a, $b) => mb_strlen($b['title']) <=> mb_strlen($a['title']));
+
+        $processed = e($rawContent);
+        $placeholders = [];
+        $placeholderIndex = 0;
+
+        foreach ($entries as $entry) {
+            $title = (string) ($entry['title'] ?? '');
+            if ($title === '') {
+                continue;
+            }
+
+            $cleanTitle = trim(preg_replace('/^[\p{Emoji}\p{So}\s]+|[\p{Emoji}\p{So}\s]+$/u', '', $title));
+            $titlesToMatch = array_unique(array_filter([$title, $cleanTitle], fn($t) => mb_strlen($t) >= 3));
+
+            $b64 = base64_encode(json_encode($entry, JSON_UNESCAPED_UNICODE));
+            $entryUrl = '/entries/' . urlencode((string) $entry['id']);
+
+            $buttonHtml = '<button type="button" ' .
+                'data-entry-preview="true" ' .
+                'data-entry-b64="' . $b64 . '" ' .
+                'onclick="window.location.href = \'' . $entryUrl . '\'" ' .
+                'class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 hover:text-blue-200 border border-blue-500/30 transition-all font-medium cursor-pointer align-baseline text-xs mx-0.5 group shadow-sm">' .
+                '<svg class="w-3.5 h-3.5 text-blue-400 group-hover:scale-110 transition-transform flex-shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 8h8"/><path class="transition-transform group-hover:-translate-x-0.5" d="M7 12h10"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 16h6"/></svg>' .
+                '<span>' . e($title) . '</span>' .
+                '</button>';
+
+            foreach ($titlesToMatch as $matchTitle) {
+                $escapedTitle = preg_quote(e($matchTitle), '/');
+                $leadBoundary = preg_match('/^\w/u', $matchTitle) ? '(?<=\s|^|[\*_"\']|&quot;)' : '';
+                $trailBoundary = preg_match('/\w$/u', $matchTitle) ? '(?=\s|$|[\*_"\',.;:!?]|&quot;|\'s|’s)' : '';
+                $pattern = '/' . $leadBoundary . '(?:[\*_"]|&quot;)*' . $escapedTitle . '(?:\'s|’s)?(?:[\*_"]|&quot;)*' . $trailBoundary . '/iu';
+
+                if (preg_match($pattern, $processed)) {
+                    $token = '___ENTRY_PILL_' . ($placeholderIndex++) . '___';
+                    $placeholders[$token] = $buttonHtml;
+                    $processed = preg_replace($pattern, $token, $processed, 1);
+                    break;
+                }
+            }
+        }
+
+        if (!empty($placeholders)) {
+            $processed = strtr($processed, $placeholders);
+        }
+
+        return $processed;
+    }
+
     public function render()
     {
         return view('livewire.chat-interface');
