@@ -73,7 +73,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Data Export Download
 
-    // Blogs
+    // Chat
+    Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+    Route::post('/chat/stream', [ChatController::class, 'stream'])->name('chat.stream');
 });
 
 // Data export download (outside auth for email links)
@@ -153,8 +155,7 @@ Route::post('/auth/logout', [SessionController::class, 'destroy'])->name('logout
 
 Route::get('/search', [SearchController::class, 'search'])->name('search');
 
-Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
-Route::middleware('auth')->post('/chat/stream', [ChatController::class, 'stream'])->name('chat.stream');
+
 
 // //entries need middleware ofc.
 // Route::get('/entries',[EntryController::class ,'create']);
