@@ -405,8 +405,15 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
             </a>
           </div>
 
-          <!-- Lumina Book Artwork -->
-          <div class="inline-block">
+          <!-- Mobile: Quote Tagline -->
+          <p class="sm:hidden text-white/70 text-sm leading-relaxed max-w-sm">
+            <x-icons type="leftQ" class="inline" />
+            Your private sanctuary for mindful journaling. Reflect, grow, and heal through the power of written words.
+            <x-icons type="rightQ" class="inline" />
+          </p>
+
+          <!-- Desktop / Tablet: Lumina Book Artwork -->
+          <div class="hidden sm:inline-block">
             <img src="{{ asset('images/lumibook.png') }}?v={{ filemtime(public_path('images/lumibook.png')) }}"
                  alt="Lumina Book"
                  width="242"
