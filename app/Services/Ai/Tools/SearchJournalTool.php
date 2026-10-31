@@ -108,8 +108,17 @@ class SearchJournalTool implements ToolInterface
                 $candidateIds = array_keys($scoredCandidates);
                 $queryBuilder->whereIn('id', $candidateIds);
             } else {
-                // Fallback: recent entries if neither produced hits
-                $queryBuilder->latest();
+                $isRecentRequest = (bool) preg_match('/\b(recent|latest|last|today|yesterday|past days)\b/i', $query);
+                if ($isRecentRequest) {
+                    $queryBuilder->latest();
+                } else {
+                    return [
+                        'status' => 'not_found',
+                        'count' => 0,
+                        'entries' => [],
+                        'message' => "No entries found matching '{$query}'. Try reformulating with related synonyms, broader keywords, or check list_tags.",
+                    ];
+                }
             }
 
             if ($daysAgo && $daysAgo > 0) {

@@ -324,7 +324,7 @@
                                         </div>
                                     @endif
 
-                                    <div class="max-w-[300px] md:max-w-[400px] lg:max-w-[500px] w-full">
+                                    <div class="max-w-[85%] {{ $message['isAi'] ? 'md:max-w-[650px] w-full flex flex-col items-start' : 'md:max-w-[500px] flex flex-col items-end' }}">
                                         @if($message['isAi'] && !empty($message['metadata']['tools_used']))
                                             @php
                                                 $toolsUsed = $message['metadata']['tools_used'];
@@ -452,11 +452,11 @@
                                         @endif
 
                                         <div
-                                            class="rounded-2xl px-4 py-3 {{ $message['isAi'] ? (isset($message['isError']) ? 'bg-red-900/60 border border-red-500/40 text-red-200' : 'bg-gray-800 text-gray-100') : 'bg-blue-600 text-white' }}">
+                                            class="rounded-2xl px-4 py-3 w-fit max-w-full text-left {{ $message['isAi'] ? (isset($message['isError']) ? 'bg-red-900/60 border border-red-500/40 text-red-200' : 'bg-gray-800 text-gray-100') : 'bg-blue-600 text-white' }}">
                                             <p class="text-sm leading-relaxed whitespace-pre-wrap break-words">{!! $this->renderMessageContent($message) !!}</p>
                                         </div>
 
-                                        <div class="flex items-center gap-2 mt-2 {{ $message['isAi'] ? '' : 'justify-end' }}">
+                                        <div class="flex items-center gap-2 mt-1.5 {{ $message['isAi'] ? '' : 'justify-end' }}">
                                             <p class="text-xs text-gray-500 message-timestamp" data-created-at="{{ $message['createdAt'] }}"></p>
                                         </div>
                                     </div>
@@ -934,11 +934,11 @@
                     <div class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
                         <span class="text-sm font-medium text-white">${userInitial}<\/span>
                     <\/div>
-                    <div class="max-w-[300px] md:max-w-[400px] lg:max-w-[500px]">
-                        <div class="rounded-2xl px-4 py-3 bg-blue-600 text-white">
+                    <div class="max-w-[85%] md:max-w-[500px] flex flex-col items-end">
+                        <div class="rounded-2xl px-4 py-3 bg-blue-600 text-white w-fit max-w-full text-left">
                             <p class="text-sm leading-relaxed whitespace-pre-wrap break-words">${safeMessage}<\/p>
                         <\/div>
-                        <div class="flex items-center gap-2 mt-2 justify-end">
+                        <div class="flex items-center gap-2 mt-1.5 justify-end">
                             <p class="text-xs text-gray-500 message-timestamp" data-created-at="${createdAt}"><\/p>
                         <\/div>
                     <\/div>
@@ -947,13 +947,13 @@
                     <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm border border-blue-400/20">
                         <img src="/lumi.svg" alt="Lumi" class="w-5.5 h-5.5 object-contain select-none pointer-events-none" />
                     <\/div>
-                    <div class="max-w-[300px] md:max-w-[400px] lg:max-w-[500px] w-full">
+                    <div class="max-w-[85%] md:max-w-[650px] w-full flex flex-col items-start">
                         <div id="streaming-tool-activity" class="hidden mb-2.5"><\/div>
-                        <div id="streaming-thinking-indicator" class="flex items-center gap-2 h-8 text-xs text-gray-400 select-none">
+                        <div id="streaming-thinking-indicator" class="flex items-center gap-2 h-8 pt-1 text-xs text-gray-400 select-none">
                             <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"><\/span>
                             <span class="text-xs font-mono text-gray-400 leading-none">Thinking...<\/span>
                         <\/div>
-                        <div id="streaming-message-bubble" class="hidden bg-gray-800 rounded-2xl px-4 py-3">
+                        <div id="streaming-message-bubble" class="hidden bg-gray-800 rounded-2xl px-4 py-3 w-fit max-w-full text-left">
                             <p id="streaming-message-content" class="text-sm leading-relaxed whitespace-pre-wrap break-words text-gray-100"><\/p>
                         <\/div>
                     <\/div>

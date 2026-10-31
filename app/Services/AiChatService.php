@@ -194,7 +194,7 @@ class AiChatService
                 $rawEvent = substr($buffer, 0, $delimiterPosition);
                 $buffer = substr($buffer, $delimiterPosition + 2);
 
-                if ($depth === 0) {
+                if ($depth < 4) {
                     $fnInfo = $this->extractFunctionCallFromGeminiStreamEvent($rawEvent);
                     if ($fnInfo) {
                         $detectedFunctionCallInfo = $fnInfo;
@@ -213,7 +213,7 @@ class AiChatService
             }
         }
 
-        if ($detectedFunctionCallInfo !== null && $depth < 2) {
+        if ($detectedFunctionCallInfo !== null && $depth < 4) {
             $detectedFunctionCall = $detectedFunctionCallInfo['functionCall'];
             $modelParts = $detectedFunctionCallInfo['parts'] ?? [['functionCall' => $detectedFunctionCall]];
 
@@ -231,7 +231,9 @@ class AiChatService
             }
 
             Log::info("Lumi executing tool '{$toolName}' in stream", ['args' => $toolArgs]);
+            $startTime = microtime(true);
             $toolResult = $user ? $this->toolRegistry->execute($toolName, $toolArgs, $user) : ['error' => 'Unauthenticated'];
+            $durationMs = (int) round((microtime(true) - $startTime) * 1000);
 
             $completedToolEvent = [
                 'status' => 'done',
@@ -239,6 +241,7 @@ class AiChatService
                 'label' => $this->formatToolLabel($toolName, $toolArgs, 'done', $toolResult),
                 'args' => $toolArgs,
                 'result' => $toolResult,
+                'duration_ms' => $durationMs,
             ];
             $this->executedTools[] = $completedToolEvent;
 
@@ -246,11 +249,27 @@ class AiChatService
                 $onToolEvent($completedToolEvent);
             }
 
+            // Ensure functionCall.args is a Protobuf Struct (object) and never serialized as empty list []
+            foreach ($modelParts as &$mPart) {
+                if (isset($mPart['functionCall'])) {
+                    $callArgs = $mPart['functionCall']['args'] ?? null;
+                    if (empty($callArgs) || (is_array($callArgs) && array_is_list($callArgs))) {
+                        $mPart['functionCall']['args'] = (object) [];
+                    }
+                }
+            }
+            unset($mPart);
+
             // Append model turn with exact original parts (preserving thought_signature for thinking models)
             $messages[] = [
                 'role' => 'model',
                 'parts' => $modelParts,
             ];
+
+            // Protobuf Struct for function response must be an associative object
+            $responseStruct = (empty($toolResult) || (is_array($toolResult) && array_is_list($toolResult)))
+                ? ['result' => $toolResult]
+                : $toolResult;
 
             // Append user turn with functionResponse
             $messages[] = [
@@ -259,7 +278,7 @@ class AiChatService
                     [
                         'functionResponse' => [
                             'name' => $toolName,
-                            'response' => $toolResult,
+                            'response' => $responseStruct,
                         ],
                     ],
                 ],
@@ -556,7 +575,7 @@ class AiChatService
             $parts = data_get($data, 'candidates.0.content.parts', []);
 
             // Check if model called a function
-            if ($depth < 2) {
+            if ($depth < 4) {
                 $functionCallPart = collect($parts)->first(fn ($p) => isset($p['functionCall']));
                 if ($functionCallPart) {
                     $functionCall = $functionCallPart['functionCall'];
@@ -565,12 +584,38 @@ class AiChatService
                     $user = auth()->user();
 
                     Log::info("Lumi executing tool '{$toolName}' in non-stream", ['args' => $toolArgs]);
+                    $startTime = microtime(true);
                     $toolResult = $user ? $this->toolRegistry->execute($toolName, $toolArgs, $user) : ['error' => 'Unauthenticated'];
+                    $durationMs = (int) round((microtime(true) - $startTime) * 1000);
+
+                    $this->executedTools[] = [
+                        'status' => 'done',
+                        'tool' => $toolName,
+                        'label' => $this->formatToolLabel($toolName, $toolArgs, 'done', $toolResult),
+                        'args' => $toolArgs,
+                        'result' => $toolResult,
+                        'duration_ms' => $durationMs,
+                    ];
+
+                    // Ensure functionCall.args is a Protobuf Struct (object) and never serialized as empty list []
+                    foreach ($parts as &$mPart) {
+                        if (isset($mPart['functionCall'])) {
+                            $callArgs = $mPart['functionCall']['args'] ?? null;
+                            if (empty($callArgs) || (is_array($callArgs) && array_is_list($callArgs))) {
+                                $mPart['functionCall']['args'] = (object) [];
+                            }
+                        }
+                    }
+                    unset($mPart);
 
                     $messages[] = [
                         'role' => 'model',
                         'parts' => $parts, // preserve thought_signature and original parts
                     ];
+
+                    $responseStruct = (empty($toolResult) || (is_array($toolResult) && array_is_list($toolResult)))
+                        ? ['result' => $toolResult]
+                        : $toolResult;
 
                     $messages[] = [
                         'role' => 'user',
@@ -578,7 +623,7 @@ class AiChatService
                             [
                                 'functionResponse' => [
                                     'name' => $toolName,
-                                    'response' => $toolResult,
+                                    'response' => $responseStruct,
                                 ],
                             ],
                         ],
@@ -697,6 +742,10 @@ Sanctuary Tools & Memory:
 - `get_user_stats`: Use when the user asks about their streak, total entries, or journaling consistency.
 - `list_tags`: Use when the user asks about their tags, how many tags they have, or what categories/topics they tag frequently.
 - `draft_entry`: Persist and save a finalized journal entry into the user's sanctuary database.
+- Multi-Step Reasoning & Query Refinement:
+  * You can invoke tools in multiple consecutive turns before producing your final response.
+  * If your initial `search_journal` call returns no matching entries or message indicates 0 results, DO NOT give up immediately or apologize robotically. Reformulate the query with related themes, broader keywords, or alternative synonyms (for example, if searching for "cardio workout" produces 0 hits, try "running marathon fitness", or check `list_tags`).
+  * If after 1–2 search attempts no entries exist in the user's sanctuary, speak naturally and truthfully about what you know without hallucinating entries that aren't there.
   * CRITICAL RULES FOR SAVING ENTRIES:
     1. NEVER save a 3-word placeholder (like "Today was peaceful") when a user mentions a brief idea like "Save a memo about how peaceful today was". A journal entry must be a meaningful, thoughtful piece of writing.
     2. Collaborative Drafting: When a user wants to record an entry or convert their chat conversation into a journal memo:

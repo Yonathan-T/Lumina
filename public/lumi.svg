@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220">
+  <!-- Exact prism body -->
+  <g transform="translate(100, 125) scale(5.2) rotate(-180) translate(-12, -12)">
+    <path d="M13,2l9,13.6L13,22ZM11,2,2,15.6,11,22Z" fill="#FFFFFF"/>
+  </g>
+
+  <!-- Head -->
+  <circle cx="100" cy="48" r="24" fill="#FFFFFF"/>
+
+  <!-- Eyes -->
+  <circle cx="89" cy="47" r="6" fill="#1a1a2e"/>
+  <circle cx="111" cy="47" r="6" fill="#1a1a2e"/>
+
+  <!-- Antenna (fully inside) -->
+  <line x1="114" y1="28" x2="122" y2="14" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round"/>
+  <circle cx="123" cy="12" r="3.8" fill="#FFFFFF"/>
+
+  <!-- Left Arm -->
+  <path d="M80 95 L58 112 L48 138" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="58" cy="112" r="3.8" fill="#FFFFFF"/>
+  <circle cx="48" cy="141" r="7.5" fill="#FFFFFF"/>
+
+  <!-- Right Arm -->
+  <path d="M120 95 L142 112 L152 138" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="142" cy="112" r="3.8" fill="#FFFFFF"/>
+  <circle cx="152" cy="141" r="7.5" fill="#FFFFFF"/>
+
+  <!-- Left Leg + Foot -->
+  <g stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M88 160 L80 188 L80 198"/>
+    <rect x="63" y="198" width="34" height="9" rx="4.5" fill="#FFFFFF" stroke="none"/>
+    <circle cx="71" cy="202.5" r="1.6" fill="#FFFFFF" stroke="none"/>
+  </g>
+
+  <!-- Right Leg + Foot -->
+  <g stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M112 160 L124 188 L124 198"/>
+    <rect x="107" y="198" width="34" height="9" rx="4.5" fill="#FFFFFF" stroke="none"/>
+    <circle cx="133" cy="202.5" r="1.6" fill="#FFFFFF" stroke="none"/>
+  </g>
+</svg>

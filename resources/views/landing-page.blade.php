@@ -418,7 +418,7 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
                  alt="Lumina Book"
                  width="242"
                  height="297"
-                 class="w-[150px] sm:w-[170px] h-auto object-contain select-none pointer-events-none drop-shadow-[0_12px_24px_rgba(0,0,0,0.55)] transition-transform duration-300 hover:scale-[1.02]" />
+                 class="w-[120px] sm:w-[135px] h-auto object-contain select-none pointer-events-none drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] transition-transform duration-300 hover:scale-[1.02]" />
           </div>
 
           <!-- Social Links -->
