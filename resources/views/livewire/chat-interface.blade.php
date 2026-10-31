@@ -949,7 +949,7 @@
                     <\/div>
                     <div class="max-w-[85%] md:max-w-[650px] w-full flex flex-col items-start">
                         <div id="streaming-tool-activity" class="hidden mb-2.5"><\/div>
-                        <div id="streaming-thinking-indicator" class="flex items-center gap-2 h-8 text-xs text-gray-400 select-none" style="transform: translateY(4.5px);">
+                        <div id="streaming-thinking-indicator" class="flex items-center gap-2 h-8 text-xs text-gray-400 select-none" style="transform: translateY(1px);">
                             <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse shrink-0"><\/span>
                             <span class="text-xs font-mono text-gray-400 leading-none">Thinking...<\/span>
                         <\/div>
