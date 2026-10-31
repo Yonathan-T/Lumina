@@ -413,12 +413,12 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
           </p>
 
           <!-- Desktop / Tablet: Lumina Book Artwork -->
-          <div class="hidden sm:inline-block">
+          <div class="hidden sm:block w-fit">
             <img src="{{ asset('images/lumibook.png') }}?v={{ filemtime(public_path('images/lumibook.png')) }}"
                  alt="Lumina Book"
                  width="242"
                  height="297"
-                 class="w-[120px] sm:w-[135px] h-auto object-contain select-none pointer-events-none drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] transition-transform duration-300 hover:scale-[1.02]" />
+                 class="w-[100px] sm:w-[112px] h-auto object-contain select-none pointer-events-none drop-shadow-[0_8px_16px_rgba(0,0,0,0.45)] transition-transform duration-300 hover:scale-[1.02]" />
           </div>
 
           <!-- Social Links -->
