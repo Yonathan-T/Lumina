@@ -1493,24 +1493,42 @@
                 let receivedText = false;
                 let receivedDone = false;
 
+                let streamWatchdog = setTimeout(() => {
+                    if (activeStreamController) {
+                        activeStreamController.abort();
+                    }
+                }, 50000);
+
+                const resetWatchdog = () => {
+                    clearTimeout(streamWatchdog);
+                    streamWatchdog = setTimeout(() => {
+                        if (activeStreamController) {
+                            activeStreamController.abort();
+                        }
+                    }, 35000);
+                };
+
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) {
                         break;
                     }
 
+                    resetWatchdog();
                     buffer += decoder.decode(value, { stream: true });
 
                     const parsed = parseSseChunk(buffer);
                     buffer = parsed.remainder;
 
                     for (const event of parsed.events) {
+                        resetWatchdog();
                         if (event.type === 'tool' && event.data) {
                             handleToolEvent(event.data);
                         } else if (event.type === 'chunk' && event.data?.text) {
                             receivedText = true;
                             appendStreamingText(event.data.text);
                         } else if (event.type === 'done') {
+                            clearTimeout(streamWatchdog);
                             receivedDone = true;
                             activeStreamController = null;
                             await finishStreaming(
@@ -1519,6 +1537,7 @@
                             );
                             return;
                         } else if (event.type === 'error') {
+                            clearTimeout(streamWatchdog);
                             activeStreamController = null;
                             await finishStreaming(
                                 component,
@@ -1532,6 +1551,7 @@
                     }
                 }
 
+                clearTimeout(streamWatchdog);
                 activeStreamController = null;
 
                 if (! receivedDone) {
