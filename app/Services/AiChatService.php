@@ -17,6 +17,9 @@ class AiChatService
     protected $provider;
     protected $openaiApiKey;
     protected $huggingfaceApiKey;
+    public const COMPACTION_THRESHOLD = 15;
+    public const VERBATIM_WINDOW_COUNT = 8;
+
     protected $geminiApiKey;
     protected $huggingfaceModel;
     protected $userDataService;
@@ -52,7 +55,9 @@ class AiChatService
     public function generateResponse(string $message, ?int $conversationId = null): string
     {
         try {
-            $conversationHistory = $this->getConversationHistory($conversationId);
+            $contextData = $this->getConversationContextData($conversationId);
+            $conversationHistory = $contextData['history'];
+            $conversationSummary = $contextData['summary'];
             $userContext = $this->getUserContext($message);
 
             if ($this->provider === 'gemini' && !$this->geminiApiKey) {
@@ -69,7 +74,7 @@ class AiChatService
 
 
             if ($this->provider === 'gemini') {
-                return $this->generateGeminiResponse($message, $conversationHistory, $userContext);
+                return $this->generateGeminiResponse($message, $conversationHistory, $userContext, null, 0, $conversationSummary);
             } elseif ($this->provider === 'huggingface') {
                 return $this->generateHuggingFaceResponse($message, $conversationHistory, $userContext);
             } elseif ($this->provider === 'openai') {
@@ -133,9 +138,12 @@ class AiChatService
 
         $onChunk = $onChunk ?? static function (): void {};
 
-        $conversationHistory = $this->getConversationHistory($conversationId);
+        $contextData = $this->getConversationContextData($conversationId);
+        $conversationHistory = $contextData['history'];
+        $conversationSummary = $contextData['summary'];
+
         $userContext = $this->getUserContext($message);
-        $systemPrompt = $this->getGeminiSystemPrompt($userContext);
+        $systemPrompt = $this->getGeminiSystemPrompt($userContext, $conversationSummary);
         $messages = $preparedMessages ?? $this->buildGeminiMessages($message, $conversationHistory);
 
         $payload = $this->buildGeminiRequestPayload($messages, $systemPrompt);
@@ -545,10 +553,11 @@ class AiChatService
         array $conversationHistory,
         string $userContext = '',
         ?array $preparedMessages = null,
-        int $depth = 0
+        int $depth = 0,
+        ?string $conversationSummary = null
     ): string
     {
-        $systemPrompt = $this->getGeminiSystemPrompt($userContext);
+        $systemPrompt = $this->getGeminiSystemPrompt($userContext, $conversationSummary);
         $messages = $preparedMessages ?? $this->buildGeminiMessages($message, $conversationHistory);
         $payload = $this->buildGeminiRequestPayload($messages, $systemPrompt);
 
@@ -629,7 +638,7 @@ class AiChatService
                         ],
                     ];
 
-                    return $this->generateGeminiResponse($message, $conversationHistory, $userContext, $messages, $depth + 1);
+                    return $this->generateGeminiResponse($message, $conversationHistory, $userContext, $messages, $depth + 1, $conversationSummary);
                 }
             }
 
@@ -716,7 +725,7 @@ class AiChatService
     {
         return "To start chatting with Lumi, please configure your {$model} API key first. Head to Settings > Account > API Integration Settings to enter and save your key.";
     }
-    protected function getGeminiSystemPrompt(string $userContext = ''): string
+    protected function getGeminiSystemPrompt(string $userContext = '', ?string $conversationSummary = null): string
     {
         $userName = auth()->user() ? auth()->user()->name : 'the user';
 
@@ -762,6 +771,15 @@ EOT;
 
         if (! empty(trim($userContext))) {
             $prompt .= "\n\n" . trim($userContext);
+        }
+
+        if (! empty(trim((string) $conversationSummary))) {
+            $prompt .= "\n\n" . "CONVERSATION MEMORY (Prior compacted context from earlier in this discussion):\n"
+                . "The following is a condensed, factual memory summary of earlier exchanges in this chat before the recent messages below:\n"
+                . "\"\"\"\n"
+                . trim($conversationSummary) . "\n"
+                . "\"\"\"\n"
+                . "Use this memory context to maintain continuity, remember past details the user shared, and avoid repeating yourself, while naturally continuing the dialogue from the recent exchanges below.";
         }
 
         return $prompt;
@@ -898,25 +916,168 @@ You are Lumi, an empathetic and intelligent journaling assistant designed to sup
         return $messages;
     }
 
-    protected function getConversationHistory(?int $conversationId = null): array
+    /**
+     * Retrieves conversation history and compacts older messages into a rolling memory context block
+     * when the total message count reaches or exceeds COMPACTION_THRESHOLD.
+     *
+     * @return array{history: array, summary: ?string}
+     */
+    public function getConversationContextData(?int $conversationId = null): array
     {
         if (!$conversationId) {
-            return [];
+            return ['history' => [], 'summary' => null];
         }
 
-        return Message::where('conversation_id', $conversationId)
-            ->orderBy('created_at', 'desc')
-            ->limit(24)
-            ->get()
-            ->reverse()
-            ->values()
-            ->map(function ($message) {
+        $conversation = Conversation::find($conversationId);
+        if (!$conversation) {
+            return ['history' => [], 'summary' => null];
+        }
+
+        $allMessages = Message::where('conversation_id', $conversationId)
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $totalCount = $allMessages->count();
+
+        // Below threshold: keep recent messages directly without compaction
+        if ($totalCount < self::COMPACTION_THRESHOLD) {
+            $history = $allMessages->slice(-24)->values()->map(function ($message) {
                 return [
                     'content' => $message->content,
-                    'is_ai_response' => $message->is_ai_response,
+                    'is_ai_response' => (bool) $message->is_ai_response,
                 ];
-            })
-            ->toArray();
+            })->toArray();
+
+            return ['history' => $history, 'summary' => $conversation->summary];
+        }
+
+        // At or above threshold: compact older messages and keep recent exchanges verbatim
+        $olderMessages = $allMessages->slice(0, -self::VERBATIM_WINDOW_COUNT);
+        $recentMessages = $allMessages->slice(-self::VERBATIM_WINDOW_COUNT);
+
+        $lastOlderMessage = $olderMessages->last();
+
+        if ($lastOlderMessage) {
+            $this->ensureRollingSummary($conversation, $olderMessages, $lastOlderMessage);
+            $conversation->refresh();
+        }
+
+        $history = $recentMessages->values()->map(function ($message) {
+            return [
+                'content' => $message->content,
+                'is_ai_response' => (bool) $message->is_ai_response,
+            ];
+        })->toArray();
+
+        return [
+            'history' => $history,
+            'summary' => $conversation->summary,
+        ];
+    }
+
+    protected function ensureRollingSummary(Conversation $conversation, $olderMessages, Message $lastOlderMessage): void
+    {
+        // If already compacted up to this exact message, nothing to do
+        if ($conversation->last_summarized_message_id === $lastOlderMessage->id && !empty($conversation->summary)) {
+            return;
+        }
+
+        $existingSummary = (string) ($conversation->summary ?? '');
+        $messagesToCompact = $olderMessages;
+
+        if (!empty($conversation->last_summarized_message_id) && !empty($existingSummary)) {
+            $uncompacted = $olderMessages->where('id', '>', $conversation->last_summarized_message_id);
+            // If fewer than 4 new older messages accumulated, keep existing summary for now
+            if ($uncompacted->count() < 4) {
+                return;
+            }
+            $messagesToCompact = $uncompacted;
+        }
+
+        $formattedExchanges = $messagesToCompact->map(function ($msg) {
+            $role = $msg->is_ai_response ? 'Lumi' : 'User';
+            $text = trim((string) $msg->content);
+            return "{$role}: {$text}";
+        })->filter()->join("\n");
+
+        if (empty(trim($formattedExchanges))) {
+            return;
+        }
+
+        $newSummary = $this->compactMessagesWithGemini($existingSummary, $formattedExchanges);
+
+        if (!empty($newSummary)) {
+            $conversation->summary = $newSummary;
+            $conversation->last_summarized_message_id = $lastOlderMessage->id;
+            $conversation->save();
+        }
+    }
+
+    public function compactMessagesWithGemini(string $existingSummary, string $newExchanges): ?string
+    {
+        if (!$this->geminiApiKey) {
+            return null;
+        }
+
+        $prompt = "You are the rolling memory compaction engine for Lumina, a mindful personal sanctuary journal.\n"
+            . "Condense the conversation history into a concise, rich, factual memory summary block (maximum 150-220 words).\n\n"
+            . "Guidelines:\n"
+            . "- Capture key themes, emotions, and personal details the user shared.\n"
+            . "- Note specific topics, projects, people, or reflections discussed.\n"
+            . "- Note any user realizations, decisions, or preferences uncovered.\n"
+            . "- Keep it dense, objective, and flowing.\n"
+            . "- Do NOT use bullet points, asterisks, or robotic introductory boilerplate.\n";
+
+        if (!empty(trim($existingSummary))) {
+            $prompt .= "\nPrior Memory Summary:\n{$existingSummary}\n\nNew exchanges to fold into the summary:\n{$newExchanges}\n\nProduce an updated unified memory summary:";
+        } else {
+            $prompt .= "\nExchanges to summarize:\n{$newExchanges}\n\nCondensed memory summary:";
+        }
+
+        try {
+            $models = ['gemini-2.5-flash', 'gemini-3.1-flash-lite', 'gemini-3.5-flash'];
+            foreach ($models as $model) {
+                $response = Http::withHeaders([
+                    'Content-Type' => 'application/json',
+                ])
+                ->timeout(12)
+                ->connectTimeout(5)
+                ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$this->geminiApiKey}", [
+                    'contents' => [
+                        [
+                            'role' => 'user',
+                            'parts' => [
+                                ['text' => $prompt],
+                            ],
+                        ],
+                    ],
+                    'generationConfig' => [
+                        'temperature' => 0.2,
+                        'maxOutputTokens' => 350,
+                    ],
+                ]);
+
+                if ($response->successful()) {
+                    $data = $response->json();
+                    $text = trim($this->extractVisibleTextFromGeminiParts(
+                        data_get($data, 'candidates.0.content.parts', [])
+                    ));
+
+                    if ($text !== '') {
+                        return $text;
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Rolling memory compaction failed: ' . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    protected function getConversationHistory(?int $conversationId = null): array
+    {
+        return $this->getConversationContextData($conversationId)['history'];
     }
 
 

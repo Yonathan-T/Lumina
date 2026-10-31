@@ -13,6 +13,8 @@ class Conversation extends Model
         'user_id',
         'title',
         'type',
+        'summary',
+        'last_summarized_message_id',
         'message_count',
         'last_activity',
     ];
@@ -66,6 +68,46 @@ class Conversation extends Model
         } else {
             $this->attributes['title'] = \Illuminate\Support\Facades\Crypt::encryptString((string) $value);
         }
+    }
+
+    public function getSummaryAttribute($value)
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        $userEnc = $this->getUserEncrypter();
+        if ($userEnc) {
+            try {
+                return $userEnc->decryptString($value);
+            } catch (\Throwable $e) { }
+        }
+
+        try {
+            return \Illuminate\Support\Facades\Crypt::decryptString($value);
+        } catch (\Throwable $e) {
+            return (string) $value;
+        }
+    }
+
+    public function setSummaryAttribute($value)
+    {
+        if (empty($value)) {
+            $this->attributes['summary'] = null;
+            return;
+        }
+
+        $userEnc = $this->getUserEncrypter();
+        if ($userEnc) {
+            $this->attributes['summary'] = $userEnc->encryptString((string) $value);
+        } else {
+            $this->attributes['summary'] = \Illuminate\Support\Facades\Crypt::encryptString((string) $value);
+        }
+    }
+
+    public function lastSummarizedMessage()
+    {
+        return $this->belongsTo(Message::class, 'last_summarized_message_id');
     }
 
     public function user()
