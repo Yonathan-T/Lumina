@@ -949,8 +949,8 @@
                     <\/div>
                     <div class="max-w-[85%] md:max-w-[650px] w-full flex flex-col items-start">
                         <div id="streaming-tool-activity" class="hidden mb-2.5"><\/div>
-                        <div id="streaming-thinking-indicator" class="flex items-center gap-2 h-8 pt-1 text-xs text-gray-400 select-none">
-                            <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"><\/span>
+                        <div id="streaming-thinking-indicator" class="flex items-center gap-2 h-8 text-xs text-gray-400 select-none" style="transform: translateY(4.5px);">
+                            <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse shrink-0"><\/span>
                             <span class="text-xs font-mono text-gray-400 leading-none">Thinking...<\/span>
                         <\/div>
                         <div id="streaming-message-bubble" class="hidden bg-gray-800 rounded-2xl px-4 py-3 w-fit max-w-full text-left">
