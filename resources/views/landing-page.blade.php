@@ -404,11 +404,13 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
               <span class="text-2xl font-playfair font-bold text-[#7c6a54]">Lumina</span>
             </a>
           </div>
-          <p class="text-white/70 text-sm leading-relaxed max-w-sm">
-            <x-icons type="leftQ" class="inline" />
-            Your private sanctuary for mindful journaling. Reflect, grow, and heal through the power of written words.
-            <x-icons type="rightQ" class="inline" />
-          </p>
+
+          <!-- Lumina Book Artwork -->
+          <div class="pt-1">
+            <img src="{{ asset('images/lumibook.png') }}"
+                 alt="Lumina Book"
+                 class="w-32 sm:w-40 md:w-44 h-auto object-contain select-none pointer-events-none drop-shadow-[0_12px_24px_rgba(0,0,0,0.55)] transition-transform duration-500 hover:scale-105" />
+          </div>
 
           <!-- Social Links -->
           <div id="#contact" class="flex items-center gap-4">
