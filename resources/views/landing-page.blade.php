@@ -390,7 +390,7 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
       <div class="py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
 
         <!-- Brand Column -->
-        <div class="lg:col-span-2 space-y-6">
+        <div class="lg:col-span-2 space-y-4">
           <div class="flex items-center gap-2">
            <svg class="w-10 h-10 rotate-[-45deg] hover:rotate-[720deg] transition-all duration-500" fill="currentColor" viewBox="0 0 24 24"
                     xmlns="http://www.w3.org/2000/svg">
@@ -406,14 +406,14 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
           </div>
 
           <!-- Lumina Book Artwork -->
-          <div class="pt-1">
+          <div class="pt-0.5">
             <img src="{{ asset('images/lumibook.png') }}"
                  alt="Lumina Book"
-                 class="w-32 sm:w-40 md:w-44 h-auto object-contain select-none pointer-events-none drop-shadow-[0_12px_24px_rgba(0,0,0,0.55)] transition-transform duration-500 hover:scale-105" />
+                 class="w-48 sm:w-56 md:w-60 max-w-full h-auto object-contain select-none pointer-events-none drop-shadow-[0_16px_32px_rgba(0,0,0,0.6)] transition-transform duration-500 hover:scale-[1.03]" />
           </div>
 
           <!-- Social Links -->
-          <div id="#contact" class="flex items-center gap-4">
+          <div id="#contact" class="flex items-center gap-4 pt-1">
             <a href="https://t.me/+lEIft9tfqhwxNjU8"
               class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 flex items-center justify-center transition-all group">
               <x-icons type="telegram" :logo="true" class="group-hover:scale-110 transition-transform hover:rotate-[360deg]" />
