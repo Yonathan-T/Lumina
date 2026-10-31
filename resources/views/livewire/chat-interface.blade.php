@@ -57,22 +57,33 @@
 
                 if (el && typeof el.getBoundingClientRect === 'function') {
                     const rect = el.getBoundingClientRect();
-                    const cardWidth = 352;
+                    const chatArea = document.getElementById('mainChatArea') || document.getElementById('chatRoot');
+                    const bounds = chatArea ? chatArea.getBoundingClientRect() : {
+                        left: 16,
+                        right: window.innerWidth - 16,
+                        top: 16,
+                        bottom: window.innerHeight - 16
+                    };
+
+                    const cardWidth = 420;
                     const cardHeight = 220;
+
                     let left = rect.left;
-                    if (left + cardWidth > window.innerWidth - 16) {
-                        left = window.innerWidth - cardWidth - 16;
+                    if (left + cardWidth > bounds.right - 16) {
+                        left = bounds.right - cardWidth - 16;
                     }
-                    if (left < 16) {
-                        left = 16;
+                    if (left < bounds.left + 16) {
+                        left = bounds.left + 16;
                     }
-                    let top = rect.bottom + 6;
-                    if (top + cardHeight > window.innerHeight - 16 && rect.top > cardHeight + 16) {
-                        top = rect.top - cardHeight - 6;
+
+                    let top = rect.bottom + 8;
+                    if (top + cardHeight > bounds.bottom - 16 && rect.top > cardHeight + 16) {
+                        top = rect.top - cardHeight - 8;
                     }
-                    if (top < 16) {
-                        top = 16;
+                    if (top < bounds.top + 16) {
+                        top = bounds.top + 16;
                     }
+
                     this.previewPosition = { x: Math.round(left), y: Math.round(top) };
                 }
             }
@@ -298,13 +309,13 @@
                             @foreach($messages as $message)
                                 <div class="flex items-start gap-4 {{ $message['isAi'] ? '' : 'flex-row-reverse' }}">
                                     @if($message['isAi'])
-                                        <div class="w-8 h-8 {{ isset($message['isError']) ? 'bg-red-600' : 'bg-blue-600' }} rounded-full flex items-center justify-center flex-shrink-0">
+                                        <div class="w-8 h-8 {{ isset($message['isError']) ? 'bg-red-600' : 'bg-blue-600' }} rounded-full flex items-center justify-center flex-shrink-0 shadow-sm border border-blue-400/20">
                                             @if(isset($message['isError']))
                                                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
                                             @else
-                                                <x-icon name="flash-outline" class="w-4 h-4 text-white" />
+                                                <img src="{{ asset('lumi.svg') }}" alt="Lumi" class="w-5.5 h-5.5 object-contain select-none pointer-events-none" />
                                             @endif
                                         </div>
                                     @else
@@ -313,100 +324,137 @@
                                         </div>
                                     @endif
 
-                                    <div class="max-w-[300px] md:max-w-[400px] lg:max-w-[500px]">
+                                    <div class="max-w-[300px] md:max-w-[400px] lg:max-w-[500px] w-full">
+                                        @if($message['isAi'] && !empty($message['metadata']['tools_used']))
+                                            @php
+                                                $toolsUsed = $message['metadata']['tools_used'];
+                                                $totalTools = count($toolsUsed);
+                                                $totalDurationMs = array_sum(array_column($toolsUsed, 'duration_ms'));
+                                                $totalDurationFormatted = $totalDurationMs >= 1000 
+                                                    ? number_format($totalDurationMs / 1000, 1) . 's' 
+                                                    : ($totalDurationMs > 0 ? $totalDurationMs . 'ms' : '');
+                                            @endphp
+                                            <div class="mb-2" x-data="{ timelineOpen: false }">
+                                                {{-- Collapsible Timeline Header --}}
+                                                <button 
+                                                    type="button" 
+                                                    @click="timelineOpen = !timelineOpen" 
+                                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs text-gray-400 hover:text-gray-200 transition-all cursor-pointer select-none group">
+                                                    <span class="font-mono text-blue-400 text-[11px]">&gt;_</span>
+                                                    <span class="font-mono text-[11px]">Ran {{ $totalTools }} {{ $totalTools === 1 ? 'command' : 'commands' }}</span>
+                                                    @if($totalDurationFormatted)
+                                                        <span class="text-gray-500 font-mono text-[10px]">· {{ $totalDurationFormatted }}</span>
+                                                    @endif
+                                                    <svg class="w-3 h-3 text-gray-500 transition-transform duration-200" :class="{ 'rotate-180': timelineOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                    </svg>
+                                                </button>
+
+                                                {{-- Vertical Grok-Style Rail --}}
+                                                <div x-show="timelineOpen" x-cloak class="mt-2.5 ml-2.5 pl-4 border-l border-white/15 space-y-2 py-1">
+                                                    @foreach($toolsUsed as $tool)
+                                                        <div x-data="{ stepOpen: false }" class="relative">
+                                                            {{-- Rail Node --}}
+                                                            <div class="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-[#0d1424] border-2 border-blue-400"></div>
+
+                                                            {{-- Step Toggle Button --}}
+                                                            <button 
+                                                                type="button" 
+                                                                @click="stepOpen = !stepOpen" 
+                                                                class="w-full text-left flex items-center justify-between gap-2 px-2 py-1 rounded-lg hover:bg-white/[0.05] transition-colors cursor-pointer select-none group">
+                                                                <span class="inline-flex items-center gap-1.5 text-xs text-gray-300 font-mono">
+                                                                    <span class="text-blue-400/90">&gt;_</span>
+                                                                    <span class="text-gray-300 group-hover:text-white transition-colors">
+                                                                        @if(($tool['tool'] ?? '') === 'search_journal')
+                                                                            Ran search: "{{ $tool['args']['query'] ?? '' }}"
+                                                                        @elseif(($tool['tool'] ?? '') === 'get_user_stats')
+                                                                            Ran check: journaling stats & streak
+                                                                        @elseif(($tool['tool'] ?? '') === 'list_tags')
+                                                                            Ran check: journal tags
+                                                                        @elseif(($tool['tool'] ?? '') === 'draft_entry')
+                                                                            Ran command: save memo "{{ $tool['args']['title'] ?? '' }}"
+                                                                        @else
+                                                                            Ran command: {{ $tool['tool'] ?? 'action' }}
+                                                                        @endif
+                                                                    </span>
+                                                                </span>
+                                                                <div class="flex items-center gap-1.5 shrink-0">
+                                                                    @if(!empty($tool['duration_ms']))
+                                                                        <span class="text-[10px] text-gray-500 font-mono">{{ $tool['duration_ms'] }}ms</span>
+                                                                    @endif
+                                                                    <svg class="w-3 h-3 text-gray-500 transition-transform duration-200" :class="{ 'rotate-180': stepOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                                    </svg>
+                                                                </div>
+                                                            </button>
+
+                                                            {{-- Step Drawer --}}
+                                                            <div x-show="stepOpen" x-cloak class="mt-1 mb-2 rounded-xl border border-white/10 bg-black/40 p-2.5 space-y-2 text-xs">
+                                                                @if(!empty($tool['args']))
+                                                                    <div>
+                                                                        <span class="text-[10px] font-mono text-gray-500 uppercase tracking-wider block mb-1">Command Parameters</span>
+                                                                        <div class="p-2 rounded-lg bg-black/60 border border-white/5 font-mono text-[11px] text-blue-300 overflow-x-auto">
+                                                                            <pre class="whitespace-pre-wrap break-all">{{ json_encode($tool['args'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
+                                                                        </div>
+                                                                    </div>
+                                                                @endif
+
+                                                                @if(!empty($tool['result']))
+                                                                    <div>
+                                                                        <span class="text-[10px] font-mono text-gray-500 uppercase tracking-wider block mb-1">Output</span>
+                                                                        @if(isset($tool['result']['entries']) && is_array($tool['result']['entries']))
+                                                                            <div class="space-y-1.5 font-sans">
+                                                                                @foreach($tool['result']['entries'] as $resEntry)
+                                                                                    @php
+                                                                                        $resEntryB64 = base64_encode(json_encode($resEntry, JSON_UNESCAPED_UNICODE));
+                                                                                    @endphp
+                                                                                    <div 
+                                                                                        data-entry-preview="true"
+                                                                                        data-entry-b64="{{ $resEntryB64 }}"
+                                                                                        onclick="window.location.href = '{{ route('entries.show', $resEntry['id']) }}'"
+                                                                                        class="bg-white/5 p-2 rounded-lg border border-white/5 hover:border-blue-500/40 hover:bg-white/[0.08] transition-all cursor-pointer group">
+                                                                                        <div class="flex items-center justify-between text-xs gap-2">
+                                                                                            <span class="font-medium text-white group-hover:text-blue-300 transition-colors line-clamp-1 flex items-center gap-1.5">
+                                                                                                <svg class="w-3.5 h-3.5 text-blue-400 opacity-70 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 8h8"/><path class="transition-transform group-hover:-translate-x-0.5" d="M7 12h10"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 16h6"/></svg>
+                                                                                                {{ $resEntry['title'] }}
+                                                                                            </span>
+                                                                                            <span class="text-gray-500 text-[10px] font-mono">{{ $resEntry['date'] }}</span>
+                                                                                        </div>
+                                                                                        <p class="text-gray-400 text-xs mt-1 italic line-clamp-1">"{{ $resEntry['snippet'] }}"</p>
+                                                                                    </div>
+                                                                                @endforeach
+                                                                            </div>
+                                                                        @elseif(isset($tool['result']['tags']) && is_array($tool['result']['tags']))
+                                                                            <div class="flex flex-wrap gap-1.5 font-sans">
+                                                                                @foreach($tool['result']['tags'] as $resTag)
+                                                                                    <span class="inline-flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded text-gray-300 text-xs border border-white/5">
+                                                                                        <span>#{{ $resTag['name'] }}</span>
+                                                                                        <span class="text-[10px] text-gray-500 font-mono">({{ $resTag['entries_count'] }})</span>
+                                                                                    </span>
+                                                                                @endforeach
+                                                                            </div>
+                                                                        @elseif(isset($tool['result']['status']) && $tool['result']['status'] === 'not_found')
+                                                                            <div class="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[11px] font-mono">
+                                                                                {{ $tool['result']['message'] ?? '0 memories matched. Query reformulated.' }}
+                                                                            </div>
+                                                                        @else
+                                                                            <div class="p-2 rounded-lg bg-black/60 border border-white/5 font-mono text-[11px] text-gray-300 overflow-x-auto">
+                                                                                <pre class="whitespace-pre-wrap break-all">{{ json_encode($tool['result'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
+                                                                            </div>
+                                                                        @endif
+                                                                    </div>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @endif
+
                                         <div
                                             class="rounded-2xl px-4 py-3 {{ $message['isAi'] ? (isset($message['isError']) ? 'bg-red-900/60 border border-red-500/40 text-red-200' : 'bg-gray-800 text-gray-100') : 'bg-blue-600 text-white' }}">
                                             <p class="text-sm leading-relaxed whitespace-pre-wrap break-words">{!! $this->renderMessageContent($message) !!}</p>
                                         </div>
-
-                                        @if($message['isAi'] && !empty($message['metadata']['tools_used']))
-                                            <div class="mt-2 space-y-1.5" x-data="{ open: false }">
-                                                @foreach($message['metadata']['tools_used'] as $tool)
-                                                    <div class="rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden text-xs">
-                                                        <button 
-                                                            type="button" 
-                                                            @click="open = !open" 
-                                                            class="w-full px-3 py-1.5 flex items-center justify-between text-left hover:bg-white/[0.06] transition-colors cursor-pointer select-none">
-                                                            <span class="inline-flex items-center gap-1.5 text-gray-300">
-                                                                @if(($tool['tool'] ?? '') === 'search_journal')
-                                                                    <svg class="w-3.5 h-3.5 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                                                                @elseif(($tool['tool'] ?? '') === 'get_user_stats')
-                                                                    <svg class="w-3.5 h-3.5 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-                                                                @elseif(($tool['tool'] ?? '') === 'list_tags')
-                                                                    <svg class="w-3.5 h-3.5 text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
-                                                                @else
-                                                                    <svg class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                                                @endif
-                                                                <span class="font-normal text-gray-300">{{ $tool['label'] ?? $tool['tool'] }}</span>
-                                                            </span>
-                                                            <svg class="w-3.5 h-3.5 text-gray-400 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                                            </svg>
-                                                        </button>
-                                                        <div x-show="open" x-cloak class="px-3 py-2 border-t border-white/5 bg-black/30 text-[11px] text-gray-400 space-y-1.5 font-mono">
-                                                            @if(!empty($tool['args']))
-                                                                <div>
-                                                                    <span class="text-gray-500 uppercase tracking-wider text-[10px]">Parameters:</span>
-                                                                    <pre class="whitespace-pre-wrap break-all text-gray-300 font-sans mt-0.5">{{ json_encode($tool['args'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
-                                                                </div>
-                                                            @endif
-                                                            @if(!empty($tool['result']))
-                                                                <div>
-                                                                    @if(isset($tool['result']['entries']) && is_array($tool['result']['entries']))
-                                                                        <div class="flex items-center justify-between mb-1">
-                                                                            <span class="text-gray-500 uppercase tracking-wider text-[10px]">Connected Memories:</span>
-                                                                            <span class="text-[9px] text-blue-400 font-mono">Semantic & Keyword</span>
-                                                                        </div>
-                                                                        <div class="mt-1 space-y-1.5 font-sans">
-                                                                            @foreach($tool['result']['entries'] as $resEntry)
-                                                                                @php
-                                                                                    $resEntryB64 = base64_encode(json_encode($resEntry, JSON_UNESCAPED_UNICODE));
-                                                                                @endphp
-                                                                                <div 
-                                                                                    data-entry-preview="true"
-                                                                                    data-entry-b64="{{ $resEntryB64 }}"
-                                                                                    onclick="window.location.href = '{{ route('entries.show', $resEntry['id']) }}'"
-                                                                                    class="bg-white/5 p-2.5 rounded-lg border border-white/5 hover:border-blue-500/40 hover:bg-white/[0.08] transition-all cursor-pointer group">
-                                                                                    <div class="flex items-center justify-between text-xs gap-2">
-                                                                                        <span class="font-medium text-white group-hover:text-blue-300 transition-colors line-clamp-1 flex items-center gap-1.5">
-                                                                                            <svg class="w-3.5 h-3.5 text-blue-400 opacity-70 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 8h8"/><path class="transition-transform group-hover:-translate-x-0.5" d="M7 12h10"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 16h6"/></svg>
-                                                                                            {{ $resEntry['title'] }}
-                                                                                        </span>
-                                                                                        <div class="flex items-center gap-1.5 flex-shrink-0">
-                                                                                            @if(($resEntry['match_type'] ?? '') === 'exact_and_concept')
-                                                                                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/20 font-mono">Exact & Theme</span>
-                                                                                            @elseif(($resEntry['match_type'] ?? '') === 'keyword_match')
-                                                                                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/20 font-mono">Exact Match</span>
-                                                                                            @elseif(($resEntry['match_type'] ?? '') === 'conceptual_similarity')
-                                                                                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-300 border border-blue-500/20 font-mono">Similar Theme</span>
-                                                                                            @endif
-                                                                                            <span class="text-gray-500 text-[10px]">{{ $resEntry['date'] }}</span>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <p class="text-gray-400 text-xs mt-1 italic line-clamp-2">"{{ $resEntry['snippet'] }}"</p>
-                                                                                </div>
-                                                                            @endforeach
-                                                                        </div>
-                                                                    @elseif(isset($tool['result']['tags']) && is_array($tool['result']['tags']))
-                                                                        <span class="text-gray-500 uppercase tracking-wider text-[10px]">Tags Found:</span>
-                                                                        <div class="mt-1 font-sans flex flex-wrap gap-1.5">
-                                                                            @foreach($tool['result']['tags'] as $resTag)
-                                                                                <span class="inline-flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded text-gray-300 text-xs border border-white/5">
-                                                                                    <span>#{{ $resTag['name'] }}</span>
-                                                                                    <span class="text-[10px] text-gray-500 font-mono">({{ $resTag['entries_count'] }})</span>
-                                                                                </span>
-                                                                            @endforeach
-                                                                        </div>
-                                                                    @else
-                                                                        <pre class="whitespace-pre-wrap break-all text-gray-300 font-sans mt-0.5">{{ json_encode($tool['result'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
-                                                                    @endif
-                                                                </div>
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        @endif
 
                                         <div class="flex items-center gap-2 mt-2 {{ $message['isAi'] ? '' : 'justify-end' }}">
                                             <p class="text-xs text-gray-500 message-timestamp" data-created-at="{{ $message['createdAt'] }}"></p>
@@ -467,7 +515,7 @@
              class="absolute inset-0 z-40 flex items-center justify-center p-4 md:p-6 bg-black/60 backdrop-blur-sm"
              @click.self="closeEntryPreview(0)"
              @keydown.escape.window="closeEntryPreview(0)">
-            <div class="bg-[#090e1a]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl max-w-xl w-full max-h-[85vh] flex flex-col overflow-hidden ring-1 ring-white/10"
+            <div class="bg-gradient-dark border border-white/15 rounded-2xl shadow-2xl max-w-xl w-full max-h-[85vh] flex flex-col overflow-hidden ring-1 ring-white/10"
                  @click.stop>
                 {{-- Header --}}
                 <div class="p-5 border-b border-white/10 flex items-center justify-between shrink-0 bg-white/[0.02]">
@@ -519,7 +567,7 @@
 
                 {{-- Content (scrollable without visible scrollbar) --}}
                 <div class="p-5 overflow-y-auto flex-1 min-h-0 space-y-4 overscroll-contain scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                    <div class="rounded-xl border border-white/10 bg-white/[0.02] p-4 shadow-sm">
+                    <div class="rounded-xl border border-white/10 sidebar-gradient p-4 shadow-inner">
                         <div class="flex items-center gap-2 pb-2 mb-2.5 border-b border-white/10">
                             <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
                             <h4 class="text-xs font-bold uppercase tracking-wider text-blue-400">Memory Excerpt</h4>
@@ -624,7 +672,7 @@
          x-transition:leave="transition ease-in duration-75"
          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
          x-transition:leave-end="opacity-0 translate-y-1 scale-95"
-         class="fixed z-50 w-88 max-w-[92vw] p-4 rounded-2xl bg-[#090e1a]/85 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/80 ring-1 ring-white/10 text-left pointer-events-auto flex flex-col"
+         class="fixed z-50 w-[420px] max-w-[92vw] p-4 rounded-2xl bg-gradient-dark border border-white/10 shadow-2xl shadow-black/90 ring-1 ring-white/10 text-left pointer-events-auto flex flex-col"
          :style="`left: ${previewPosition.x}px; top: ${previewPosition.y}px;`">
         
         <div class="flex items-start justify-between gap-2 mb-2.5">
@@ -677,7 +725,9 @@
 
         <!-- Scrollable content without visible scrollbar -->
         <div class="overflow-y-auto max-h-40 overscroll-contain pr-1 mb-3 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            <p class="text-xs text-gray-200/95 leading-relaxed italic bg-white/[0.03] p-2.5 rounded-lg border border-white/5 whitespace-pre-wrap font-sans" x-text="previewEntry?.snippet"></p>
+            <div class="sidebar-gradient p-3.5 rounded-xl border border-white/10 shadow-inner">
+                <p class="text-xs text-gray-200 leading-relaxed font-normal whitespace-pre-wrap font-sans" x-text="previewEntry?.snippet"></p>
+            </div>
         </div>
 
         <div class="flex items-center justify-between gap-2 pt-2 border-t border-white/10 mt-auto">
@@ -815,7 +865,10 @@
 
         const syncConversationUrl = (sessionId) => {
             try {
-                const url = new URL(window.location.href);
+                if (typeof window === 'undefined' || !window.location || !window.location.pathname.startsWith('/chat')) {
+                    return;
+                }
+                const url = new URL('/chat', window.location.origin);
                 if (sessionId) {
                     url.searchParams.set('conversation', sessionId);
                     sessionStorage.setItem('active_chat_conversation_id', String(sessionId));
@@ -840,11 +893,13 @@
             }
 
             if (root?.dataset?.conversationId || (lane && lane.children.length > 0)) {
-                emptyState.remove();
+                emptyState.classList.add('hidden');
+                emptyState.style.display = 'none';
                 return;
             }
 
             emptyState.classList.remove('hidden');
+            emptyState.style.display = '';
         };
 
         const clearPendingExchange = () => {
@@ -862,7 +917,8 @@
             const emptyState = document.getElementById('empty-chat-state');
 
             if (emptyState) {
-                emptyState.remove();
+                emptyState.classList.add('hidden');
+                emptyState.style.display = 'none';
             }
 
             if (!lane || !root) {
@@ -888,21 +944,18 @@
                     <\/div>
                 <\/div>
                 <div id="streaming-message" class="flex items-start gap-4 w-full">
-                    <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                        <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                            <path d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        <\/svg>
+                    <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm border border-blue-400/20">
+                        <img src="/lumi.svg" alt="Lumi" class="w-5.5 h-5.5 object-contain select-none pointer-events-none" />
                     <\/div>
-                    <div class="max-w-[300px] md:max-w-[400px] lg:max-w-[500px]">
-                        <div class="bg-gray-800 rounded-2xl px-4 py-3 min-h-[44px] flex items-center">
-                            <div id="streaming-message-dots" class="flex space-x-1">
-                                <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"><\/div>
-                                <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.1s"><\/div>
-                                <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.2s"><\/div>
-                            <\/div>
-                            <p id="streaming-message-content" class="hidden text-sm leading-relaxed whitespace-pre-wrap break-words text-gray-100"><\/p>
+                    <div class="max-w-[300px] md:max-w-[400px] lg:max-w-[500px] w-full">
+                        <div id="streaming-tool-activity" class="hidden mb-2.5"><\/div>
+                        <div id="streaming-thinking-indicator" class="flex items-center gap-2 py-1 text-xs text-gray-400 select-none">
+                            <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"><\/span>
+                            <span class="text-xs font-mono text-gray-400">Thinking...<\/span>
                         <\/div>
-                        <div id="streaming-tool-activity" class="hidden mt-2 space-y-1.5"><\/div>
+                        <div id="streaming-message-bubble" class="hidden bg-gray-800 rounded-2xl px-4 py-3">
+                            <p id="streaming-message-content" class="text-sm leading-relaxed whitespace-pre-wrap break-words text-gray-100"><\/p>
+                        <\/div>
                     <\/div>
                 <\/div>
             `;
@@ -1013,43 +1066,53 @@
                 const entryKey = 'entry_' + entry.id;
                 window.__entryPreviewCache.set(entryKey, entry);
 
-                targets.push({
-                    title: entry.title,
-                    entryKey: entryKey,
-                    length: entry.title.length,
-                    entry: entry,
-                });
+                const candidates = new Set();
+                candidates.add(entry.title);
 
-                const cleanTitle = entry.title.replace(/^[\p{Emoji}\s\p{P}]+|[\p{Emoji}\s\p{P}]+$/gu, '').trim();
-                if (cleanTitle && cleanTitle !== entry.title && cleanTitle.length >= 3) {
+                const cleanTitle = entry.title.replace(/^[\p{Emoji}\p{So}\p{Sk}\p{Sm}\p{Mn}\p{Me}\p{C}\s\p{P}]+|[\p{Emoji}\p{So}\p{Sk}\p{Sm}\p{Mn}\p{Me}\p{C}\s\p{P}]+$/gu, '').trim();
+                if (cleanTitle && cleanTitle.length >= 3) {
+                    candidates.add(cleanTitle);
+                    const subparts = cleanTitle.split(/\s+[—–\-:]\s+/);
+                    if (subparts[0] && subparts[0].trim().length >= 3) {
+                        candidates.add(subparts[0].trim());
+                    }
+                }
+
+                for (const cand of candidates) {
                     targets.push({
-                        title: cleanTitle,
+                        title: cand,
                         entryKey: entryKey,
-                        length: cleanTitle.length,
+                        length: cand.length,
                         entry: entry,
                     });
                 }
             }
 
             targets.sort((a, b) => b.length - a.length);
+            const matchedEntryIds = new Set();
 
             for (const target of targets) {
-                const titleEsc = escapeRegex(escapeHtml(target.title));
-                const pattern = new RegExp('(?:\\*|_|&quot;|")*' + titleEsc + '(?:\'s|’s)?(?:\\*|_|&quot;|")*', 'i');
+                if (matchedEntryIds.has(target.entry.id)) {
+                    continue;
+                }
 
-                const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(target.entry))));
-                const pill = `<button type="button" ` +
-                    `data-entry-preview="true" ` +
-                    `data-entry-b64="${b64}" ` +
-                    `data-entry-key="${target.entryKey}" ` +
-                    `onclick="window.location.href = '/entries/${target.entry.id}'" ` +
-                    `class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 hover:text-blue-200 border border-blue-500/30 transition-all font-medium cursor-pointer align-baseline text-xs mx-0.5 group shadow-sm">` +
-                    `<svg class="w-3.5 h-3.5 text-blue-400 group-hover:scale-110 transition-transform flex-shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 8h8"/><path class="transition-transform group-hover:-translate-x-0.5" d="M7 12h10"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 16h6"/></svg>` +
-                    `<span>${escapeHtml(target.entry.title)}</span>` +
-                    `</button>`;
+                const titleEsc = escapeRegex(escapeHtml(target.title));
+                const pattern = new RegExp('(?:[\\*_"\']|&quot;)*' + titleEsc + '(?:\'s|’s)?(?:[\\*_"\']|&quot;)*', 'i');
 
                 if (pattern.test(escaped)) {
+                    const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(target.entry))));
+                    const pill = `<button type="button" ` +
+                        `data-entry-preview="true" ` +
+                        `data-entry-b64="${b64}" ` +
+                        `data-entry-key="${target.entryKey}" ` +
+                        `onclick="window.location.href = '/entries/${target.entry.id}'" ` +
+                        `class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 hover:text-blue-200 border border-blue-500/30 transition-all font-medium cursor-pointer align-baseline text-xs mx-0.5 group shadow-sm">` +
+                        `<svg class="w-3.5 h-3.5 text-blue-400 group-hover:scale-110 transition-transform flex-shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 8h8"/><path class="transition-transform group-hover:-translate-x-0.5" d="M7 12h10"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 16h6"/><\/svg>` +
+                        `<span>${escapeHtml(target.entry.title)}<\/span>` +
+                        `<\/button>`;
+
                     escaped = escaped.replace(pattern, pill);
+                    matchedEntryIds.add(target.entry.id);
                 }
             }
 
@@ -1062,20 +1125,58 @@
             contentEl.innerHTML = formatContentWithPills(streamedRawText, streamedEntries);
         };
 
+        let liveStreamStartTime = null;
+        let liveStopwatchInterval = null;
+        let completedToolStepsCount = 0;
+
+        const startLiveStopwatch = () => {
+            if (liveStreamStartTime) return;
+            liveStreamStartTime = Date.now();
+            liveStopwatchInterval = setInterval(() => {
+                const el = document.getElementById('streaming-stopwatch-text');
+                if (el && liveStreamStartTime) {
+                    const sec = Math.max(1, Math.floor((Date.now() - liveStreamStartTime) / 1000));
+                    el.textContent = `Working for ${sec}s`;
+                }
+            }, 500);
+        };
+
+        const stopLiveStopwatch = (totalSteps) => {
+            if (liveStopwatchInterval) {
+                clearInterval(liveStopwatchInterval);
+                liveStopwatchInterval = null;
+            }
+            const indicator = document.getElementById('streaming-working-indicator');
+            if (indicator && liveStreamStartTime) {
+                const totalSec = ((Date.now() - liveStreamStartTime) / 1000).toFixed(1);
+                indicator.innerHTML = `
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"><\/span>
+                    <span class="text-xs text-gray-400 font-mono">Worked for ${totalSec}s ${totalSteps ? '· ' + totalSteps + (totalSteps === 1 ? ' command' : ' commands') : ''}<\/span>
+                `;
+            }
+        };
+
         const resetStreamingUi = () => {
+            stopLiveStopwatch();
+            liveStreamStartTime = null;
+            completedToolStepsCount = 0;
             streamedRawText = '';
             streamedEntries = [];
-            const dots = document.getElementById('streaming-message-dots');
+            const thinking = document.getElementById('streaming-thinking-indicator');
+            const bubble = document.getElementById('streaming-message-bubble');
             const content = document.getElementById('streaming-message-content');
             const toolContainer = document.getElementById('streaming-tool-activity');
 
-            if (dots) {
-                dots.classList.remove('hidden');
+            if (thinking) {
+                thinking.classList.remove('hidden');
+            }
+
+            if (bubble) {
+                bubble.classList.add('hidden');
             }
 
             if (content) {
                 content.innerHTML = '';
-                content.classList.add('hidden');
             }
 
             if (toolContainer) {
@@ -1090,19 +1191,69 @@
 
             container.classList.remove('hidden');
 
-            if (toolData.status === 'running') {
+            // Scaffold container if not yet built
+            let rail = document.getElementById('streaming-tool-rail');
+            if (!rail) {
                 container.innerHTML = `
-                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-blue-500/20 bg-blue-500/10 text-xs text-blue-300 animate-pulse">
-                        <svg class="animate-spin h-3.5 w-3.5 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"><\/circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"><\/path>
-                        <\/svg>
-                        <span>${escapeHtml(toolData.label || 'Processing memory...')}<\/span>
+                    <div class="mb-2">
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/10 text-xs text-gray-400 font-mono mb-2">
+                            <span class="text-blue-400">&gt;_<\/span>
+                            <span id="streaming-tool-header-count">Running commands<\/span>
+                        <\/div>
+                        <div id="streaming-tool-rail" class="ml-2.5 pl-4 border-l border-white/15 space-y-2 py-1"><\/div>
+                        <div id="streaming-working-indicator" class="flex items-center gap-2 text-xs text-gray-400 font-mono pl-3 pt-2">
+                            <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"><\/span>
+                            <span id="streaming-stopwatch-text">Working for 1s<\/span>
+                        <\/div>
+                    <\/div>
+                `;
+                rail = document.getElementById('streaming-tool-rail');
+            }
+
+            startLiveStopwatch();
+
+            if (toolData.status === 'running') {
+                let runningStep = document.getElementById('streaming-tool-running-step');
+                if (!runningStep) {
+                    runningStep = document.createElement('div');
+                    runningStep.id = 'streaming-tool-running-step';
+                    runningStep.className = 'relative';
+                    rail.appendChild(runningStep);
+                }
+
+                let runningLabel = 'Running action...';
+                if (toolData.tool === 'search_journal') {
+                    const q = toolData.args?.query || '';
+                    runningLabel = q ? `Searching memories: "${q}"...` : 'Searching memories...';
+                } else if (toolData.tool === 'get_user_stats') {
+                    runningLabel = 'Checking journaling stats & streak...';
+                } else if (toolData.tool === 'list_tags') {
+                    runningLabel = 'Checking journal tags...';
+                } else if (toolData.tool === 'draft_entry') {
+                    runningLabel = `Saving memo "${toolData.args?.title || ''}"...`;
+                }
+
+                runningStep.innerHTML = `
+                    <div class="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-[#0d1424] border-2 border-blue-400 animate-pulse"><\/div>
+                    <div class="flex items-center gap-2 px-2 py-1 rounded-lg text-xs font-mono text-blue-300">
+                        <span class="text-blue-400">&gt;_<\/span>
+                        <span class="animate-pulse">${escapeHtml(runningLabel)}<\/span>
                     <\/div>
                 `;
             } else if (toolData.status === 'done') {
+                const runningStep = document.getElementById('streaming-tool-running-step');
+                if (runningStep) {
+                    runningStep.remove();
+                }
+
                 if (toolData.tool === 'search_journal' && Array.isArray(toolData.result?.entries)) {
-                    streamedEntries = toolData.result.entries;
+                    const existingIds = new Set(streamedEntries.map(e => e.id));
+                    for (const entry of toolData.result.entries) {
+                        if (entry && entry.id && !existingIds.has(entry.id)) {
+                            streamedEntries.push(entry);
+                            existingIds.add(entry.id);
+                        }
+                    }
                     streamedEntries.forEach(entry => {
                         if (entry && entry.id) {
                             window.__entryPreviewCache.set('entry_' + entry.id, entry);
@@ -1113,38 +1264,111 @@
                     }
                 }
 
-                const toolIcon = toolData.tool === 'search_journal'
-                    ? '<svg class="w-3.5 h-3.5 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/><\/svg>'
-                    : (toolData.tool === 'get_user_stats'
-                        ? '<svg class="w-3.5 h-3.5 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/><\/svg>'
-                        : '<svg class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/><\/svg>');
+                completedToolStepsCount++;
+                const headerCount = document.getElementById('streaming-tool-header-count');
+                if (headerCount) {
+                    headerCount.textContent = `Ran ${completedToolStepsCount} ${completedToolStepsCount === 1 ? 'command' : 'commands'}`;
+                }
 
-                container.innerHTML = `
-                    <div class="rounded-xl border border-white/10 bg-white/[0.04] text-xs text-gray-300">
-                        <div class="px-3 py-1.5 flex items-center justify-between">
-                            <span class="inline-flex items-center gap-1.5">
-                                ${toolIcon}
-                                <span class="font-normal text-gray-300">${escapeHtml(toolData.label || toolData.tool)}<\/span>
-                            <\/span>
-                            <span class="text-[10px] text-gray-500 uppercase tracking-wider font-mono">DONE<\/span>
+                let stepTitle = `Ran command: ${toolData.tool}`;
+                if (toolData.tool === 'search_journal') {
+                    stepTitle = `Ran search: "${toolData.args?.query || ''}"`;
+                } else if (toolData.tool === 'get_user_stats') {
+                    stepTitle = 'Ran check: journaling stats & streak';
+                } else if (toolData.tool === 'list_tags') {
+                    stepTitle = 'Ran check: journal tags';
+                } else if (toolData.tool === 'draft_entry') {
+                    stepTitle = `Ran command: save memo "${toolData.args?.title || ''}"`;
+                }
+
+                let outputHtml = '';
+                if (Array.isArray(toolData.result?.entries)) {
+                    const entriesHtml = toolData.result.entries.map(resEntry => {
+                        const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(resEntry))));
+                        return `
+                            <div data-entry-preview="true"
+                                 data-entry-b64="${b64}"
+                                 onclick="window.location.href = '/entries/${resEntry.id}'"
+                                 class="bg-white/5 p-2 rounded-lg border border-white/5 hover:border-blue-500/40 hover:bg-white/[0.08] transition-all cursor-pointer group">
+                                <div class="flex items-center justify-between text-xs gap-2">
+                                    <span class="font-medium text-white group-hover:text-blue-300 transition-colors line-clamp-1 flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-blue-400 opacity-70 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 8h8"/><path class="transition-transform group-hover:-translate-x-0.5" d="M7 12h10"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 16h6"/><\/svg>
+                                        ${escapeHtml(resEntry.title)}
+                                    <\/span>
+                                    <span class="text-gray-500 text-[10px] font-mono">${escapeHtml(resEntry.date || '')}<\/span>
+                                <\/div>
+                                <p class="text-gray-400 text-xs mt-1 italic line-clamp-1">"${escapeHtml(resEntry.snippet || '')}"<\/p>
+                            <\/div>
+                        `;
+                    }).join('');
+                    outputHtml = `<div class="space-y-1.5 font-sans">${entriesHtml}<\/div>`;
+                } else if (Array.isArray(toolData.result?.tags)) {
+                    const tagsHtml = toolData.result.tags.map(tag => `
+                        <span class="inline-flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded text-gray-300 text-xs border border-white/5">
+                            <span>#${escapeHtml(tag.name)}<\/span>
+                            <span class="text-[10px] text-gray-500 font-mono">(${tag.entries_count})<\/span>
+                        <\/span>
+                    `).join('');
+                    outputHtml = `<div class="flex flex-wrap gap-1.5 font-sans">${tagsHtml}<\/div>`;
+                } else if (toolData.result?.status === 'not_found') {
+                    outputHtml = `<div class="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[11px] font-mono">${escapeHtml(toolData.result.message || '0 memories matched. Query reformulated.')}<\/div>`;
+                } else if (toolData.result) {
+                    outputHtml = `<div class="p-2 rounded-lg bg-black/60 border border-white/5 font-mono text-[11px] text-gray-300 overflow-x-auto"><pre class="whitespace-pre-wrap break-all">${escapeHtml(JSON.stringify(toolData.result, null, 2))}<\/pre><\/div>`;
+                }
+
+                const argsHtml = toolData.args && Object.keys(toolData.args).length > 0
+                    ? `<div>
+                        <span class="text-[10px] font-mono text-gray-500 uppercase tracking-wider block mb-1">Command Parameters<\/span>
+                        <div class="p-2 rounded-lg bg-black/60 border border-white/5 font-mono text-[11px] text-blue-300 overflow-x-auto">
+                            <pre class="whitespace-pre-wrap break-all">${escapeHtml(JSON.stringify(toolData.args, null, 2))}<\/pre>
                         <\/div>
+                       <\/div>`
+                    : '';
+
+                const durationBadge = toolData.duration_ms
+                    ? `<span class="text-[10px] text-gray-500 font-mono">${toolData.duration_ms}ms<\/span>`
+                    : '';
+
+                const doneItem = document.createElement('div');
+                doneItem.className = 'relative group';
+                doneItem.innerHTML = `
+                    <div class="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-[#0d1424] border-2 border-blue-400"><\/div>
+                    <button type="button" 
+                            onclick="const d = this.nextElementSibling; d.classList.toggle('hidden'); this.querySelector('.chevron-icon')?.classList.toggle('rotate-180');"
+                            class="w-full text-left flex items-center justify-between gap-2 px-2 py-1 rounded-lg hover:bg-white/[0.05] transition-colors cursor-pointer select-none">
+                        <span class="inline-flex items-center gap-1.5 text-xs text-gray-300 font-mono">
+                            <span class="text-blue-400/90">&gt;_<\/span>
+                            <span class="text-gray-300 group-hover:text-white transition-colors">${escapeHtml(stepTitle)}<\/span>
+                        <\/span>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            ${durationBadge}
+                            <svg class="chevron-icon w-3 h-3 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            <\/svg>
+                        <\/div>
+                    <\/button>
+                    <div class="hidden mt-1 mb-2 rounded-xl border border-white/10 bg-black/40 p-2.5 space-y-2 text-xs">
+                        ${argsHtml}
+                        ${outputHtml ? `<div><span class="text-[10px] font-mono text-gray-500 uppercase tracking-wider block mb-1">Output<\/span>${outputHtml}<\/div>` : ''}
                     <\/div>
                 `;
+                rail.appendChild(doneItem);
             }
             scrollMessagesToBottom();
         };
 
         const appendStreamingText = (text) => {
             const contentEl = document.getElementById('streaming-message-content');
-            const dotsEl = document.getElementById('streaming-message-dots');
+            const bubbleEl = document.getElementById('streaming-message-bubble');
+            const thinkingEl = document.getElementById('streaming-thinking-indicator');
 
             if (!contentEl || !text) {
                 return;
             }
 
-            if (contentEl.classList.contains('hidden')) {
-                dotsEl?.classList.add('hidden');
-                contentEl.classList.remove('hidden');
+            if (bubbleEl && bubbleEl.classList.contains('hidden')) {
+                thinkingEl?.classList.add('hidden');
+                bubbleEl.classList.remove('hidden');
             }
 
             streamedRawText += text;
@@ -1184,6 +1408,7 @@
 
         const finishStreaming = async (component, conversationId, failed = false, errorMessage = null, userMessage = null) => {
             setFormBusy(false);
+            stopLiveStopwatch(completedToolStepsCount);
 
             if (failed) {
                 const finalError = errorMessage || 'Sorry, I encountered an error. Please try again.';
@@ -1452,7 +1677,7 @@
             }
 
             const activeRoot = document.getElementById('chatRoot');
-            if (activeRoot && activeRoot.dataset.conversationId) {
+            if (activeRoot && activeRoot.dataset.conversationId && window.location.pathname.startsWith('/chat')) {
                 syncConversationUrl(activeRoot.dataset.conversationId);
             }
 
@@ -1467,11 +1692,20 @@
             document.addEventListener('livewire:init', setupLivewireHooks);
         }
 
-        document.addEventListener('livewire:navigated', () => {
-            refreshMessageTimestamps();
-            syncEmptyChatState();
-            scrollMessagesToBottom();
-        });
+        if (!window.__chatNavigatedHandlerBound) {
+            window.__chatNavigatedHandlerBound = true;
+            document.addEventListener('livewire:navigated', () => {
+                const root = document.getElementById('chatRoot');
+                if (root) {
+                    refreshMessageTimestamps();
+                    syncEmptyChatState();
+                    scrollMessagesToBottom();
+                    if (root.dataset.conversationId && window.location.pathname.startsWith('/chat')) {
+                        syncConversationUrl(root.dataset.conversationId);
+                    }
+                }
+            });
+        }
     })();
 </script>
 </div>
