@@ -345,6 +345,10 @@ class ChatInterface extends Component
             return e($rawContent);
         }
 
+        // Clean up em-dashes and double dashes
+        $cleaned = preg_replace('/\s*[—–]\s*/u', ', ', $rawContent);
+        $cleaned = preg_replace('/\s*--\s*/', ', ', $cleaned);
+
         $tools = $message['metadata']['tools_used'] ?? [];
         $entries = [];
 
@@ -358,77 +362,97 @@ class ChatInterface extends Component
             }
         }
 
-        if (empty($entries)) {
-            return e($rawContent);
-        }
-
-        // Deduplicate entries by ID
-        $uniqueEntries = [];
-        foreach ($entries as $entry) {
-            $uniqueEntries[$entry['id']] = $entry;
-        }
-        $entries = array_values($uniqueEntries);
-
-        $targets = [];
-        foreach ($entries as $entry) {
-            $title = (string) ($entry['title'] ?? '');
-            if ($title === '') {
-                continue;
-            }
-
-            $cleanTitle = trim(preg_replace('/^[\p{Emoji}\p{So}\p{Sk}\p{Sm}\p{Mn}\p{Me}\p{C}\s\p{P}]+|[\p{Emoji}\p{So}\p{Sk}\p{Sm}\p{Mn}\p{Me}\p{C}\s\p{P}]+$/u', '', $title));
-            $subparts = preg_split('/\s+[—–\-:]\s+/u', $cleanTitle);
-            $mainTitle = trim($subparts[0] ?? '');
-
-            $candidates = array_unique(array_filter([$title, $cleanTitle, $mainTitle], fn($t) => mb_strlen($t) >= 3));
-
-            foreach ($candidates as $cand) {
-                $targets[] = [
-                    'candidate' => $cand,
-                    'entry' => $entry,
-                    'length' => mb_strlen($cand),
-                ];
-            }
-        }
-
-        // Sort candidates by length descending so longer titles match first
-        usort($targets, fn ($a, $b) => $b['length'] <=> $a['length']);
-
-        $processed = e($rawContent);
+        $processed = e($cleaned);
         $placeholders = [];
         $placeholderIndex = 0;
-        $matchedEntryIds = [];
 
-        foreach ($targets as $tgt) {
-            $entryId = $tgt['entry']['id'];
-            if (isset($matchedEntryIds[$entryId])) {
-                continue;
+        if (!empty($entries)) {
+            // Deduplicate entries by ID
+            $uniqueEntries = [];
+            foreach ($entries as $entry) {
+                $uniqueEntries[$entry['id']] = $entry;
+            }
+            $entries = array_values($uniqueEntries);
+
+            $targets = [];
+            foreach ($entries as $entry) {
+                $title = (string) ($entry['title'] ?? '');
+                if ($title === '') {
+                    continue;
+                }
+
+                $cleanTitle = trim(preg_replace('/^[\p{Emoji}\p{So}\p{Sk}\p{Sm}\p{Mn}\p{Me}\p{C}\s\p{P}]+|[\p{Emoji}\p{So}\p{Sk}\p{Sm}\p{Mn}\p{Me}\p{C}\s\p{P}]+$/u', '', $title));
+                $subparts = preg_split('/\s+[—–\-:]\s+/u', $cleanTitle);
+                $mainTitle = trim($subparts[0] ?? '');
+
+                $candidates = array_unique(array_filter([$title, $cleanTitle, $mainTitle], fn($t) => mb_strlen($t) >= 3));
+
+                foreach ($candidates as $cand) {
+                    $targets[] = [
+                        'candidate' => $cand,
+                        'entry' => $entry,
+                        'length' => mb_strlen($cand),
+                    ];
+                }
             }
 
-            $cand = $tgt['candidate'];
-            $escapedTitle = preg_quote(e($cand), '/');
-            $leadBoundary = preg_match('/^\w/u', $cand) ? '(?<=\s|^|[\*_"\']|&quot;)' : '';
-            $trailBoundary = preg_match('/\w$/u', $cand) ? '(?=\s|$|[\*_"\',.;:!?]|&quot;|\'s|’s)' : '';
-            $pattern = '/' . $leadBoundary . '(?:[\*_"]|&quot;)*' . $escapedTitle . '(?:\'s|’s)?(?:[\*_"]|&quot;)*' . $trailBoundary . '/iu';
+            // Sort candidates by length descending so longer titles match first
+            usort($targets, fn ($a, $b) => $b['length'] <=> $a['length']);
+            $matchedEntryIds = [];
 
-            if (preg_match($pattern, $processed)) {
-                $b64 = base64_encode(json_encode($tgt['entry'], JSON_UNESCAPED_UNICODE));
-                $entryUrl = '/entries/' . urlencode((string) $entryId);
-                $buttonHtml = '<button type="button" ' .
-                    'data-entry-preview="true" ' .
-                    'data-entry-b64="' . $b64 . '" ' .
-                    'onclick="window.location.href = \'' . $entryUrl . '\'" ' .
-                    'class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 hover:text-blue-200 border border-blue-500/30 transition-all font-medium cursor-pointer align-baseline text-xs mx-0.5 group shadow-sm">' .
-                    '<svg class="w-3.5 h-3.5 text-blue-400 group-hover:scale-110 transition-transform flex-shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 8h8"/><path class="transition-transform group-hover:-translate-x-0.5" d="M7 12h10"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 16h6"/></svg>' .
-                    '<span>' . e($tgt['entry']['title']) . '</span>' .
-                    '</button>';
+            foreach ($targets as $tgt) {
+                $entryId = $tgt['entry']['id'];
+                if (isset($matchedEntryIds[$entryId])) {
+                    continue;
+                }
 
-                $token = '___ENTRY_PILL_' . ($placeholderIndex++) . '___';
-                $placeholders[$token] = $buttonHtml;
-                $processed = preg_replace($pattern, $token, $processed, 1);
-                $matchedEntryIds[$entryId] = true;
+                $cand = $tgt['candidate'];
+                $escapedTitle = preg_quote(e($cand), '/');
+                $leadBoundary = preg_match('/^\w/u', $cand) ? '(?<=\s|^|[\*_"\']|&quot;)' : '';
+                $trailBoundary = preg_match('/\w$/u', $cand) ? '(?=\s|$|[\*_"\',.;:!?]|&quot;|\'s|’s)' : '';
+                $pattern = '/' . $leadBoundary . '(?:[\*_"]|&quot;)*' . $escapedTitle . '(?:\'s|’s)?(?:[\*_"]|&quot;)*' . $trailBoundary . '/iu';
+
+                if (preg_match($pattern, $processed)) {
+                    $b64 = base64_encode(json_encode($tgt['entry'], JSON_UNESCAPED_UNICODE));
+                    $entryUrl = '/entries/' . urlencode((string) $entryId);
+                    $buttonHtml = '<button type="button" ' .
+                        'data-entry-preview="true" ' .
+                        'data-entry-b64="' . $b64 . '" ' .
+                        'onclick="window.location.href = \'' . $entryUrl . '\'" ' .
+                        'class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 hover:text-blue-200 border border-blue-500/30 transition-all font-medium cursor-pointer align-baseline text-xs mx-0.5 group shadow-sm">' .
+                        '<svg class="w-3.5 h-3.5 text-blue-400 group-hover:scale-110 transition-transform flex-shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 8h8"/><path class="transition-transform group-hover:-translate-x-0.5" d="M7 12h10"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 16h6"/></svg>' .
+                        '<span>' . e($tgt['entry']['title']) . '</span>' .
+                        '</button>';
+
+                    $token = '___ENTRY_PILL_' . ($placeholderIndex++) . '___';
+                    $placeholders[$token] = $buttonHtml;
+                    $processed = preg_replace($pattern, $token, $processed, 1);
+                    $matchedEntryIds[$entryId] = true;
+                }
             }
         }
+
+        // Format bullet lines (e.g. "* Title" or "- Title")
+        $lines = explode("\n", $processed);
+        $formattedLines = [];
+        foreach ($lines as $line) {
+            $trimmed = trim($line);
+            if (preg_match('/^[\*\-]\s+(.+)$/u', $trimmed, $m)) {
+                $formattedLines[] = '<span class="inline-flex items-start gap-2 my-0.5"><span class="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 shrink-0"></span><span>' . $m[1] . '</span></span>';
+            } else {
+                $formattedLines[] = $line;
+            }
+        }
+        $processed = implode("\n", $formattedLines);
+
+        // Format bold: **text**
+        $processed = preg_replace('/\*\*([^*]+)\*\*/u', '<strong class="font-semibold text-white">$1</strong>', $processed);
+
+        // Format italics: *text* (when not preceded or followed by another asterisk)
+        $processed = preg_replace('/(?<=\s|^)\*([^*]+)\*(?=\s|$|[,.;:!?])/u', '<em class="italic text-gray-200">$1</em>', $processed);
+
+        // Clean up any remaining lone asterisks
+        $processed = preg_replace('/(?<=\s|^)\*(?=\s|$)/u', '', $processed);
 
         if (!empty($placeholders)) {
             $processed = strtr($processed, $placeholders);

@@ -1057,64 +1057,89 @@
 
         const formatContentWithPills = (rawText, entries) => {
             if (!rawText) return '';
-            let escaped = escapeHtml(rawText);
-            if (!entries || !entries.length) return escaped;
 
-            const targets = [];
-            for (const entry of entries) {
-                if (!entry || !entry.title) continue;
-                const entryKey = 'entry_' + entry.id;
-                window.__entryPreviewCache.set(entryKey, entry);
+            // Clean up em-dashes and double dashes
+            let cleaned = rawText.replace(/\s*[—–]\s*/gu, ', ').replace(/\s*--\s*/g, ', ');
+            let escaped = escapeHtml(cleaned);
 
-                const candidates = new Set();
-                candidates.add(entry.title);
+            if (entries && entries.length) {
+                const targets = [];
+                for (const entry of entries) {
+                    if (!entry || !entry.title) continue;
+                    const entryKey = 'entry_' + entry.id;
+                    window.__entryPreviewCache.set(entryKey, entry);
 
-                const cleanTitle = entry.title.replace(/^[\p{Emoji}\p{So}\p{Sk}\p{Sm}\p{Mn}\p{Me}\p{C}\s\p{P}]+|[\p{Emoji}\p{So}\p{Sk}\p{Sm}\p{Mn}\p{Me}\p{C}\s\p{P}]+$/gu, '').trim();
-                if (cleanTitle && cleanTitle.length >= 3) {
-                    candidates.add(cleanTitle);
-                    const subparts = cleanTitle.split(/\s+[—–\-:]\s+/);
-                    if (subparts[0] && subparts[0].trim().length >= 3) {
-                        candidates.add(subparts[0].trim());
+                    const candidates = new Set();
+                    candidates.add(entry.title);
+
+                    const cleanTitle = entry.title.replace(/^[\p{Emoji}\p{So}\p{Sk}\p{Sm}\p{Mn}\p{Me}\p{C}\s\p{P}]+|[\p{Emoji}\p{So}\p{Sk}\p{Sm}\p{Mn}\p{Me}\p{C}\s\p{P}]+$/gu, '').trim();
+                    if (cleanTitle && cleanTitle.length >= 3) {
+                        candidates.add(cleanTitle);
+                        const subparts = cleanTitle.split(/\s+[—–\-:]\s+/);
+                        if (subparts[0] && subparts[0].trim().length >= 3) {
+                            candidates.add(subparts[0].trim());
+                        }
+                    }
+
+                    for (const cand of candidates) {
+                        targets.push({
+                            title: cand,
+                            entryKey: entryKey,
+                            length: cand.length,
+                            entry: entry,
+                        });
                     }
                 }
 
-                for (const cand of candidates) {
-                    targets.push({
-                        title: cand,
-                        entryKey: entryKey,
-                        length: cand.length,
-                        entry: entry,
-                    });
+                targets.sort((a, b) => b.length - a.length);
+                const matchedEntryIds = new Set();
+
+                for (const target of targets) {
+                    if (matchedEntryIds.has(target.entry.id)) {
+                        continue;
+                    }
+
+                    const titleEsc = escapeRegex(escapeHtml(target.title));
+                    const pattern = new RegExp('(?:[\\*_"\']|&quot;)*' + titleEsc + '(?:\'s|’s)?(?:[\\*_"\']|&quot;)*', 'i');
+
+                    if (pattern.test(escaped)) {
+                        const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(target.entry))));
+                        const pill = `<button type="button" ` +
+                            `data-entry-preview="true" ` +
+                            `data-entry-b64="${b64}" ` +
+                            `data-entry-key="${target.entryKey}" ` +
+                            `onclick="window.location.href = '/entries/${target.entry.id}'" ` +
+                            `class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 hover:text-blue-200 border border-blue-500/30 transition-all font-medium cursor-pointer align-baseline text-xs mx-0.5 group shadow-sm">` +
+                            `<svg class="w-3.5 h-3.5 text-blue-400 group-hover:scale-110 transition-transform flex-shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 8h8"/><path class="transition-transform group-hover:-translate-x-0.5" d="M7 12h10"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 16h6"/><\/svg>` +
+                            `<span>${escapeHtml(target.entry.title)}<\/span>` +
+                            `<\/button>`;
+
+                        escaped = escaped.replace(pattern, pill);
+                        matchedEntryIds.add(target.entry.id);
+                    }
                 }
             }
 
-            targets.sort((a, b) => b.length - a.length);
-            const matchedEntryIds = new Set();
-
-            for (const target of targets) {
-                if (matchedEntryIds.has(target.entry.id)) {
-                    continue;
+            // Format bullet lines: "* " or "- "
+            const lines = escaped.split('\n');
+            const formattedLines = lines.map(line => {
+                const trimmed = line.trim();
+                const m = trimmed.match(/^[\*\-]\s+(.+)$/);
+                if (m) {
+                    return `<span class="inline-flex items-start gap-2 my-0.5"><span class="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 shrink-0"><\/span><span>${m[1]}<\/span><\/span>`;
                 }
+                return line;
+            });
+            escaped = formattedLines.join('\n');
 
-                const titleEsc = escapeRegex(escapeHtml(target.title));
-                const pattern = new RegExp('(?:[\\*_"\']|&quot;)*' + titleEsc + '(?:\'s|’s)?(?:[\\*_"\']|&quot;)*', 'i');
+            // Format bold: **text**
+            escaped = escaped.replace(/\*\*([^*]+)\*\*/gu, '<strong class="font-semibold text-white">$1<\/strong>');
 
-                if (pattern.test(escaped)) {
-                    const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(target.entry))));
-                    const pill = `<button type="button" ` +
-                        `data-entry-preview="true" ` +
-                        `data-entry-b64="${b64}" ` +
-                        `data-entry-key="${target.entryKey}" ` +
-                        `onclick="window.location.href = '/entries/${target.entry.id}'" ` +
-                        `class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 hover:text-blue-200 border border-blue-500/30 transition-all font-medium cursor-pointer align-baseline text-xs mx-0.5 group shadow-sm">` +
-                        `<svg class="w-3.5 h-3.5 text-blue-400 group-hover:scale-110 transition-transform flex-shrink-0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 8h8"/><path class="transition-transform group-hover:-translate-x-0.5" d="M7 12h10"/><path class="transition-transform group-hover:translate-x-0.5" d="M7 16h6"/><\/svg>` +
-                        `<span>${escapeHtml(target.entry.title)}<\/span>` +
-                        `<\/button>`;
+            // Format italics: *text*
+            escaped = escaped.replace(/(?<=\s|^)\*([^*]+)\*(?=\s|$|[,.;:!?])/gu, '<em class="italic text-gray-200">$1<\/em>');
 
-                    escaped = escaped.replace(pattern, pill);
-                    matchedEntryIds.add(target.entry.id);
-                }
-            }
+            // Clean lone asterisks
+            escaped = escaped.replace(/(?<=\s|^)\*(?=\s|$)/gu, '');
 
             return escaped;
         };
