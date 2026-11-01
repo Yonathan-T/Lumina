@@ -11,6 +11,11 @@ use Illuminate\Support\Str;
 
 class SearchJournalTool implements ToolInterface
 {
+    public const MAX_SEARCH_CANDIDATES = 10;
+    public const MIN_SEMANTIC_SIMILARITY = 0.40;
+    public const KEYWORD_MATCH_BOOST = 0.35;
+    public const KEYWORD_ONLY_BASE_SCORE = 0.85;
+
     protected EntrySearchService $searchService;
     protected EmbeddingService $embeddingService;
 
@@ -64,12 +69,18 @@ class SearchJournalTool implements ToolInterface
 
         try {
             // 1. Keyword search (exact terms / token index)
-            $matchedKeywordIds = $this->searchService->findMatchingEntryIds($user->id, $query, 10);
+            $matchedKeywordIds = $this->searchService->findMatchingEntryIds($user->id, $query, self::MAX_SEARCH_CANDIDATES);
 
             // 2. Semantic vector search (conceptual meaning & themes)
             $semanticMatches = collect();
             try {
-                $semanticMatches = $this->embeddingService->findSemanticMatches($user->id, $query, 10, 0.40, $user);
+                $semanticMatches = $this->embeddingService->findSemanticMatches(
+                    $user->id,
+                    $query,
+                    self::MAX_SEARCH_CANDIDATES,
+                    self::MIN_SEMANTIC_SIMILARITY,
+                    $user
+                );
             } catch (\Throwable $e) {
                 Log::warning('Semantic embedding search fallback in SearchJournalTool: ' . $e->getMessage());
             }
@@ -91,11 +102,11 @@ class SearchJournalTool implements ToolInterface
             foreach ($matchedKeywordIds as $id) {
                 $id = (int) $id;
                 if (isset($scoredCandidates[$id])) {
-                    $scoredCandidates[$id]['score'] += 0.35; // Boost combined match
+                    $scoredCandidates[$id]['score'] += self::KEYWORD_MATCH_BOOST; // Boost combined match
                     $scoredCandidates[$id]['has_keyword'] = true;
                 } else {
                     $scoredCandidates[$id] = [
-                        'score' => 0.85,
+                        'score' => self::KEYWORD_ONLY_BASE_SCORE,
                         'semantic_similarity' => null,
                         'has_keyword' => true,
                     ];
