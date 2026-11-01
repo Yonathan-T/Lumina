@@ -5,6 +5,7 @@
         sessionTitleToDelete: '',
         deletedSessionIds: [],
         activeSessionId: '{{ $activeSession['id'] ?? '' }}',
+        hasPendingExchange: false,
         mobileDrawerOpen: false,
         desktopNavCollapsed: (function() {
             try { return localStorage.getItem('chat-nav-collapsed') === '1' && window.innerWidth >= 768; } catch(e) { return false; }
@@ -135,7 +136,7 @@
         <!-- Header -->
         <div class="p-4 border-b border-gray-700 flex items-center justify-between gap-2">
             <button wire:click="createNewSession"
-                @click="activeSessionId = ''; closeMobile(); if (window.__syncConversationUrl) window.__syncConversationUrl(null);"
+                @click="activeSessionId = ''; hasPendingExchange = false; closeMobile(); if (window.__syncConversationUrl) window.__syncConversationUrl(null);"
                 wire:loading.attr="disabled"
                 wire:target="createNewSession"
                 class="cursor-pointer flex-1 flex items-center justify-center gap-2 bg-gradient-dark text-white rounded-lg px-4 py-2.5 transition-colors border border-white/10 hover:bg-blue-300/15 disabled:opacity-50">
@@ -467,29 +468,30 @@
                 @endif
 
                 <!-- Greeting Content Area when no active session or when deleted instantly -->
-                <div id="empty-chat-state"
-                    x-show="!activeSessionId || deletedSessionIds.includes(String(activeSessionId))"
-                    @if($activeSession) style="display: none;" @endif
-                    class="my-auto py-8 px-4 w-full max-w-3xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                    <div class="text-left max-w-sm">
-                        <h2 class="text-xl md:text-2xl font-normal text-white/90 tracking-tight leading-snug">{{ $greeting }}</h2>
-                    </div>
+                @if(!$activeSession)
+                    <div id="empty-chat-state"
+                        x-show="(!activeSessionId || deletedSessionIds.includes(String(activeSessionId))) && !hasPendingExchange"
+                        class="my-auto py-8 px-4 w-full max-w-3xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                        <div class="text-left max-w-sm">
+                            <h2 class="text-xl md:text-2xl font-normal text-white/90 tracking-tight leading-snug">{{ $greeting }}</h2>
+                        </div>
 
-                    <div class="flex flex-col gap-2.5 w-full md:max-w-xs text-left">
-                        @foreach($starterPrompts as $prompt)
-                            <button type="button"
-                                onclick="window.setChatPrompt('{{ addslashes($prompt['action']) }}')"
-                                class="p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer group text-left">
-                                <span class="text-sm font-normal text-gray-400 group-hover:text-white transition-colors block">
-                                    {{ $prompt['title'] }}
-                                </span>
-                                <span class="text-xs text-gray-500 group-hover:text-gray-300 transition-colors block mt-0.5 line-clamp-1">
-                                    {{ $prompt['subtitle'] }}
-                                </span>
-                            </button>
-                        @endforeach
+                        <div class="flex flex-col gap-2.5 w-full md:max-w-xs text-left">
+                            @foreach($starterPrompts as $prompt)
+                                <button type="button"
+                                    onclick="window.setChatPrompt('{{ addslashes($prompt['action']) }}')"
+                                    class="p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer group text-left">
+                                    <span class="text-sm font-normal text-gray-400 group-hover:text-white transition-colors block">
+                                        {{ $prompt['title'] }}
+                                    </span>
+                                    <span class="text-xs text-gray-500 group-hover:text-gray-300 transition-colors block mt-0.5 line-clamp-1">
+                                        {{ $prompt['subtitle'] }}
+                                    </span>
+                                </button>
+                            @endforeach
+                        </div>
                     </div>
-                </div>
+                @endif
 
                 <!-- Unified Chat Pending Lane (always present, never duplicated, identical full-width styling) -->
                 <div id="chat-pending-lane" wire:ignore class="space-y-6 mt-4"></div>
@@ -883,6 +885,17 @@
         };
         window.__syncConversationUrl = syncConversationUrl;
 
+        const getAlpineChatData = () => {
+            const root = document.getElementById('chatRoot');
+            if (!root) return null;
+            if (window.Alpine && typeof window.Alpine.$data === 'function') {
+                try {
+                    return window.Alpine.$data(root);
+                } catch (e) {}
+            }
+            return root._x_dataStack && root._x_dataStack[0] ? root._x_dataStack[0] : null;
+        };
+
         const syncEmptyChatState = () => {
             const emptyState = document.getElementById('empty-chat-state');
             const lane = document.getElementById('chat-pending-lane');
@@ -892,7 +905,10 @@
                 return;
             }
 
-            if (root?.dataset?.conversationId || (lane && lane.children.length > 0)) {
+            const alpineData = getAlpineChatData();
+            const hasPending = alpineData?.hasPendingExchange || (lane && lane.children.length > 0);
+
+            if (root?.dataset?.conversationId || hasPending) {
                 emptyState.classList.add('hidden');
                 emptyState.style.display = 'none';
                 return;
@@ -908,6 +924,11 @@
                 lane.innerHTML = '';
             }
 
+            const alpineData = getAlpineChatData();
+            if (alpineData) {
+                alpineData.hasPendingExchange = false;
+            }
+
             syncEmptyChatState();
         };
 
@@ -915,6 +936,11 @@
             const lane = document.getElementById('chat-pending-lane');
             const root = document.getElementById('chatRoot');
             const emptyState = document.getElementById('empty-chat-state');
+
+            const alpineData = getAlpineChatData();
+            if (alpineData) {
+                alpineData.hasPendingExchange = true;
+            }
 
             if (emptyState) {
                 emptyState.classList.add('hidden');
@@ -1647,6 +1673,11 @@
 
                     if (conversationId) {
                         root.dataset.conversationId = String(conversationId);
+                        const alpineData = getAlpineChatData();
+                        if (alpineData) {
+                            alpineData.activeSessionId = String(conversationId);
+                            alpineData.hasPendingExchange = true;
+                        }
                         syncConversationUrl(conversationId);
                     }
                 }
@@ -1695,8 +1726,9 @@
                     const sessionId = event?.sessionId || (typeof event === 'number' || typeof event === 'string' ? event : null);
                     if (root && sessionId) {
                         root.dataset.conversationId = String(sessionId);
-                        if (root._x_dataStack && root._x_dataStack[0]) {
-                            root._x_dataStack[0].activeSessionId = String(sessionId);
+                        const alpineData = getAlpineChatData();
+                        if (alpineData) {
+                            alpineData.activeSessionId = String(sessionId);
                         }
                     }
                     syncConversationUrl(sessionId);
@@ -1706,15 +1738,21 @@
                     const root = document.getElementById('chatRoot');
                     if (root) {
                         root.dataset.conversationId = '';
-                        if (root._x_dataStack && root._x_dataStack[0]) {
-                            root._x_dataStack[0].activeSessionId = '';
+                        const alpineData = getAlpineChatData();
+                        if (alpineData) {
+                            alpineData.activeSessionId = '';
+                            alpineData.hasPendingExchange = false;
                         }
                     }
                     syncConversationUrl(null);
                 });
 
                 if (Livewire.hook) {
-                    Livewire.hook('message.processed', () => {
+                    Livewire.hook('morph.updated', () => {
+                        syncEmptyChatState();
+                        refreshMessageTimestamps();
+                    });
+                    Livewire.hook('commit', () => {
                         syncEmptyChatState();
                         refreshMessageTimestamps();
                     });
