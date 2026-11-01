@@ -62,6 +62,56 @@ class AiToolHarnessTest extends TestCase
         $this->assertStringContainsString('redwoods', $result['entries'][0]['snippet']);
     }
 
+    public function test_search_journal_prunes_weak_pure_semantic_noise_below_dual_tier_threshold(): void
+    {
+        $user = User::factory()->create();
+        $entry = Entry::create([
+            'user_id' => $user->id,
+            'title' => 'Testing security',
+            'content' => 'this is a test to check if the data is encrypted in the DB',
+        ]);
+
+        $searchService = $this->createMock(\App\Services\EntrySearchService::class);
+        $searchService->method('findMatchingEntryIds')->willReturn(collect());
+
+        $embeddingService = $this->createMock(\App\Services\EmbeddingService::class);
+        $embeddingService->method('findSemanticMatches')->willReturn(collect([
+            ['entry_id' => $entry->id, 'score' => 0.58], // ambient noise below 0.60
+        ]));
+
+        $tool = new SearchJournalTool($searchService, $embeddingService);
+        $result = $tool->execute(['query' => 'fraol selam'], $user);
+
+        $this->assertEquals('not_found', $result['status']);
+        $this->assertEquals(0, $result['count']);
+    }
+
+    public function test_search_journal_accepts_pure_semantic_matches_meeting_dual_tier_threshold(): void
+    {
+        $user = User::factory()->create();
+        $entry = Entry::create([
+            'user_id' => $user->id,
+            'title' => 'Deep Work Routines',
+            'content' => 'Spending early mornings without distraction brings high focus and clarity.',
+        ]);
+
+        $searchService = $this->createMock(\App\Services\EntrySearchService::class);
+        $searchService->method('findMatchingEntryIds')->willReturn(collect());
+
+        $embeddingService = $this->createMock(\App\Services\EmbeddingService::class);
+        $embeddingService->method('findSemanticMatches')->willReturn(collect([
+            ['entry_id' => $entry->id, 'score' => 0.68],
+        ]));
+
+        $tool = new SearchJournalTool($searchService, $embeddingService);
+        $result = $tool->execute(['query' => 'productivity habits'], $user);
+
+        $this->assertEquals('success', $result['status']);
+        $this->assertEquals(1, $result['count']);
+        $this->assertEquals('conceptual_similarity', $result['entries'][0]['match_type']);
+        $this->assertEquals('Deep Work Routines', $result['entries'][0]['title']);
+    }
+
     public function test_get_user_stats_tool_returns_streak_and_totals(): void
     {
         $user = User::factory()->create();

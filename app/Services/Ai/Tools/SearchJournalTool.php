@@ -13,6 +13,7 @@ class SearchJournalTool implements ToolInterface
 {
     public const MAX_SEARCH_CANDIDATES = 10;
     public const MIN_SEMANTIC_SIMILARITY = 0.40;
+    public const MIN_PURE_SEMANTIC_SIMILARITY = 0.60;
     public const KEYWORD_MATCH_BOOST = 0.35;
     public const KEYWORD_ONLY_BASE_SCORE = 0.85;
 
@@ -112,6 +113,15 @@ class SearchJournalTool implements ToolInterface
                     ];
                 }
             }
+
+            // Prune pure semantic candidates that do not meet the higher threshold required without keyword support
+            $scoredCandidates = array_filter($scoredCandidates, function (array $candidate): bool {
+                if ($candidate['has_keyword']) {
+                    return true;
+                }
+
+                return ($candidate['semantic_similarity'] ?? 0.0) >= self::MIN_PURE_SEMANTIC_SIMILARITY;
+            });
 
             $queryBuilder = Entry::where('user_id', $user->id)->with('tags:id,name');
 
