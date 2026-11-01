@@ -2,8 +2,8 @@
     <!-- AI-Powered Quick Actions -->
     <div class="mt-12 space-y-4">
         <div class="text-center space-y-2">
-            <h2 class="text-2xl font-semibold flex items-center justify-center gap-2.5 group cursor-default">
-                <x-lumi-bot :size="28" class="text-blue-400" />
+            <h2 class="text-2xl font-semibold flex items-center justify-center gap-3 group cursor-default">
+                <x-lumi-bot :size="48" class="text-white shrink-0" />
                 AI-Powered Insights
             </h2>
             <p class="text-muted">Let Lumi AI help you explore your thoughts and patterns</p>
@@ -19,7 +19,7 @@
                 <div class="relative p-4">
                     <div class="flex items-start gap-3">
                         <div class="flex h-10 w-10 items-center justify-center rounded-md bg-blue-500/10">
-                            <x-icon name="heart-handshake" class="h-5 w-5 text-blue-300" />
+                            <x-animated-icons.hand-helping class="h-5 w-5 text-blue-300" />
                         </div>
                         <div class="flex-1">
                             <h3 class="text-lg font-semibold text-white">Start Guided Reflection</h3>
@@ -44,7 +44,7 @@
                 <div class="relative p-4">
                     <div class="flex items-start gap-3">
                         <div class="flex h-10 w-10 items-center justify-center rounded-md bg-emerald-500/10">
-                            <x-icon name="scroll-text" class="h-5 w-5 text-emerald-300" />
+                            <x-animated-icons.file-stack class="h-5 w-5 text-emerald-300" />
                         </div>
                         <div class="flex-1">
                             <h3 class="text-lg font-semibold text-white">Weekly Summary</h3>
@@ -69,7 +69,7 @@
                 <div class="relative p-4">
                     <div class="flex items-start gap-3">
                         <div class="flex h-10 w-10 items-center justify-center rounded-md bg-violet-500/10">
-                            <x-icon name="flash-outline" class="h-5 w-5 text-violet-300" />
+                            <x-animated-icons.zap class="h-5 w-5 text-violet-300" />
                         </div>
                         <div class="flex-1">
                             <div class="flex items-center gap-2">
@@ -96,7 +96,7 @@
                 <div class="relative p-4">
                     <div class="flex items-start gap-3">
                         <div class="flex h-10 w-10 items-center justify-center rounded-md bg-amber-500/10">
-                            <x-icon name="clock" class="h-5 w-5 text-amber-300" />
+                            <x-animated-icons.history class="h-5 w-5 text-amber-300" />
                         </div>
                         <div class="flex-1">
                             <h3 class="text-lg font-semibold text-white">Review Past Memos</h3>
@@ -138,13 +138,11 @@
                 <button wire:click="startTherapySession" 
                     wire:loading.class="opacity-75 cursor-wait"
                     wire:target="startTherapySession"
-                    class="inline-flex min-w-[220px] cursor-pointer items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-500">
+                    class="group/btn inline-flex min-w-[220px] cursor-pointer items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-500">
                     <x-icon wire:loading.remove wire:target="startTherapySession" name="chatbubbles-outline" class="h-4 w-4 text-blue-100" />
                     <div wire:loading wire:target="startTherapySession" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     <span>Start Therapy Session</span>
-                    <svg wire:loading.remove wire:target="startTherapySession" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4 text-blue-100">
-                        <path fill-rule="evenodd" d="M3.25 10a.75.75 0 0 1 .75-.75h9.19L9.97 6.03a.75.75 0 1 1 1.06-1.06l4.5 4.5a.75.75 0 0 1 0 1.06l-4.5 4.5a.75.75 0 1 1-1.06-1.06l3.22-3.22H4A.75.75 0 0 1 3.25 10Z" clip-rule="evenodd" />
-                    </svg>
+                    <x-animated-icons.arrow-big-right-dash wire:loading.remove wire:target="startTherapySession" class="h-4 w-4 text-blue-100" />
                 </button>
             </div>
         </div>

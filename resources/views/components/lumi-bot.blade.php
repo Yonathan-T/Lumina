@@ -1,5 +1,5 @@
 @props([
-    'size' => 28,
+    'size' => 36,
     'class' => '',
     'animated' => true,
 ])
@@ -23,10 +23,20 @@
          viewBox="0 0 200 250"
          width="{{ $size }}"
          height="{{ round($size * 1.25) }}"
-         class="lumi-bot-svg overflow-visible transition-transform duration-300"
+         class="lumi-bot-svg overflow-visible transition-colors duration-300"
          :class="{ 'lumi-is-animating': isAnimating }">
         <defs>
             <style>
+                .lumi-bot-svg {
+                    color: currentColor;
+                    transition: color 0.3s ease;
+                }
+                .lumi-bot-svg:hover,
+                .lumi-bot-svg.lumi-is-animating,
+                .group:hover .lumi-bot-svg {
+                    color: #60a5fa;
+                }
+
                 .lumi-bot-svg.lumi-is-animating .lumi-body-group,
                 .group:hover .lumi-bot-svg .lumi-body-group {
                     animation: lumiWiggle 1s ease-in-out forwards;
