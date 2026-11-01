@@ -2,8 +2,8 @@
     <!-- AI-Powered Quick Actions -->
     <div class="mt-12 space-y-4">
         <div class="text-center space-y-2">
-            <h2 class="text-2xl font-semibold flex items-center justify-center gap-2">
-                <x-icon name="brain" class="h-6 w-6 text-blue-400" />
+            <h2 class="text-2xl font-semibold flex items-center justify-center gap-2.5 group cursor-default">
+                <x-lumi-bot :size="28" class="text-blue-400" />
                 AI-Powered Insights
             </h2>
             <p class="text-muted">Let Lumi AI help you explore your thoughts and patterns</p>
