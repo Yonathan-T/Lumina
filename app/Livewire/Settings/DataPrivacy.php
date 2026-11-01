@@ -223,12 +223,7 @@ class DataPrivacy extends Component
         }
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($user) {
-            // 1. Delete all entry search terms
-            if (\Illuminate\Support\Facades\Schema::hasTable('entry_search_terms')) {
-                \Illuminate\Support\Facades\DB::table('entry_search_terms')->where('user_id', $user->id)->delete();
-            }
-
-            // 2. Delete entries and detach tags
+            // 1. Delete entries and detach tags
             $entries = Entry::where('user_id', $user->id)->get();
             foreach ($entries as $entry) {
                 if ($entry->banner_path && Storage::disk('public')->exists($entry->banner_path)) {

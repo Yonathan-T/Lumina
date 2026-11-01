@@ -10,28 +10,6 @@ class EntrySearchService
 {
     public function updateEntryIndex(Entry $entry): void
     {
-        $terms = $this->buildTermsForEntry($entry);
-
-        DB::transaction(function () use ($entry, $terms) {
-            DB::table('entry_search_terms')->where('entry_id', $entry->id)->delete();
-
-            if (empty($terms)) {
-                return;
-            }
-
-            $rows = array_map(function (string $term) use ($entry) {
-                return [
-                    'entry_id' => $entry->id,
-                    'user_id' => $entry->user_id,
-                    'term' => $term,
-                ];
-            }, $terms);
-
-            foreach (array_chunk($rows, 500) as $chunk) {
-                DB::table('entry_search_terms')->insert($chunk);
-            }
-        });
-
         // Update semantic vector embedding
         try {
             $embeddingService = app(EmbeddingService::class);
@@ -58,15 +36,7 @@ class EntrySearchService
         try {
             $candidateIds = collect();
 
-            if (!empty($tokens)) {
-                $termIds = DB::table('entry_search_terms')
-                    ->where('user_id', $userId)
-                    ->whereIn('term', $tokens)
-                    ->pluck('entry_id');
-                $candidateIds = $candidateIds->merge($termIds);
-            }
-
-            // Also find candidates by tags (tags are not encrypted)
+            // Find candidates by tags (tags are not encrypted)
             $tagIds = Entry::where('user_id', $userId)
                 ->whereHas('tags', function ($tq) use ($cleanTagQuery) {
                     $tq->where('name', 'LIKE', "%{$cleanTagQuery}%");
@@ -74,10 +44,10 @@ class EntrySearchService
                 ->pluck('id');
             $candidateIds = $candidateIds->merge($tagIds);
 
-            // Check recent entries to ensure newly created or unindexed entries are always found
+            // Check recent entries to ensure entries are searched and decrypted in-memory
             $recentIds = Entry::where('user_id', $userId)
                 ->latest()
-                ->limit(50)
+                ->limit(100)
                 ->pluck('id');
             $candidateIds = $candidateIds->merge($recentIds)->unique();
 
