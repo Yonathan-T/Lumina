@@ -43,6 +43,7 @@ class CoreFunctionalIntegrityAuditTest extends TestCase
             $table->text('elevenlabs_api_key')->nullable();
             $table->timestamp('elevenlabs_api_key_verified_at')->nullable();
             $table->timestamp('elevenlabs_api_key_tested_at')->nullable();
+            $table->text('encryption_key')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

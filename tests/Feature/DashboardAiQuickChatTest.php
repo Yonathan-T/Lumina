@@ -40,6 +40,7 @@ class DashboardAiQuickChatTest extends TestCase
             $table->text('api_key')->nullable();
             $table->timestamp('api_key_verified_at')->nullable();
             $table->text('elevenlabs_api_key')->nullable();
+            $table->text('encryption_key')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
@@ -328,5 +329,87 @@ class DashboardAiQuickChatTest extends TestCase
         Http::assertSent(function (\Illuminate\Http\Client\Request $request) {
             return str_contains($request->url(), 'generativelanguage.googleapis.com');
         });
+    }
+
+    /**
+     * Test: Quick chat handles ephemeral multi-turn conversations with tools without persisting to database.
+     */
+    public function test_quick_chat_ephemeral_multi_turn_with_tools_and_no_db_persistence(): void
+    {
+        $this->user->update([
+            'api_key' => Crypt::encryptString('dummy-gemini-key'),
+        ]);
+        $this->actingAs($this->user);
+
+        // Create journal entries for the user
+        Entry::create([
+            'user_id' => $this->user->id,
+            'title' => 'Reflections on Ambition',
+            'content' => 'Ambition is the first step to success. The second is action.',
+            'created_at' => now()->subMonths(3),
+        ]);
+
+        Entry::create([
+            'user_id' => $this->user->id,
+            'title' => 'Deep Focus',
+            'content' => 'A much longer second entry about focus, routine, and discipline.',
+            'created_at' => now()->subMonths(1),
+        ]);
+
+        Http::fake([
+            'https://generativelanguage.googleapis.com/*' => Http::sequence()
+                // Turn 1: model calls get_user_stats tool
+                ->push([
+                    'candidates' => [
+                        [
+                            'content' => [
+                                'parts' => [
+                                    [
+                                        'functionCall' => [
+                                            'name' => 'get_user_stats',
+                                            'args' => (object) [],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ], 200)
+                // Turn 1 recursive follow-up: model outputs final answer using tool result
+                ->push([
+                    'candidates' => [
+                        [
+                            'content' => [
+                                'parts' => [
+                                    ['text' => 'Your first reflection was **Reflections on Ambition** written 3 months ago.'],
+                                ],
+                            ],
+                        ],
+                    ],
+                ], 200),
+        ]);
+
+        $component = Livewire::test(AiQuickChat::class)
+            ->call('startQuickChat')
+            ->assertSet('showQuickChatModal', true);
+
+        $messages = $component->get('quickChatMessages');
+        $this->assertCount(1, $messages);
+        $this->assertEquals('ai', $messages[0]['sender']);
+
+        // Send user question
+        $component->call('sendQuickChat', 'what was my first entry?')
+            ->assertSet('quickChatLoading', false);
+
+        $updatedMessages = $component->get('quickChatMessages');
+        $this->assertCount(3, $updatedMessages);
+        $this->assertEquals('user', $updatedMessages[1]['sender']);
+        $this->assertEquals('what was my first entry?', $updatedMessages[1]['content']);
+        $this->assertEquals('ai', $updatedMessages[2]['sender']);
+        $this->assertStringContainsString('Reflections on Ambition', $updatedMessages[2]['content']);
+
+        // Verify strictly ephemeral: no conversations or messages persisted to database
+        $this->assertEquals(0, Conversation::count());
+        $this->assertEquals(0, Message::count());
     }
 }

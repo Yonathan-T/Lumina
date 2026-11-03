@@ -52,12 +52,17 @@ class AiChatService
         $this->userDataService = new UserDataService();
     }
 
-    public function generateResponse(string $message, ?int $conversationId = null): string
+    public function generateResponse(string $message, ?int $conversationId = null, ?array $customHistory = null): string
     {
         try {
-            $contextData = $this->getConversationContextData($conversationId);
-            $conversationHistory = $contextData['history'];
-            $conversationSummary = $contextData['summary'];
+            if ($customHistory !== null) {
+                $conversationHistory = $customHistory;
+                $conversationSummary = null;
+            } else {
+                $contextData = $this->getConversationContextData($conversationId);
+                $conversationHistory = $contextData['history'];
+                $conversationSummary = $contextData['summary'];
+            }
             $userContext = $this->getUserContext($message);
 
             if ($this->provider === 'gemini' && !$this->geminiApiKey) {
