@@ -375,6 +375,8 @@ class ChatInterface extends Component
             $entries = array_values($uniqueEntries);
 
             $targets = [];
+            $genericStopwords = ['entry', 'entries', 'memo', 'memos', 'note', 'notes', 'thought', 'thoughts', 'journal', 'reflection', 'reflections', 'content', 'title'];
+
             foreach ($entries as $entry) {
                 $title = (string) ($entry['title'] ?? '');
                 if ($title === '') {
@@ -385,7 +387,17 @@ class ChatInterface extends Component
                 $subparts = preg_split('/\s+[—–\-:]\s+/u', $cleanTitle);
                 $mainTitle = trim($subparts[0] ?? '');
 
-                $candidates = array_unique(array_filter([$title, $cleanTitle, $mainTitle], fn($t) => mb_strlen($t) >= 3));
+                $rawCandidates = array_unique(array_filter([$title, $cleanTitle, $mainTitle], fn($t) => mb_strlen($t) >= 3));
+
+                // Only allow subparts/shorter variants if they aren't generic generic nouns like "entry"
+                $candidates = [];
+                foreach ($rawCandidates as $cand) {
+                    $lower = mb_strtolower($cand);
+                    if ($cand !== $title && in_array($lower, $genericStopwords, true)) {
+                        continue;
+                    }
+                    $candidates[] = $cand;
+                }
 
                 foreach ($candidates as $cand) {
                     $targets[] = [
@@ -424,7 +436,7 @@ class ChatInterface extends Component
                         '<span>' . e($tgt['entry']['title']) . '</span>' .
                         '</button>';
 
-                    $token = '___ENTRY_PILL_' . ($placeholderIndex++) . '___';
+                    $token = "\xEE\x80\x80LUMI_PILL_" . ($placeholderIndex++) . '_' . bin2hex(random_bytes(4)) . "\xEE\x80\x81";
                     $placeholders[$token] = $buttonHtml;
                     $processed = preg_replace($pattern, $token, $processed, 1);
                     $matchedEntryIds[$entryId] = true;

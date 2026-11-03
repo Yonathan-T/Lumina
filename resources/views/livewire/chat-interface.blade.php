@@ -1098,11 +1098,12 @@
                     const candidates = new Set();
                     candidates.add(entry.title);
 
+                    const genericStopwords = new Set(['entry', 'entries', 'memo', 'memos', 'note', 'notes', 'thought', 'thoughts', 'journal', 'reflection', 'reflections', 'content', 'title']);
                     const cleanTitle = entry.title.replace(/^[\p{Emoji}\p{So}\p{Sk}\p{Sm}\p{Mn}\p{Me}\p{C}\s\p{P}]+|[\p{Emoji}\p{So}\p{Sk}\p{Sm}\p{Mn}\p{Me}\p{C}\s\p{P}]+$/gu, '').trim();
-                    if (cleanTitle && cleanTitle.length >= 3) {
+                    if (cleanTitle && cleanTitle.length >= 3 && !genericStopwords.has(cleanTitle.toLowerCase())) {
                         candidates.add(cleanTitle);
                         const subparts = cleanTitle.split(/\s+[—–\-:]\s+/);
-                        if (subparts[0] && subparts[0].trim().length >= 3) {
+                        if (subparts[0] && subparts[0].trim().length >= 3 && !genericStopwords.has(subparts[0].trim().toLowerCase())) {
                             candidates.add(subparts[0].trim());
                         }
                     }
@@ -1119,6 +1120,8 @@
 
                 targets.sort((a, b) => b.length - a.length);
                 const matchedEntryIds = new Set();
+                const placeholders = {};
+                let pIndex = 0;
 
                 for (const target of targets) {
                     if (matchedEntryIds.has(target.entry.id)) {
@@ -1126,7 +1129,9 @@
                     }
 
                     const titleEsc = escapeRegex(escapeHtml(target.title));
-                    const pattern = new RegExp('(?:[\\*_"\']|&quot;)*' + titleEsc + '(?:\'s|’s)?(?:[\\*_"\']|&quot;)*', 'i');
+                    const leadBoundary = /^\w/u.test(target.title) ? '(?<=\\s|^|[\\*_"\']|&quot;)' : '';
+                    const trailBoundary = /\w$/u.test(target.title) ? '(?=\\s|$|[\\*_"\',.;:!?]|&quot;|\'s|’s)' : '';
+                    const pattern = new RegExp(leadBoundary + '(?:[\\*_"]|&quot;)*' + titleEsc + '(?:\'s|’s)?(?:[\\*_"]|&quot;)*' + trailBoundary, 'i');
 
                     if (pattern.test(escaped)) {
                         const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(target.entry))));
@@ -1140,9 +1145,15 @@
                             `<span>${escapeHtml(target.entry.title)}<\/span>` +
                             `<\/button>`;
 
-                        escaped = escaped.replace(pattern, pill);
+                        const token = `\uE000LUMI_P_${pIndex++}_${Math.random().toString(36).slice(2, 8)}\uE001`;
+                        placeholders[token] = pill;
+                        escaped = escaped.replace(pattern, token);
                         matchedEntryIds.add(target.entry.id);
                     }
+                }
+
+                for (const [token, pillHtml] of Object.entries(placeholders)) {
+                    escaped = escaped.replaceAll(token, pillHtml);
                 }
             }
 

@@ -61,6 +61,26 @@ class GetUserStatsTool implements ToolInterface
                 ->orderBy('created_at', 'desc')
                 ->first();
 
+            $firstEntry = Entry::where('user_id', $userId)
+                ->orderBy('created_at', 'asc')
+                ->first();
+
+            $allEntries = Entry::where('user_id', $userId)->get();
+            $maxWordCount = 0;
+            $longestEntryTitle = 'None';
+            $totalWords = 0;
+
+            foreach ($allEntries as $e) {
+                $wCount = str_word_count(strip_tags((string) $e->content));
+                $totalWords += $wCount;
+                if ($wCount > $maxWordCount) {
+                    $maxWordCount = $wCount;
+                    $longestEntryTitle = (string) $e->title;
+                }
+            }
+
+            $avgWords = $totalEntries > 0 ? (int) round($totalWords / $totalEntries) : 0;
+
             return [
                 'current_streak_days' => $currentStreak,
                 'longest_streak_days' => $longestStreak,
@@ -70,6 +90,11 @@ class GetUserStatsTool implements ToolInterface
                 'top_tag' => $userTags->first() ? $userTags->first()->name : 'None',
                 'entries_written_this_month' => $entriesThisMonth,
                 'last_active' => $lastEntry && $lastEntry->created_at ? $lastEntry->created_at->diffForHumans() : 'Never',
+                'first_entry_title' => $firstEntry ? (string) $firstEntry->title : 'None',
+                'first_entry_date' => $firstEntry && $firstEntry->created_at ? $firstEntry->created_at->format('M j, Y') : 'Never',
+                'longest_entry_title' => $longestEntryTitle,
+                'longest_entry_word_count' => $maxWordCount,
+                'average_words_per_entry' => $avgWords,
             ];
         } catch (\Throwable $e) {
             Log::error('GetUserStatsTool execution failed: ' . $e->getMessage());

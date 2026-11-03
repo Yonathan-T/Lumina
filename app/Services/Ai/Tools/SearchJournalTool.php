@@ -37,20 +37,23 @@ class SearchJournalTool implements ToolInterface
     {
         return [
             'name' => 'search_journal',
-            'description' => 'Search the user\'s past journal entries and memories by keyword, topic, emotion, or time period to recall specific events, feelings, or entries.',
+            'description' => 'Search the user\'s past journal entries and memories by keyword, topic, emotion, or retrieve specific milestones like their first/earliest entry, longest reflection by word count, shortest entry, or latest entries.',
             'parameters' => [
                 'type' => 'OBJECT',
                 'properties' => [
                     'query' => [
                         'type' => 'STRING',
-                        'description' => 'Keywords, feelings, person names, or topics to search for in past journal entries.',
+                        'description' => 'Keywords, feelings, person names, or topics to search for in past journal entries. Optional when using order_by for milestone queries.',
+                    ],
+                    'order_by' => [
+                        'type' => 'STRING',
+                        'description' => 'Optional milestone or sort ordering: "earliest" (find the user\'s very first/oldest journal entry ever), "longest" (find the longest reflection by word count), "shortest", "latest" (most recent entries), or "relevance" (default search relevance).',
                     ],
                     'days_ago' => [
                         'type' => 'INTEGER',
                         'description' => 'Optional filter to search only within the last N days (e.g. 7 for past week, 30 for past month).',
                     ],
                 ],
-                'required' => ['query'],
             ],
         ];
     }
@@ -58,17 +61,168 @@ class SearchJournalTool implements ToolInterface
     public function execute(array $args, User $user): array
     {
         $query = trim((string) ($args['query'] ?? ''));
+        $orderBy = strtolower(trim((string) ($args['order_by'] ?? '')));
         $daysAgo = isset($args['days_ago']) ? (int) $args['days_ago'] : null;
 
-        if ($query === '') {
+        // Auto-detect milestone queries from natural language query if order_by wasn't explicitly passed
+        if ($orderBy === '' || $orderBy === 'relevance') {
+            if (preg_match('/\b(first|earliest|beginning|start|oldest)\b/i', $query)) {
+                $orderBy = 'earliest';
+            } elseif (preg_match('/\b(longest|most detailed|most words|biggest entry|lengthiest)\b/i', $query)) {
+                $orderBy = 'longest';
+            } elseif (preg_match('/\b(shortest|briefest)\b/i', $query)) {
+                $orderBy = 'shortest';
+            } elseif (preg_match('/\b(latest|most recent|recent entries|last entry)\b/i', $query) && mb_strlen($query) < 25) {
+                $orderBy = 'latest';
+            }
+        }
+
+        if ($query === '' && $orderBy === '') {
             return [
                 'status' => 'empty_query',
                 'entries' => [],
-                'message' => 'No search query provided.',
+                'message' => 'No search query or ordering provided.',
             ];
         }
 
         try {
+            // Milestone 1: Earliest / First entry ever
+            if ($orderBy === 'earliest') {
+                $queryBuilder = Entry::where('user_id', $user->id)
+                    ->with('tags:id,name')
+                    ->orderBy('created_at', 'asc');
+
+                if ($daysAgo && $daysAgo > 0) {
+                    $queryBuilder->where('created_at', '>=', now()->subDays($daysAgo));
+                }
+
+                $entries = $queryBuilder->limit(3)->get();
+
+                if ($entries->isEmpty()) {
+                    return [
+                        'status' => 'not_found',
+                        'count' => 0,
+                        'entries' => [],
+                        'message' => 'No journal entries found.',
+                    ];
+                }
+
+                $formatted = $entries->map(function (Entry $entry) {
+                    $cleanContent = Str::limit(strip_tags((string) $entry->content), 400, '...');
+                    $wordCount = str_word_count(strip_tags((string) $entry->content));
+
+                    return [
+                        'id' => $entry->id,
+                        'title' => (string) $entry->title,
+                        'date' => $entry->created_at ? $entry->created_at->format('M j, Y \a\t g:i A') : 'Unknown',
+                        'word_count' => $wordCount,
+                        'snippet' => $cleanContent,
+                        'tags' => $entry->tags->pluck('name')->all(),
+                        'match_type' => 'earliest_entry',
+                    ];
+                })->all();
+
+                return [
+                    'status' => 'success',
+                    'count' => count($formatted),
+                    'entries' => $formatted,
+                ];
+            }
+
+            // Milestone 2 & 3: Longest or Shortest entry
+            if ($orderBy === 'longest' || $orderBy === 'shortest') {
+                $queryBuilder = Entry::where('user_id', $user->id)->with('tags:id,name');
+
+                if ($daysAgo && $daysAgo > 0) {
+                    $queryBuilder->where('created_at', '>=', now()->subDays($daysAgo));
+                }
+
+                $allEntries = $queryBuilder->get();
+
+                if ($allEntries->isEmpty()) {
+                    return [
+                        'status' => 'not_found',
+                        'count' => 0,
+                        'entries' => [],
+                        'message' => 'No journal entries found.',
+                    ];
+                }
+
+                $scored = $allEntries->map(function (Entry $entry) {
+                    $cleanContent = trim(strip_tags((string) $entry->content));
+                    return [
+                        'entry' => $entry,
+                        'word_count' => str_word_count($cleanContent),
+                        'char_count' => mb_strlen($cleanContent),
+                        'snippet' => Str::limit($cleanContent, 400, '...'),
+                    ];
+                });
+
+                if ($orderBy === 'longest') {
+                    $sorted = $scored->sortByDesc('word_count')->values();
+                } else {
+                    $sorted = $scored->filter(fn ($item) => $item['char_count'] > 0)->sortBy('word_count')->values();
+                }
+
+                $top = $sorted->take(3);
+                $formatted = $top->map(function (array $item) use ($orderBy) {
+                    $entry = $item['entry'];
+                    return [
+                        'id' => $entry->id,
+                        'title' => (string) $entry->title,
+                        'date' => $entry->created_at ? $entry->created_at->format('M j, Y \a\t g:i A') : 'Unknown',
+                        'word_count' => $item['word_count'],
+                        'snippet' => $item['snippet'],
+                        'tags' => $entry->tags->pluck('name')->all(),
+                        'match_type' => $orderBy === 'longest' ? 'longest_entry' : 'shortest_entry',
+                    ];
+                })->all();
+
+                return [
+                    'status' => 'success',
+                    'count' => count($formatted),
+                    'entries' => $formatted,
+                ];
+            }
+
+            // Milestone 4: Latest entries
+            if ($orderBy === 'latest') {
+                $queryBuilder = Entry::where('user_id', $user->id)->with('tags:id,name')->latest();
+
+                if ($daysAgo && $daysAgo > 0) {
+                    $queryBuilder->where('created_at', '>=', now()->subDays($daysAgo));
+                }
+
+                $entries = $queryBuilder->limit(3)->get();
+
+                if ($entries->isEmpty()) {
+                    return [
+                        'status' => 'not_found',
+                        'count' => 0,
+                        'entries' => [],
+                        'message' => 'No journal entries found.',
+                    ];
+                }
+
+                $formatted = $entries->map(function (Entry $entry) {
+                    $cleanContent = Str::limit(strip_tags((string) $entry->content), 350, '...');
+                    return [
+                        'id' => $entry->id,
+                        'title' => (string) $entry->title,
+                        'date' => $entry->created_at ? $entry->created_at->format('M j, Y \a\t g:i A') : 'Unknown',
+                        'snippet' => $cleanContent,
+                        'tags' => $entry->tags->pluck('name')->all(),
+                        'match_type' => 'latest',
+                    ];
+                })->all();
+
+                return [
+                    'status' => 'success',
+                    'count' => count($formatted),
+                    'entries' => $formatted,
+                ];
+            }
+
             // 1. Keyword search (exact terms / token index)
             $matchedKeywordIds = $this->searchService->findMatchingEntryIds($user->id, $query, self::MAX_SEARCH_CANDIDATES);
 
