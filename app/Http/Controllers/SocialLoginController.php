@@ -48,8 +48,11 @@ class SocialLoginController extends Controller
                 ->first();
 
             if ($user) {
-                if (! $user->email_verified_at) {
-                    $user->update(['email_verified_at' => now()]);
+                if (! $user->hasVerifiedEmail()) {
+                    $user->markEmailAsVerified();
+                }
+                if ($socialUser->getAvatar() && $user->avatar !== $socialUser->getAvatar()) {
+                    $user->update(['avatar' => $socialUser->getAvatar()]);
                 }
                 Auth::login($user);
             } else {
@@ -59,9 +62,11 @@ class SocialLoginController extends Controller
                     $user->update([
                         'provider' => $provider,
                         'provider_id' => $socialUser->getId(),
-                        'avatar' => $socialUser->getAvatar(),
-                        'email_verified_at' => $user->email_verified_at ?? now(),
+                        'avatar' => $socialUser->getAvatar() ?? $user->avatar,
                     ]);
+                    if (! $user->hasVerifiedEmail()) {
+                        $user->markEmailAsVerified();
+                    }
                 } else {
                     $user = User::create([
                         'name' => $socialUser->getName() ?? $socialUser->getNickname(),
@@ -72,6 +77,10 @@ class SocialLoginController extends Controller
                         'password' => bcrypt(str()->random(24)),
                         'email_verified_at' => now(),
                     ]);
+
+                    if (! $user->hasVerifiedEmail()) {
+                        $user->markEmailAsVerified();
+                    }
                 }
 
                 Auth::login($user);
