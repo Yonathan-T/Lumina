@@ -60,7 +60,7 @@
 
                         <div class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-black/45 backdrop-blur-md border border-white/10 text-white/85 font-medium text-xs">
                             <span class="w-5 h-5 rounded-full bg-white/15 text-white flex items-center justify-center text-[10px] font-bold shrink-0">3</span>
-                            <span>Reflect & write with Lumi AI</span>
+                            <span>Reflect & write with Lumi</span>
                         </div>
                     </div>
                 </div>

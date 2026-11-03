@@ -6,7 +6,7 @@
                 <x-lumi-bot :size="48" class="text-white shrink-0" />
                 AI-Powered Insights
             </h2>
-            <p class="text-muted">Let Lumi AI help you explore your thoughts and patterns</p>
+            <p class="text-muted">Let Lumi help you explore your thoughts and patterns</p>
         </div>
 
         <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1">
@@ -287,7 +287,13 @@
                             <div class="flex {{ $message['sender'] === 'user' ? 'justify-end' : 'justify-start' }}">
                                 <div
                                     class="max-w-[80%] {{ $message['sender'] === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted/20 text-white' }} rounded-lg p-3">
-                                    <p class="text-sm whitespace-pre-wrap">{{ $message['content'] }}</p>
+                                    @if($message['sender'] === 'user')
+                                        <p class="text-sm whitespace-pre-wrap">{{ $message['content'] }}</p>
+                                    @else
+                                        <div class="text-sm prose prose-invert max-w-none leading-relaxed prose-p:my-1 prose-strong:text-white prose-em:text-blue-200">
+                                            {!! \Illuminate\Support\Str::markdown($message['content']) !!}
+                                        </div>
+                                    @endif
                                     <p class="text-xs opacity-70 mt-1">{{ $message['timestamp'] }}</p>
                                 </div>
                             </div>

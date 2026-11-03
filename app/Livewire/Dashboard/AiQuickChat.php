@@ -324,8 +324,9 @@ Journal entries to analyze:
         $this->quickChatLoading = true;
 
         try {
-            $prompt = 'You are having a quick, temporary chat with a user. This conversation will not be saved. ';
-            $prompt .= 'Be helpful, empathetic, and concise. If the user wants to save the conversation, suggest using the main chat feature. ';
+            $prompt = 'You are Lumi having a quick, temporary chat with the user in their personal sanctuary. This conversation will not be saved. ';
+            $prompt .= 'Be helpful, empathetic, warm, and concise. ';
+            $prompt .= 'Note: In this quick temporary chat mode, you do not have access to their saved journal database. Never invent or hallucinate fake entries or dates. If the user asks about specific past journal entries, memories, or statistics, let them know this quick chat is a private, lightweight sounding board without journal access, and invite them to explore their entries in the main chat or Guided Reflection. ';
             $prompt .= 'User message: '.$userMessage;
 
             $aiResponse = app(AiChatService::class)->generateResponse($prompt, null);
