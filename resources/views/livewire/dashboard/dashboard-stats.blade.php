@@ -16,7 +16,7 @@
                     class="cursor-pointer p-2 rounded-full hover:bg-white/10 transition-colors">
                     <x-icon name="bell" class="w-8 h-8" />
                     @if($unreadCount > 0)
-                        <span class="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
+                        <span x-ref="unreadDot" class="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
                     @endif
                 </button>
 
@@ -35,6 +35,22 @@
                 x-transition:leave="transition ease-in duration-200"
                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                 x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                x-data="{
+                    clearedAll: false,
+                    readAll: false,
+                    remainingCount: {{ count($notifications) }},
+                    clear() {
+                        this.clearedAll = true;
+                        this.remainingCount = 0;
+                        if ($refs.unreadDot) $refs.unreadDot.style.display = 'none';
+                        $wire.deleteAllNotifications();
+                    },
+                    markAllRead() {
+                        this.readAll = true;
+                        if ($refs.unreadDot) $refs.unreadDot.style.display = 'none';
+                        $wire.markAllAsRead();
+                    }
+                }"
                 class="absolute right-0 mt-2 w-80 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-xl shadow-2xl z-50 origin-top-right"
                 style="backdrop-filter: blur(12px);">
 
@@ -45,11 +61,11 @@
                         <x-icon name="bell" class="w-4 h-4 text-gray-600 dark:text-gray-400" />
                         <span class="text-xs sm:text-sm text-gray-900 dark:text-gray-100">Notifications</span>
                         @if($unreadCount > 0)
-                            <span class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ $unreadCount }}</span>
+                            <span x-show="!readAll && !clearedAll" class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ $unreadCount }}</span>
                         @endif
                     </div>
                     @if ($unreadCount > 0)
-                        <button wire:click="markAllAsRead"
+                        <button type="button" x-show="!readAll && !clearedAll" @click="markAllRead()"
                             class="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors cursor-pointer">
                             Mark all as read
                         </button>
@@ -60,10 +76,14 @@
                 <div class="bg-gradient-dark max-h-60 overflow-y-auto">
                     @forelse($notifications as $notification)
                         <div
-                            x-data="{ removed: false }"
-                            x-show="!removed"
+                            x-data="{ removed: false, isRead: {{ $notification->read_at ? 'true' : 'false' }} }"
+                            x-show="!clearedAll && !removed"
+                            x-transition:leave="transition ease-out duration-150"
+                            x-transition:leave-start="opacity-100 max-h-24"
+                            x-transition:leave-end="opacity-0 max-h-0"
                             wire:key="notif-{{ $notification->id }}"
-                            class="px-3.5 py-2.5 hover:bg-blue-300/15 cursor-pointer transition-colors border-b border-gray-100/30 dark:border-gray-800/30 last:border-b-0 @if(!$notification->read_at) bg-blue-50/80 dark:bg-blue-900/20 @endif">
+                            class="px-3.5 py-2.5 hover:bg-blue-300/15 cursor-pointer transition-colors border-b border-gray-100/30 dark:border-gray-800/30 last:border-b-0 overflow-hidden"
+                            :class="(!isRead && !readAll && !clearedAll) ? 'bg-blue-50/80 dark:bg-blue-900/20' : ''">
                             <div class="flex justify-between items-start gap-2.5">
                                 @php
                                     $notifUrl = $notification->data['url'] ?? '#';
@@ -73,7 +93,7 @@
                                     }
                                 @endphp
                                 <a href="{{ $notifUrl }}"
-                                    wire:click="markAsRead('{{ $notification->id }}')" class="flex-1 min-w-0">
+                                    @click="isRead = true; $wire.markAsRead('{{ $notification->id }}')" class="flex-1 min-w-0">
                                     <div class="text-xs text-gray-900 dark:text-gray-100 leading-snug">
                                         {{ $notification->data['message'] ?? 'New notification' }}
                                     </div>
@@ -82,7 +102,7 @@
                                     </div>
                                 </a>
                                 <button type="button"
-                                    @click.stop="removed = true; $wire.deleteNotification('{{ $notification->id }}')"
+                                    @click.stop="removed = true; remainingCount--; if (remainingCount <= 0) { clearedAll = true; if ($refs.unreadDot) $refs.unreadDot.style.display = 'none'; } $wire.deleteNotification('{{ $notification->id }}')"
                                     class="text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors p-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"
                                         stroke="currentColor">
@@ -100,12 +120,20 @@
                             <div class="text-gray-500 dark:text-gray-400 text-xs">No notifications yet</div>
                         </div>
                     @endforelse
+
+                    <!-- Dynamic Empty State when items dismissed/cleared -->
+                    <div x-show="clearedAll || remainingCount <= 0" class="px-4 py-8 text-center" style="display: none;">
+                        <div class="text-gray-400 dark:text-gray-500 mb-2">
+                            <x-icon name="bell" class="w-7 h-7 mx-auto opacity-50" />
+                        </div>
+                        <div class="text-gray-500 dark:text-gray-400 text-xs">No notifications yet</div>
+                    </div>
                 </div>
 
                 <!-- Footer -->
                 @if($notifications->count() > 0)
-                    <div class="p-3 border-t border-gray-100/50 dark:border-gray-800/50">
-                        <button wire:click="deleteAllNotifications"
+                    <div x-show="!clearedAll && remainingCount > 0" class="p-3 border-t border-gray-100/50 dark:border-gray-800/50">
+                        <button type="button" @click="clear()"
                             class="w-full text-center text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors text-xs font-medium py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer">
                             Clear all notifications
                         </button>

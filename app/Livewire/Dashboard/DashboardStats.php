@@ -135,7 +135,7 @@ class DashboardStats extends Component
      */
     public function markAsRead(string $notificationId)
     {
-        auth()->user()->notifications->where('id', $notificationId)->markAsRead();
+        auth()->user()->notifications()->where('id', $notificationId)->update(['read_at' => now()]);
         $this->loadNotifications();
     }
 
@@ -146,7 +146,7 @@ class DashboardStats extends Component
      */
     public function markAllAsRead()
     {
-        auth()->user()->unreadNotifications->markAsRead();
+        auth()->user()->unreadNotifications()->update(['read_at' => now()]);
         $this->loadNotifications();
     }
 
@@ -180,8 +180,14 @@ class DashboardStats extends Component
     protected function loadNotifications()
     {
         $user = auth()->user();
+        if (!$user) {
+            $this->notifications = collect();
+            $this->unreadCount = 0;
+            return;
+        }
+
         $this->notifications = $user->notifications()->latest()->take(10)->get();
-        $this->unreadCount = $this->notifications->whereNull('read_at')->count();
+        $this->unreadCount = (int) $user->unreadNotifications()->count();
     }
 
     /**
