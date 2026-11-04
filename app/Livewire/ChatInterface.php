@@ -345,9 +345,11 @@ class ChatInterface extends Component
             return e($rawContent);
         }
 
-        // Clean up em-dashes and double dashes
-        $cleaned = preg_replace('/\s*[—–]\s*/u', ', ', $rawContent);
-        $cleaned = preg_replace('/\s*--\s*/', ', ', $cleaned);
+        // Clean up em-dashes and double dashes without swallowing newlines
+        $cleaned = preg_replace('/([.,!?:;])[ \t]*[—–][ \t]*/u', '$1 ', $rawContent);
+        $cleaned = preg_replace('/[ \t]*[—–][ \t]*/u', ', ', $cleaned);
+        $cleaned = preg_replace('/([.,!?:;])[ \t]*--[ \t]*/', '$1 ', $cleaned);
+        $cleaned = preg_replace('/[ \t]*--[ \t]*/', ', ', $cleaned);
 
         $tools = $message['metadata']['tools_used'] ?? [];
         $entries = [];
@@ -444,12 +446,22 @@ class ChatInterface extends Component
             }
         }
 
-        // Format bullet lines (e.g. "* Title" or "- Title")
+        // Format markdown headers (# Header, ## Header, ### Header, etc.) and bullets
         $lines = explode("\n", $processed);
         $formattedLines = [];
         foreach ($lines as $line) {
             $trimmed = trim($line);
-            if (preg_match('/^[\*\-]\s+(.+)$/u', $trimmed, $m)) {
+            if (preg_match('/^(#{1,6})\s+(.+)$/u', $trimmed, $m)) {
+                $level = strlen($m[1]);
+                $headingText = $m[2];
+                if ($level <= 2) {
+                    $formattedLines[] = '<span class="block font-bold text-white text-base sm:text-lg mt-3 mb-1">' . $headingText . '</span>';
+                } elseif ($level === 3) {
+                    $formattedLines[] = '<span class="block font-semibold text-white text-sm sm:text-base mt-2.5 mb-1">' . $headingText . '</span>';
+                } else {
+                    $formattedLines[] = '<span class="block font-medium text-gray-200 text-xs sm:text-sm mt-2 mb-0.5">' . $headingText . '</span>';
+                }
+            } elseif (preg_match('/^[\*\-]\s+(.+)$/u', $trimmed, $m)) {
                 $formattedLines[] = '<span class="inline-flex items-start gap-2 my-0.5"><span class="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 shrink-0"></span><span>' . $m[1] . '</span></span>';
             } else {
                 $formattedLines[] = $line;

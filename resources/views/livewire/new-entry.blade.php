@@ -342,7 +342,13 @@
                                 <div class="flex {{ $message['sender'] === 'user' ? 'justify-end' : 'justify-start' }}">
                                     <div
                                         class="max-w-[80%] {{ $message['sender'] === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted/20 text-white' }} rounded-lg p-3">
-                                        <p class="text-sm whitespace-pre-wrap">{{ $message['content'] }}</p>
+                                        @if($message['sender'] === 'user')
+                                            <p class="text-sm whitespace-pre-wrap">{{ $message['content'] }}</p>
+                                        @else
+                                            <div class="text-sm prose prose-invert max-w-none leading-relaxed prose-p:my-1 prose-strong:text-white prose-em:text-blue-200">
+                                                {!! \Illuminate\Support\Str::markdown($message['content']) !!}
+                                            </div>
+                                        @endif
                                         @if(!empty($message['isMissingKey']))
                                             <div class="mt-2.5">
                                                 <a href="{{ route('settings.index', ['tab' => 'account']) }}" wire:navigate

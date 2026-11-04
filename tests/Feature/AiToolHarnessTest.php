@@ -385,4 +385,32 @@ class AiToolHarnessTest extends TestCase
         $this->assertEquals('Deep Philosophy of Mind', $result['milestones']['longest_entry_title']);
         $this->assertEquals('First Childhood Memory', $result['milestones']['first_entry_title']);
     }
+
+    public function test_render_message_content_parses_markdown_headings(): void
+    {
+        $ci = new \App\Livewire\ChatInterface();
+
+        $message = [
+            'isAi' => true,
+            'content' => "Here is how to think about chewing:\n\n### Is Chewing Physical or Chemical?\nChewing is actually a physical change!\n\n### 3 More Examples of Chemical Changes\n1. A glowing glowstick\n(Extra fact!), —\n\n## Summary Note",
+            'metadata' => [],
+        ];
+
+        $rendered = $ci->renderMessageContent($message);
+
+        // Raw hashes should not be visible in rendered output
+        $this->assertStringNotContainsString('###', $rendered);
+        $this->assertStringNotContainsString('##', $rendered);
+
+        // Should contain styled heading spans
+        $this->assertStringContainsString('Is Chewing Physical or Chemical?</span>', $rendered);
+        $this->assertStringContainsString('3 More Examples of Chemical Changes</span>', $rendered);
+        $this->assertStringContainsString('Summary Note</span>', $rendered);
+        $this->assertStringContainsString('font-semibold text-white', $rendered);
+        $this->assertStringContainsString('font-bold text-white', $rendered);
+
+        // Dashes preceded by punctuation should not leave stray commas
+        $this->assertStringNotContainsString('!), -', $rendered);
+        $this->assertStringNotContainsString('!), ,', $rendered);
+    }
 }
