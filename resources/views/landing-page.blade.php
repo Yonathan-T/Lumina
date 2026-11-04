@@ -7,7 +7,7 @@
     <div class="relative z-10 flex items-center justify-center text-white font-playfair text-3xl sm:text-5xl md:text-6xl font-medium tracking-wide">
       <span id="preloader-word-text" class="transition-all duration-200 inline-block">Hello</span>
     </div>
-    
+
     {{-- Dennis Snellenberg curved curtain SVG bottom edge --}}
     <svg class="absolute -bottom-24 left-0 w-full h-24 fill-[#07090e] pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
       <path id="preloader-curve" d="M0 0 L100 0 Q50 60 0 0 Z"></path>
@@ -59,8 +59,8 @@
 
   @php
     $currentHour = (int) now()->format('H');
-    $timeScene = ($currentHour >= 5 && $currentHour < 17) 
-        ? 'alpine-dawn' 
+    $timeScene = ($currentHour >= 5 && $currentHour < 17)
+        ? 'alpine-dawn'
         : (($currentHour >= 17 && $currentHour < 23) ? 'night-coast' : 'edge-orbit');
     $defaultScene = request('scene', $timeScene);
   @endphp
@@ -377,7 +377,7 @@
     </div>
   </section>
 
-  <!-- 
+  <!--
 ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
 
   <!-- Atmospheric Footer (Shares main page time art with frosted glass blur) -->
@@ -389,9 +389,8 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
       <!-- Main Footer Content -->
       <div class="py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
 
-        <!-- Brand Column -->
         <div class="lg:col-span-2 space-y-4">
-          <div class="flex items-center gap-2">
+          <!-- Brand Column
            <svg class="w-10 h-10 rotate-[-45deg] hover:rotate-[720deg] transition-all duration-500" fill="currentColor" viewBox="0 0 24 24"
                     xmlns="http://www.w3.org/2000/svg">
                     <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -403,7 +402,7 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
             <a href="/">
               <span class="text-2xl font-playfair font-bold text-[#7c6a54]">Lumina</span>
             </a>
-          </div>
+          -->
 
           <!-- Mobile: Quote Tagline -->
           <p class="sm:hidden text-white/70 text-sm leading-relaxed max-w-sm">
@@ -412,8 +411,8 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
             <x-icons type="rightQ" class="inline" />
           </p>
 
-          <!-- Desktop / Tablet: Lumina Book Artwork -->
-          <div class="hidden sm:block w-fit">
+          <!-- Desktop / Tablet: Lumina Book Artwork (Aligned with GitHub button) -->
+          <div class="hidden sm:block w-fit sm:ml-14">
             <img src="{{ asset('images/lumibook.png') }}?v={{ filemtime(public_path('images/lumibook.png')) }}"
                  alt="Lumina Book"
                  width="242"
@@ -429,10 +428,10 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
             </a>
                     <!-- GitHub Star Button (Compact & Sleek) -->
             <a href="https://github.com/Yonathan-T/Lumina" target="_blank"
-               class="group relative inline-flex items-center gap-3 px-3.5 py-2 bg-gradient-to-br from-gray-900/90 via-[#0d1117]/90 to-gray-900/90 
-                      rounded-xl border border-white/10 backdrop-blur-xl shadow-lg 
-                      hover:shadow-yellow-500/20 hover:border-yellow-500/30 
-                      transition-all duration-300 hover:-translate-y-0.5 
+               class="group relative inline-flex items-center gap-3 px-3.5 py-2 bg-gradient-to-br from-gray-900/90 via-[#0d1117]/90 to-gray-900/90
+                      rounded-xl border border-white/10 backdrop-blur-xl shadow-lg
+                      hover:shadow-yellow-500/20 hover:border-yellow-500/30
+                      transition-all duration-300 hover:-translate-y-0.5
                       overflow-hidden cursor-pointer">
 
               <!-- Background glow -->
@@ -441,8 +440,8 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
               </div>
 
               <!-- Shine sweep -->
-              <div class="absolute inset-0 -translate-x-full group-hover:translate-x-full 
-                          transition-transform duration-1000 ease-linear 
+              <div class="absolute inset-0 -translate-x-full group-hover:translate-x-full
+                          transition-transform duration-1000 ease-linear
                           bg-gradient-to-r from-transparent via-white/15 to-transparent skew-x-12"></div>
 
               <!-- GitHub Icon -->
@@ -685,8 +684,8 @@ ml-[calc(-4.5rem)] mr-[calc(-4.5rem)] -->
       function syncHeroTimeScene() {
         const urlParams = new URLSearchParams(window.location.search);
         const hour = new Date().getHours();
-        const timeScene = (hour >= 5 && hour < 17) 
-            ? 'alpine-dawn' 
+        const timeScene = (hour >= 5 && hour < 17)
+            ? 'alpine-dawn'
             : ((hour >= 17 && hour < 23) ? 'night-coast' : 'edge-orbit');
         const piece = urlParams.get('scene') || timeScene;
         const container = document.getElementById('page-time-container');

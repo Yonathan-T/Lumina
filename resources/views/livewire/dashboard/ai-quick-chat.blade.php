@@ -235,8 +235,8 @@
                 @click.stop>
                 <!-- Header -->
                 <div class="flex items-center justify-between p-4 border-b border-white/10">
-                    <div class="flex items-center gap-2.5">
-                        <svg class="h-7 w-auto shrink-0 drop-shadow-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 250">
+                    <div class="flex items-center gap-3">
+                        <svg class="h-10 sm:h-11 w-auto shrink-0 drop-shadow-md" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 250">
                           <!-- Exact prism body -->
                           <g transform="translate(100, 125) scale(5.2) rotate(-180) translate(-12, -12)">
                             <path d="M13,2l9,13.6L13,22ZM11,2,2,15.6,11,22Z" fill="#FFFFFF"/>
