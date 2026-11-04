@@ -16,7 +16,7 @@
                     class="cursor-pointer p-2 rounded-full hover:bg-white/10 transition-colors">
                     <x-icon name="bell" class="w-8 h-8" />
                     @if($unreadCount > 0)
-                        <span x-ref="unreadDot" class="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
+                        <span id="notification-bell-dot" x-ref="unreadDot" class="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
                     @endif
                 </button>
 
@@ -39,15 +39,42 @@
                     clearedAll: false,
                     readAll: false,
                     remainingCount: {{ count($notifications) }},
+                    unreadNum: {{ $unreadCount }},
+                    dismiss(id, wasUnread) {
+                        this.remainingCount--;
+                        if (wasUnread) {
+                            this.unreadNum = Math.max(0, this.unreadNum - 1);
+                        }
+                        if (this.remainingCount <= 0) {
+                            this.clearedAll = true;
+                        }
+                        if (this.unreadNum <= 0) {
+                            let dot = document.getElementById('notification-bell-dot');
+                            if (dot) dot.style.display = 'none';
+                        }
+                        $wire.deleteNotification(id);
+                    },
+                    markRead(id) {
+                        this.unreadNum = Math.max(0, this.unreadNum - 1);
+                        if (this.unreadNum <= 0) {
+                            let dot = document.getElementById('notification-bell-dot');
+                            if (dot) dot.style.display = 'none';
+                        }
+                        $wire.markAsRead(id);
+                    },
                     clear() {
                         this.clearedAll = true;
                         this.remainingCount = 0;
-                        if ($refs.unreadDot) $refs.unreadDot.style.display = 'none';
+                        this.unreadNum = 0;
+                        let dot = document.getElementById('notification-bell-dot');
+                        if (dot) dot.style.display = 'none';
                         $wire.deleteAllNotifications();
                     },
                     markAllRead() {
                         this.readAll = true;
-                        if ($refs.unreadDot) $refs.unreadDot.style.display = 'none';
+                        this.unreadNum = 0;
+                        let dot = document.getElementById('notification-bell-dot');
+                        if (dot) dot.style.display = 'none';
                         $wire.markAllAsRead();
                     }
                 }"
@@ -61,11 +88,13 @@
                         <x-icon name="bell" class="w-4 h-4 text-gray-600 dark:text-gray-400" />
                         <span class="text-xs sm:text-sm text-gray-900 dark:text-gray-100">Notifications</span>
                         @if($unreadCount > 0)
-                            <span x-show="!readAll && !clearedAll" class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ $unreadCount }}</span>
+                            <span x-show="!readAll && !clearedAll && unreadNum > 0"
+                                x-text="unreadNum"
+                                class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ $unreadCount }}</span>
                         @endif
                     </div>
                     @if ($unreadCount > 0)
-                        <button type="button" x-show="!readAll && !clearedAll" @click="markAllRead()"
+                        <button type="button" x-show="!readAll && !clearedAll && unreadNum > 0" @click="markAllRead()"
                             class="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors cursor-pointer">
                             Mark all as read
                         </button>
@@ -91,18 +120,20 @@
                                         $parsedUrl = parse_url($notifUrl);
                                         $notifUrl = ($parsedUrl['path'] ?? '/') . (isset($parsedUrl['query']) ? '?' . $parsedUrl['query'] : '') . (isset($parsedUrl['fragment']) ? '#' . $parsedUrl['fragment'] : '');
                                     }
+                                    $cleanMsg = preg_replace('/[\x{1F600}-\x{1F64F}\x{1F300}-\x{1F5FF}\x{1F680}-\x{1F6FF}\x{1F700}-\x{1F77F}\x{1F780}-\x{1F7FF}\x{1F800}-\x{1F8FF}\x{1F900}-\x{1F9FF}\x{1FA00}-\x{1FA6F}\x{1FA70}-\x{1FAFF}\x{2600}-\x{26FF}\x{2700}-\x{27BF}]/u', '', (string)($notification->data['message'] ?? 'New notification'));
+                                    $cleanMsg = trim($cleanMsg);
                                 @endphp
                                 <a href="{{ $notifUrl }}"
-                                    @click="isRead = true; $wire.markAsRead('{{ $notification->id }}')" class="flex-1 min-w-0">
+                                    @click="if (!isRead) { isRead = true; markRead('{{ $notification->id }}'); }" class="flex-1 min-w-0">
                                     <div class="text-xs text-gray-900 dark:text-gray-100 leading-snug">
-                                        {{ $notification->data['message'] ?? 'New notification' }}
+                                        {{ $cleanMsg }}
                                     </div>
                                     <div class="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
                                         {{ $notification->created_at->diffForHumans() }}
                                     </div>
                                 </a>
                                 <button type="button"
-                                    @click.stop="removed = true; remainingCount--; if (remainingCount <= 0) { clearedAll = true; if ($refs.unreadDot) $refs.unreadDot.style.display = 'none'; } $wire.deleteNotification('{{ $notification->id }}')"
+                                    @click.stop="removed = true; dismiss('{{ $notification->id }}', !isRead)"
                                     class="text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors p-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"
                                         stroke="currentColor">
