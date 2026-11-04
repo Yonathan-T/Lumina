@@ -235,7 +235,65 @@
                 @click.stop>
                 <!-- Header -->
                 <div class="flex items-center justify-between p-4 border-b border-white/10">
-                    <h3 class="text-lg font-semibold text-white">Quick Chat</h3>
+                    <div class="flex items-center gap-2.5">
+                        <svg class="h-7 w-auto shrink-0 drop-shadow-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 250">
+                          <!-- Exact prism body -->
+                          <g transform="translate(100, 125) scale(5.2) rotate(-180) translate(-12, -12)">
+                            <path d="M13,2l9,13.6L13,22ZM11,2,2,15.6,11,22Z" fill="#FFFFFF"/>
+                          </g>
+
+                          <!-- Head -->
+                          <circle cx="100" cy="48" r="24" fill="#FFFFFF"/>
+                          
+                          <!-- Incognito Glasses -->
+                          <circle cx="89" cy="47" r="7.5" fill="#1a1a2e"/>
+                          <circle cx="111" cy="47" r="7.5" fill="#1a1a2e"/>
+                          <path d="M96.5 47 L103.5 47" stroke="#1a1a2e" stroke-width="2.5" stroke-linecap="round"/>
+                          <path d="M81.5 47 L76 44" stroke="#1a1a2e" stroke-width="2.2" stroke-linecap="round"/>
+                          <path d="M118.5 47 L124 44" stroke="#1a1a2e" stroke-width="2.2" stroke-linecap="round"/>
+
+                          <!-- Incognito Fedora Hat -->
+                          <!-- Brim -->
+                          <ellipse cx="100" cy="28" rx="28" ry="6" fill="#FFFFFF"/>
+                          <!-- Crown -->
+                          <path d="M82 28 
+                                   Q 82 12 100 12 
+                                   Q 118 12 118 28 
+                                   Q 110 22 100 22 
+                                   Q 90 22 82 28 Z" fill="#FFFFFF"/>
+
+                          <!-- Left Arm -->
+                          <path d="M80 95 L58 112 L48 138" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+                          <circle cx="58" cy="112" r="3.8" fill="#FFFFFF"/>
+                          <circle cx="48" cy="141" r="7.5" fill="#FFFFFF"/>
+
+                          <!-- Right Arm -->
+                          <path d="M120 95 L142 112 L152 138" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+                          <circle cx="142" cy="112" r="3.8" fill="#FFFFFF"/>
+
+                          <!-- Cane -->
+                          <path d="M156 141 L156 210" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+                          <path d="M156 141 Q 164 132 172 141" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+
+                          <!-- Right hand -->
+                          <circle cx="155" cy="141" r="7.5" fill="#FFFFFF"/>
+
+                          <!-- Left Leg + Foot -->
+                          <g stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                            <path d="M88 160 L80 188 L80 198"/>
+                            <rect x="63" y="198" width="34" height="9" rx="4.5" fill="#FFFFFF" stroke="none"/>
+                            <circle cx="71" cy="202.5" r="1.6" fill="#FFFFFF" stroke="none"/>
+                          </g>
+
+                          <!-- Right Leg + Foot -->
+                          <g stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                            <path d="M112 160 L124 188 L124 198"/>
+                            <rect x="107" y="198" width="34" height="9" rx="4.5" fill="#FFFFFF" stroke="none"/>
+                            <circle cx="133" cy="202.5" r="1.6" fill="#FFFFFF" stroke="none"/>
+                          </g>
+                        </svg>
+                        <h3 class="text-lg font-semibold text-white">Quick Chat</h3>
+                    </div>
                     <button type="button" @click="show = false; $wire.closeQuickChatModal()"
                         class="p-1 text-muted hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
                         aria-label="Close quick chat">
