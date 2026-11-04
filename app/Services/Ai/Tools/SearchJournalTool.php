@@ -65,14 +65,21 @@ class SearchJournalTool implements ToolInterface
         $daysAgo = isset($args['days_ago']) ? (int) $args['days_ago'] : null;
 
         // Auto-detect milestone queries from natural language query if order_by wasn't explicitly passed
+        $isFirstQuery = (bool) preg_match('/\b(first|earliest|beginning|start|oldest)\b/i', $query);
+        $isLongestQuery = (bool) preg_match('/\b(longest|most detailed|most words|biggest entry|lengthiest)\b/i', $query);
+        $isShortestQuery = (bool) preg_match('/\b(shortest|briefest)\b/i', $query);
+        $isLatestQuery = (bool) (preg_match('/\b(latest|most recent|recent entries|last entry)\b/i', $query) && mb_strlen($query) < 25);
+
         if ($orderBy === '' || $orderBy === 'relevance') {
-            if (preg_match('/\b(first|earliest|beginning|start|oldest)\b/i', $query)) {
+            if ($isFirstQuery && $isLongestQuery) {
+                $orderBy = 'first_and_longest';
+            } elseif ($isFirstQuery) {
                 $orderBy = 'earliest';
-            } elseif (preg_match('/\b(longest|most detailed|most words|biggest entry|lengthiest)\b/i', $query)) {
+            } elseif ($isLongestQuery) {
                 $orderBy = 'longest';
-            } elseif (preg_match('/\b(shortest|briefest)\b/i', $query)) {
+            } elseif ($isShortestQuery) {
                 $orderBy = 'shortest';
-            } elseif (preg_match('/\b(latest|most recent|recent entries|last entry)\b/i', $query) && mb_strlen($query) < 25) {
+            } elseif ($isLatestQuery) {
                 $orderBy = 'latest';
             }
         }
@@ -86,6 +93,91 @@ class SearchJournalTool implements ToolInterface
         }
 
         try {
+            // Milestone: Compound query for both First and Longest entries
+            if ($orderBy === 'first_and_longest') {
+                $allEntries = Entry::where('user_id', $user->id)->with('tags:id,name')->get();
+
+                if ($allEntries->isEmpty()) {
+                    return [
+                        'status' => 'not_found',
+                        'count' => 0,
+                        'entries' => [],
+                        'message' => 'No journal entries found.',
+                    ];
+                }
+
+                $firstEntry = $allEntries->sortBy('created_at')->first();
+
+                $scored = $allEntries->map(function (Entry $entry) {
+                    $cleanContent = trim(strip_tags((string) $entry->content));
+                    return [
+                        'entry' => $entry,
+                        'word_count' => str_word_count($cleanContent),
+                        'snippet' => Str::limit($cleanContent, 400, '...'),
+                    ];
+                });
+
+                $sortedLongest = $scored->sortByDesc('word_count')->values();
+                $longestItem = $sortedLongest->first();
+
+                $formatted = [];
+
+                if ($firstEntry) {
+                    $firstClean = Str::limit(strip_tags((string) $firstEntry->content), 400, '...');
+                    $formatted[] = [
+                        'id' => $firstEntry->id,
+                        'title' => (string) $firstEntry->title,
+                        'date' => $firstEntry->created_at ? $firstEntry->created_at->format('M j, Y \a\t g:i A') : 'Unknown',
+                        'word_count' => str_word_count(strip_tags((string) $firstEntry->content)),
+                        'snippet' => $firstClean,
+                        'tags' => $firstEntry->tags->pluck('name')->all(),
+                        'match_type' => 'earliest_entry',
+                    ];
+                }
+
+                if ($longestItem && $longestItem['entry']->id !== ($firstEntry ? $firstEntry->id : null)) {
+                    $longestEntry = $longestItem['entry'];
+                    $formatted[] = [
+                        'id' => $longestEntry->id,
+                        'title' => (string) $longestEntry->title,
+                        'date' => $longestEntry->created_at ? $longestEntry->created_at->format('M j, Y \a\t g:i A') : 'Unknown',
+                        'word_count' => $longestItem['word_count'],
+                        'snippet' => $longestItem['snippet'],
+                        'tags' => $longestEntry->tags->pluck('name')->all(),
+                        'match_type' => 'longest_entry',
+                    ];
+                }
+
+                // Add runner-up longest if available
+                if ($sortedLongest->count() > 1) {
+                    $runnerUp = $sortedLongest->get(1);
+                    if ($runnerUp && $runnerUp['entry']->id !== ($firstEntry ? $firstEntry->id : null)) {
+                        $formatted[] = [
+                            'id' => $runnerUp['entry']->id,
+                            'title' => (string) $runnerUp['entry']->title,
+                            'date' => $runnerUp['entry']->created_at ? $runnerUp['entry']->created_at->format('M j, Y \a\t g:i A') : 'Unknown',
+                            'word_count' => $runnerUp['word_count'],
+                            'snippet' => $runnerUp['snippet'],
+                            'tags' => $runnerUp['entry']->tags->pluck('name')->all(),
+                            'match_type' => 'longest_entry',
+                        ];
+                    }
+                }
+
+                return [
+                    'status' => 'success',
+                    'count' => count($formatted),
+                    'milestones' => [
+                        'first_entry_title' => $firstEntry ? (string) $firstEntry->title : 'None',
+                        'first_entry_date' => $firstEntry && $firstEntry->created_at ? $firstEntry->created_at->format('M j, Y') : 'Unknown',
+                        'first_entry_word_count' => $firstEntry ? str_word_count(strip_tags((string) $firstEntry->content)) : 0,
+                        'longest_entry_title' => $longestItem ? (string) $longestItem['entry']->title : 'None',
+                        'longest_entry_word_count' => $longestItem ? $longestItem['word_count'] : 0,
+                    ],
+                    'entries' => $formatted,
+                ];
+            }
+
             // Milestone 1: Earliest / First entry ever
             if ($orderBy === 'earliest') {
                 $queryBuilder = Entry::where('user_id', $user->id)
@@ -107,6 +199,17 @@ class SearchJournalTool implements ToolInterface
                     ];
                 }
 
+                $allUserEntries = Entry::where('user_id', $user->id)->get();
+                $maxW = 0;
+                $longestTitle = 'None';
+                foreach ($allUserEntries as $e) {
+                    $wc = str_word_count(strip_tags((string) $e->content));
+                    if ($wc > $maxW) {
+                        $maxW = $wc;
+                        $longestTitle = (string) $e->title;
+                    }
+                }
+
                 $formatted = $entries->map(function (Entry $entry) {
                     $cleanContent = Str::limit(strip_tags((string) $entry->content), 400, '...');
                     $wordCount = str_word_count(strip_tags((string) $entry->content));
@@ -125,6 +228,12 @@ class SearchJournalTool implements ToolInterface
                 return [
                     'status' => 'success',
                     'count' => count($formatted),
+                    'milestones' => [
+                        'first_entry_title' => $formatted[0]['title'] ?? 'None',
+                        'first_entry_date' => $formatted[0]['date'] ?? 'Unknown',
+                        'longest_entry_title' => $longestTitle,
+                        'longest_entry_word_count' => $maxW,
+                    ],
                     'entries' => $formatted,
                 ];
             }
@@ -147,6 +256,8 @@ class SearchJournalTool implements ToolInterface
                         'message' => 'No journal entries found.',
                     ];
                 }
+
+                $firstE = Entry::where('user_id', $user->id)->orderBy('created_at', 'asc')->first();
 
                 $scored = $allEntries->map(function (Entry $entry) {
                     $cleanContent = trim(strip_tags((string) $entry->content));
@@ -181,6 +292,12 @@ class SearchJournalTool implements ToolInterface
                 return [
                     'status' => 'success',
                     'count' => count($formatted),
+                    'milestones' => [
+                        'first_entry_title' => $firstE ? (string) $firstE->title : 'None',
+                        'first_entry_date' => $firstE && $firstE->created_at ? $firstE->created_at->format('M j, Y') : 'Unknown',
+                        'longest_entry_title' => $formatted[0]['title'] ?? 'None',
+                        'longest_entry_word_count' => $formatted[0]['word_count'] ?? 0,
+                    ],
                     'entries' => $formatted,
                 ];
             }

@@ -351,4 +351,38 @@ class AiToolHarnessTest extends TestCase
         $this->assertStringContainsString('Entry 1', $rendered);
         $this->assertStringContainsString('In that entry, you reflected on ambition.', $rendered);
     }
+
+    public function test_search_journal_handles_compound_first_and_longest_query(): void
+    {
+        $user = User::factory()->create();
+
+        $earliest = Entry::create([
+            'user_id' => $user->id,
+            'title' => 'First Childhood Memory',
+            'content' => 'Short reflection on childhood.',
+            'created_at' => now()->subYears(2),
+        ]);
+
+        $longestContent = implode(' ', array_fill(0, 200, 'in-depth analysis'));
+        $longest = Entry::create([
+            'user_id' => $user->id,
+            'title' => 'Deep Philosophy of Mind',
+            'content' => $longestContent,
+            'created_at' => now()->subMonths(6),
+        ]);
+
+        $tool = new SearchJournalTool();
+        $result = $tool->execute([
+            'query' => 'you rememebr my first entry? what was it about? also what is the longest entry i have?'
+        ], $user);
+
+        $this->assertEquals('success', $result['status']);
+        $this->assertCount(2, $result['entries']);
+        $this->assertEquals('First Childhood Memory', $result['entries'][0]['title']);
+        $this->assertEquals('earliest_entry', $result['entries'][0]['match_type']);
+        $this->assertEquals('Deep Philosophy of Mind', $result['entries'][1]['title']);
+        $this->assertEquals('longest_entry', $result['entries'][1]['match_type']);
+        $this->assertEquals('Deep Philosophy of Mind', $result['milestones']['longest_entry_title']);
+        $this->assertEquals('First Childhood Memory', $result['milestones']['first_entry_title']);
+    }
 }

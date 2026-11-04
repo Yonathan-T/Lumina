@@ -19,13 +19,13 @@ class GetUserStatsTool implements ToolInterface
     {
         return [
             'name' => 'get_user_stats',
-            'description' => 'Retrieve the user\'s journaling statistics including current writing streak, longest streak, total entry count, and most frequent topics/tags.',
+            'description' => 'Retrieve the user\'s journaling statistics including current writing streak, longest streak, total entry count, writing milestones (first/earliest entry title and date, longest entry title and word count), average words per entry, and most frequent topics/tags.',
             'parameters' => [
                 'type' => 'OBJECT',
                 'properties' => [
                     'focus' => [
                         'type' => 'STRING',
-                        'description' => 'Optional area of focus: "streak", "totals", or "all". Default is "all".',
+                        'description' => 'Optional area of focus: "streak", "totals", "milestones", or "all". Default is "all".',
                     ],
                 ],
             ],
