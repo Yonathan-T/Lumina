@@ -118,16 +118,11 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <div>
             <a href="{{ url('auth/google/redirect') }}"
-                class="cursor-pointer py-2.5 px-4 bg-[#171a21]/80 hover:bg-[#1f2430] border border-white/10 hover:border-white/20 rounded-xl text-white text-sm font-medium transition flex items-center justify-center gap-2.5 group">
+                class="w-full cursor-pointer py-2.5 px-4 bg-[#171a21]/80 hover:bg-[#1f2430] border border-white/10 hover:border-white/20 rounded-xl text-white text-sm font-medium transition flex items-center justify-center gap-2.5 group">
                 <x-icon name="google" class="w-4 h-4 group-hover:scale-105 transition-transform" />
-                <span>Google</span>
-            </a>
-            <a href="{{ url('auth/github/redirect') }}"
-                class="cursor-pointer py-2.5 px-4 bg-[#171a21]/80 hover:bg-[#1f2430] border border-white/10 hover:border-white/20 rounded-xl text-white text-sm font-medium transition flex items-center justify-center gap-2.5 group">
-                <x-icon name="github" class="w-4 h-4 text-white group-hover:scale-105 transition-transform" />
-                <span>GitHub</span>
+                <span>Continue with Google</span>
             </a>
         </div>
     @endisset

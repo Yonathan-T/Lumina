@@ -27,8 +27,12 @@ class SocialLoginController extends Controller
         return url("/auth/{$provider}/callback");
     }
 
+    protected array $allowedProviders = ['google'];
+
     public function redirectToProvider($provider)
     {
+        abort_unless(in_array($provider, $this->allowedProviders), 404);
+
         return Socialite::driver($provider)
             ->redirectUrl($this->resolveRedirectUrl($provider))
             ->redirect();
@@ -36,6 +40,8 @@ class SocialLoginController extends Controller
 
     public function handleProviderCallback($provider)
     {
+        abort_unless(in_array($provider, $this->allowedProviders), 404);
+
         try {
             $socialUser = Socialite::driver($provider)
                 ->redirectUrl($this->resolveRedirectUrl($provider))
